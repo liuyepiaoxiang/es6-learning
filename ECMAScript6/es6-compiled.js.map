@@ -1,0 +1,1 @@
+{"version":3,"sources":["es6.js"],"names":[],"mappings":"AAAA;;;;;;;;AAQA,MAAM,GAAN,CAAU,QAAQ,OAAM,CAAxB","file":"es6-compiled.js","sourcesContent":["/**\r\n *@filename:es6.js\r\n *@abstract:to do this\r\n *@author:liujia\r\n *@time:2017/5/3 0003\r\n *@version 0.0.1\r\n */\r\n\r\ninput.map(item => item +1);"]}
