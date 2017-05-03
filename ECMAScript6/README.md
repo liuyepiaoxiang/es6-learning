@@ -412,26 +412,222 @@ let baz;
 ```
 上面代码中， let命令下面一行的圆括号是必须的， 否则会报错。 因为解析器会将起首的大括号， 理解成一个代码块， 而不是赋值语句。
 和数组一样， 解构也可以用于嵌套结构的对象。
+```
+var obj = {p: [
+'Hello',
+{ y: 'World' }
+]
+};
+var { p: [x, { y }] } = obj;
+x // "Hello"
+y // "World"
+```
+注意， 这时p是模式， 不是变量， 因此不会被赋值。
+```
+var node = {
+loc: {
+start: {
+line: 1,
+column: 5
+}
+}
+};
+var { loc: { start: { line }} } = node;
+line // 1
+loc // error: loc is undefined
+start // error: start is undefined
+```
+上面代码中， 只有line是变量， loc和start都是模式， 不会被赋值。
+下面是嵌套赋值的例子。
+```
 
+```
 ## 字符串
+字符串也可以解构赋值。 这是因为此时， 字符串被转换成了一个类似数组的对象。
+```
+const [a, b, c, d, e] = 'hello';
+a // "h"b // "e"
+c // "l"
+d // "l"
+e // "o"
+```
+类似数组的对象都有一个length属性， 因此还可以对这个属性解构赋值。
+```
+let {length : len} = 'hello';
+len // 5
+```
 ## 数值和布尔值
+解构赋值时， 如果等号右边是数值和布尔值， 则会先转为对象。
+```
+let {toString: s} = 123;
+s === Number.prototype.toString // true
+let {toString: s} = true;
+s === Boolean.prototype.toString // true
+```
+上面代码中， 数值和布尔值的包装对象都有toString属性， 因此变量s都能取到值。
+解构赋值的规则是， 只要等号右边的值不是对象， 就先将其转为对象。 由于undefined和null无法转为对象， 所以对它们进行解构赋值， 都会报错。
+```
+let { prop: x } = undefined; // TypeError
+let { prop: y } = null; // TypeError
+```
 ## 函数参数
-## 圆括号
-## 用途
+函数的参数也可以使用解构赋值。
+```
+function add([x, y]){
+return x + y;
+}
+add([1, 2]); // 3
+```
 
+## 圆括号
+解构赋值虽然很方便， 但是解析起来并不容易。 对于编译器来说， 一个式子到底是模式， 还是表达式， 没有办法从一开始就知道， 必须解析到（或解
+析不到） 等号才能知道。
+由此带来的问题是， 如果模式中出现圆括号怎么处理。 ES6的规则是， 只要有可能导致解构的歧义， 就不得使用圆括号。
+但是， 这条规则实际上不那么容易辨别， 处理起来相当麻烦。 因此， 建议只要有可能， 就不要在模式中放置圆括号。
+### 不能使用圆括号的情况
+1. 变量声明语句中，不能带有圆括号。
+```
+// 全部报错
+var [(a)] = [1];
+var {x: (c)} = {};
+var ({x: c}) = {};
+var {(x: c)} = {};
+var {(x): c} = {};
+var { o: ({ p: p }) } = { o: { p: 2 } };
+```
+2. 函数参数中，模式不能带有圆括号。
+函数参数也属于变量声明， 因此不能带有圆括号。
+```
+// 报错
+function f([(z)]) { return z; }
+```
+
+3. 赋值语句中，不能将整个模式，或嵌套模式中的一层，放在圆括号之中。
+```
+// 全部报错
+({ p: a }) = { p: 42 };
+([a]) = [5];
+```
+### 可以使用圆括号的情况
+可以使用圆括号的情况只有一种： 赋值语句的非模式部分， 可以使用圆括号。
+```
+[(b)] = [3]; // 正确
+({ p: (d) } = {}); // 正确
+[(parseInt.prop)] = [3]; // 正确
+```
+
+## 用途
+1. 交换变量的值
+```
+[x, y] = [y, x];
+```
+2. 从函数返回多个值
+函数只能返回一个值， 如果要返回多个值， 只能将它们放在数组或对象里返回。 有了解构赋值， 取出这些值就非常方便。
+```
+// 返回一个数组
+function example() {
+return [1, 2, 3];
+} v
+ar [a, b, c] = example();
+// 返回一个对象
+function example() {
+return {
+foo: 1,
+bar: 2
+};
+}
+var { foo, bar } = example();
+```
+3. 函数参数的定义
+解构赋值可以方便地将一组参数与变量名对应起来。
+```
+// 参数是一组有次序的值
+function f([x, y, z]) { ... }
+f([1, 2, 3]);
+// 参数是一组无次序的值
+function f({x, y, z}) { ... }
+f({z: 3, y: 2, x: 1});
+```
+4. 提取JSON数据
+解构赋值对提取JSON对象中的数据， 尤其有用。
+```
+var jsonData = {
+id: 42,
+status: "OK",
+data: [867, 5309]
+};
+let { id, status, data: number } = jsonData;console.log(id, status, number);
+// 42, "OK", [867, 5309]
+```
+5. 函数参数的默认值
+```
+jQuery.ajax = function (url, {
+async = true,
+beforeSend = function () {},
+cache = true,
+complete = function () {},
+crossDomain = false,
+global = true,
+// ... more config
+}) {
+// ... do stuff
+};
+```
+6. 遍历MAP结构
+任何部署了Iterator接口的对象， 都可以用for...of循环遍历。 Map结构原生支持Iterator接口， 配合变量的解构赋值， 获取键名和键值就非常方便。
+```
+var map = new Map();
+map.set('first', 'hello');
+map.set('second', 'world');
+for (let [key, value] of map) {
+console.log(key + " is " + value);
+} /
+/ first is hello
+// second is world
+```
+如果只想获取键名， 或者只想获取键值， 可以写成下面这样。
+```
+// 获取键名
+for (let [key] of map) {
+// ...
+} /
+/ 获取键值
+for (let [,value] of map) {
+// ...
+}
+```
+
+7. 输入模块的指定方法
+加载模块时， 往往需要指定输入那些方法。 解构赋值使得输入语句非常清晰。
+```
+const { SourceMapConsumer, SourceNode } = require("source-map");
+```
 # 字符串的扩展
+
 ## 字符的Unicode表示法
+
 ## codePointAt()
+
 ## String.fromCodePoint()
+
 ## 字符串的遍历器接口
+
 ## at()
+
 ## normalize()
+
 ## includes(),startsWith(),endsWith()
+
 ## repeat()
+
 ## padStart(),padEnd()
+
 ## 模板字符串
+
 ## 模板编译
+
 ## 标签模板
+
 ## String.raw()
 
 # 正则的扩展
