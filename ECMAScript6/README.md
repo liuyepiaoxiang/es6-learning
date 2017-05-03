@@ -8,7 +8,60 @@ npm install babel-cli -g
 [babel](http://babeljs.cn/)
 
 ## babel transcoder(转码器)
-babel的配置文件是.babelrc，存放在项目的根目录下
+### 配置文件
+babel的配置文件是.babelrc，存放在项目的根目录下，该文件用来设置转码规则和插件，基本格式如下：
+```
+{
+"presets":[],
+"plugins":[]
+}
+```
+### 命令行转码babel-cli
+安装
+`
+npm install --global babel-cli
+`
+基本用法:
+```
+# 转码结果输出到标准输出
+$ babel example.js
+# 转码结果写入一个文件
+# --out-file 或 -o 参数指定输出文件
+$ babel example.js --out-file compiled.js
+# 或者
+$ babel example.js -o compiled.js
+# 整个目录转码
+# --out-dir 或 -d 参数指定输出目录
+$ babel src --out-dir lib
+# 或者
+$ babel src -d lib
+# -s 参数生成source map文件
+$ babel src -d lib -s
+```
+### babel-node
+支持node的REPL环境的所有功能，执行babel-node就进入REPL环境
+### babel-register
+babel-register模块改写require命令，为它加上一个钩子。此后，每当使用require加载.js、.jsx、.es和.es6后缀名的文件，就会先用babel进行转码。
+```
+npm install --save-dev babel-register
+```
+```
+require('babel-register');
+require('./index.js');
+```
+### babel-core
+
+
+### babel-polyfill
+
+### 浏览器环境
+
+### 在线转换
+
+### 与其他工具的配合
+
+
+
 ## ECMAScript7
 
 # `let` and `const` command(let和const命令)
