@@ -2,6 +2,7 @@
 
 # 介绍
 ## 起步
+[在线文档](https://cn.vuejs.org/v2/guide/)
 ```
 <script src="https://unpkg.com/vue/dist/vue.js"></script>
 ```
@@ -240,4 +241,292 @@ v- 前缀在模板中是作为一个标示 Vue 特殊属性的明显标识。当
 <a v-on:click="doSomething"></a>
 <!-- 缩写 -->
 <a @click="doSomething"></a>
+```
+
+# 计算属性
+## 计算属性
+模板内的表达式是非常便利的，但是它们实际上只用于简单的运算。在模板中放入太多的逻辑会让模板过重且难以维护。
+
+### 基础例子
+```html
+<div id="example">
+  <p>Original message: "{{ message }}"</p>
+  <p>Computed reversed message: "{{ reversedMessage }}"</p>
+</div>
+```
+```javascript
+var vm = new Vue({
+  el: '#example',
+  data: {
+    message: 'Hello'
+  },
+  computed: {
+    // a computed getter
+    reversedMessage: function () {
+      // `this` points to the vm instance
+      return this.message.split('').reverse().join('')
+    }
+  }
+})
+```
+### 计算缓存 vs Methods
+你可能已经注意到我们可以通过调用表达式中的 method 来达到同样的效果。
+```html
+<p>Reversed message: "{{ reversedMessage() }}"</p>
+```
+```javascript
+// in component
+methods: {
+  reversedMessage: function () {
+    return this.message.split('').reverse().join('')
+  }
+}
+```
+我们可以将同一函数定义为一个 method 而不是一个计算属性。对于最终的结果，两种方式确实是相同的。然而，不同的是计算属性是基于它们的依赖进行缓存的。计算属性只有在它的相关依赖发生改变时才会重新求值。这就意味着只要 message 还没有发生改变，多次访问 reversedMessage 计算属性会立即返回之前的计算结果，而不必再次执行函数。
+这也同样意味着下面的计算属性将不再更新，因为 Date.now() 不是响应式依赖:
+```javascript
+computed: {
+  now: function () {
+    return Date.now()
+  }
+}
+```
+相比而言，只要发生重新渲染，method 调用总会执行该函数。
+我们为什么需要缓存？假设我们有一个性能开销比较大的的计算属性 A ，它需要遍历一个极大的数组和做大量的计算。然后我们可能有其他的计算属性依赖于 A 。如果没有缓存，我们将不可避免的多次执行 A 的 getter！如果你不希望有缓存，请用 method 替代。
+
+### Computed属性 vs Watched属性
+Vue 确实提供了一种更通用的方式来观察和响应 Vue 实例上的数据变动：watch 属性。当你有一些数据需要随着其它数据变动而变动时，你很容易滥用 watch——特别是如果你之前使用过 AngularJS。然而，通常更好的想法是使用 computed 属性而不是命令式的 watch 回调。细想一下这个例子：
+```html
+<div id="demo">{{ fullName }}</div>
+```
+```javascript
+var vm = new Vue({
+  el: '#demo',
+  data: {
+    firstName: 'Foo',
+    lastName: 'Bar',
+    fullName: 'Foo Bar'
+  },
+  watch: {
+    firstName: function (val) {
+      this.fullName = val + ' ' + this.lastName
+    },
+    lastName: function (val) {
+      this.fullName = this.firstName + ' ' + val
+    }
+  }
+})
+```
+上面代码是命令式的和重复的。将它与 computed 属性的版本进行比较：
+```javascript
+var vm = new Vue({
+  el: '#demo',
+  data: {
+    firstName: 'Foo',
+    lastName: 'Bar'
+  },
+  computed: {
+    fullName: function () {
+      return this.firstName + ' ' + this.lastName
+    }
+  }
+})
+```
+### 计算setter
+计算属性默认只有getter，不过在需要时你也可以提供一个setter
+```javascript
+// ...
+computed: {
+  fullName: {
+    // getter
+    get: function () {
+      return this.firstName + ' ' + this.lastName
+    },
+    // setter
+    set: function (newValue) {
+      var names = newValue.split(' ')
+      this.firstName = names[0]
+      this.lastName = names[names.length - 1]
+    }
+  }
+}
+// ...
+```
+现在在运行 vm.fullName = 'John Doe' 时， setter 会被调用， vm.firstName 和 vm.lastName 也相应地会被更新。
+
+### 观察Watchers
+虽然计算属性在大多数情况下更合适，但有时也需要一个自定义的 watcher 。这是为什么 Vue 提供一个更通用的方法通过 watch 选项，来响应数据的变化。当你想要在数据变化响应时，执行异步操作或开销较大的操作，这是很有用的。
+```html
+<div id="watch-example">
+  <p>
+    Ask a yes/no question:
+    <input v-model="question">
+  </p>
+  <p>{{ answer }}</p>
+</div>
+```
+```javascript
+<!-- Since there is already a rich ecosystem of ajax libraries    -->
+<!-- and collections of general-purpose utility methods, Vue core -->
+<!-- is able to remain small by not reinventing them. This also   -->
+<!-- gives you the freedom to just use what you're familiar with. -->
+<script src="https://unpkg.com/axios@0.12.0/dist/axios.min.js"></script>
+<script src="https://unpkg.com/lodash@4.13.1/lodash.min.js"></script>
+<script>
+var watchExampleVM = new Vue({
+  el: '#watch-example',
+  data: {
+    question: '',
+    answer: 'I cannot give you an answer until you ask a question!'
+  },
+  watch: {
+    // 如果 question 发生改变，这个函数就会运行
+    question: function (newQuestion) {
+      this.answer = 'Waiting for you to stop typing...'
+      this.getAnswer()
+    }
+  },
+  methods: {
+    // _.debounce 是一个通过 lodash 限制操作频率的函数。
+    // 在这个例子中，我们希望限制访问yesno.wtf/api的频率
+    // ajax请求直到用户输入完毕才会发出
+    // 学习更多关于 _.debounce function (and its cousin
+    // _.throttle), 参考: https://lodash.com/docs#debounce
+    getAnswer: _.debounce(
+      function () {
+        var vm = this
+        if (this.question.indexOf('?') === -1) {
+          vm.answer = 'Questions usually contain a question mark. ;-)'
+          return
+        }
+        vm.answer = 'Thinking...'
+        axios.get('https://yesno.wtf/api')
+          .then(function (response) {
+            vm.answer = _.capitalize(response.data.answer)
+          })
+          .catch(function (error) {
+            vm.answer = 'Error! Could not reach the API. ' + error
+          })
+      },
+      // 这是我们为用户停止输入等待的毫秒数
+      500
+    )
+  }
+})
+</script>
+```
+除了 watch 选项之外，您还可以使用 vm.$watch API 命令。
+
+# Class与Style绑定
+数据绑定一个常见需求是操作元素的 class 列表和它的内联样式。因为它们都是属性 ，我们可以用v-bind 处理它们：只需要计算出表达式最终的字符串。不过，字符串拼接麻烦又易错。因此，在 v-bind 用于 class 和 style 时， Vue.js 专门增强了它。表达式的结果类型除了字符串之外，还可以是对象或数组。
+
+## 绑定HTML Class
+
+### 对象语法
+我们可以传给 v-bind:class 一个对象，以动态地切换 class 。
+```html
+<div v-bind:class="{ active: isActive }"></div>
+```
+上面的语法表示 classactive 的更新将取决于数据属性 isActive 是否为真值 。
+我们也可以在对象中传入更多属性用来动态切换多个 class 。此外， v-bind:class 指令可以与普通的 class 属性共存。如下模板:
+```html
+<div class="static"
+     v-bind:class="{ active: isActive, 'text-danger': hasError }">
+</div>
+```
+如下 data:
+```javascript
+data: {
+  isActive: true,
+  hasError: false
+}
+```
+渲染为:
+```html
+<div class="static active"></div>
+```
+你也可以直接绑定数据里的一个对象：
+```html
+<div v-bind:class="classObject"></div>
+```
+```javascript
+data: {
+  classObject: {
+    active: true,
+    'text-danger': false
+  }
+}
+```
+渲染的结果和上面一样。我们也可以在这里绑定返回对象的计算属性。这是一个常用且强大的模式：
+```html
+<div v-bind:class="classObject"></div>
+```
+```javascript
+data: {
+  isActive: true,
+  error: null
+},
+computed: {
+  classObject: function () {
+    return {
+      active: this.isActive && !this.error,
+      'text-danger': this.error && this.error.type === 'fatal',
+    }
+  }
+}
+```
+### 数组语法
+我们可以把一个数组传给 v-bind:class ，以应用一个 class 列表：
+```html
+<div v-bind:class="[activeClass, errorClass]">
+```
+```javascript
+data: {
+  activeClass: 'active',
+  errorClass: 'text-danger'
+}
+```
+渲染为:
+```html
+<div class="active text-danger"></div>
+```
+如果你也想根据条件切换列表中的 class ，可以用三元表达式：
+```html
+<div v-bind:class="[isActive ? activeClass : '', errorClass]">
+```
+此例始终添加 errorClass ，但是只有在 isActive 是 true 时添加 activeClass 。
+不过，当有多个条件 class 时这样写有些繁琐。可以在数组语法中使用对象语法：
+```html
+<div v-bind:class="[{ active: isActive }, errorClass]">
+```
+
+### 用在组件上
+当你在一个定制的组件上用到 class 属性的时候，这些类将被添加到根元素上面，这个元素上已经存在的类不会被覆盖。
+```javascript
+Vue.component('my-component', {
+  template: '<p class="foo bar">Hi</p>'
+})
+```
+然后在使用它的时候添加一些 class：
+```html
+<my-component class="baz boo"></my-component>
+```
+HTML 最终将被渲染成为:
+```html
+<p class="foo bar baz boo">Hi</p>
+```
+同样的适用于绑定 HTML class :
+```html
+<my-component v-bind:class="{ active: isActive }"></my-component>
+```
+当 isActive 为 true 的时候，HTML 将被渲染成为:
+```html
+<p class="foo bar active">Hi</p>
+```
+
+## 绑定内联样式
+### 对象语法
+v-bind:style 的对象语法十分直观——看着非常像 CSS ，其实它是一个 JavaScript 对象。 CSS 属性名可以用驼峰式（camelCase）或短横分隔命名（kebab-case）：
+```html
+<div v-bind:style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
 ```

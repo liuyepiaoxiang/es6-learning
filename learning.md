@@ -388,6 +388,7 @@
 - [开源的矢量图脚本框架](http://paperjs.org/)
 - [svg 地图](http://jvectormap.com/)
 - [jQuery Vector Map Library](http://jqvmap.com/)
+- [开源手机友好Leaflet](http://leafletjs.com/index.html)
 
 #### vue
 

@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml">
 <head lang="en">
     <meta charset="UTF-8">
     <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.css">
     <title>vue</title>
 </head>
 <body>
@@ -37,6 +38,7 @@
         <todo-item v-for="item in groceryList" v-bind:todo="item"></todo-item>
     </ol>
 </div>
+
 </body>
 <script>
     var app = new Vue({
