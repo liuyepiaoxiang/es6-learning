@@ -530,3 +530,32 @@ v-bind:style 的对象语法十分直观——看着非常像 CSS ，其实它�
 ```html
 <div v-bind:style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
 ```
+```javascript
+data: {
+  activeColor: 'red',
+  fontSize: 30
+}
+```
+直接绑定到一个样式对象通常更好，让模板更清晰：
+```html
+<div v-bind:style="styleObject"></div>
+```
+```javascript
+data: {
+  styleObject: {
+    color: 'red',
+    fontSize: '13px'
+  }
+}
+```
+
+### 数组语法
+v-bind:style 的数组语法可以将多个样式对象应用到一个元素上：
+```html
+<div v-bind:style="[baseStyles, overridingStyles]">
+```
+
+### 自动添加前缀
+当 v-bind:style 使用需要特定前缀的 CSS 属性时，如 transform ，Vue.js 会自动侦测并添加相应的前缀。
+
+## 条件渲染
