@@ -446,6 +446,7 @@
 2. Nodejs
 
     - [Node.js 风格指南](https://github.com/wwsun/node-style-guide)
+    - [nvm](http://blog.csdn.net/tyro_java/article/details/51232458)
 
 3. PHP
 

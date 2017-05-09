@@ -605,54 +605,355 @@ const { SourceMapConsumer, SourceNode } = require("source-map");
 # 字符串的扩展
 
 ## 字符的Unicode表示法
+JavaScript允许采用\uxxxx形式表示一个字符，并且扩展了字符串对象。\
+但是这种表示法只限于\u0000-\uFFFF之间的字符。超出这个范围的字符，必须用两个双字节的形式表达。
+```javascript
+"\uD842\uDFB7"
 
+"\u20BB7"
+//" 7"
+```
+上面代码表示，如果直接在"\u"后面跟上超过0xFFFF的数值(比如\u20BB7)，JavaScript会理解成"\u20BB+7"。由于/u20BB是一个不可打印字符，所以只会显示一个空格，后面跟着一个7。\
+ES6对这一点做出了改进，只要将码点放入大括号，就能正确读取该字符。
+```javascript
+"\u{20BB7}"
+```
+有了这种表示法之后，JavaScript共有6种方法可以表示一个字符：
+```javascript
+'\z' === 'z' // true
+'\172' === 'z' // true
+'\x7A' === 'z' // true
+'\u007A' === 'z' // true
+'\u{7A}' === 'z' // true
+```
 ## codePointAt()
+JavaScript内部， 字符以UTF-16的格式储存， 每个字符固定为2个字节。 对于那些需要4个字节储存的字符（Unicode码点大于0xFFFF的字
+符） ， JavaScript会认为它们是两个字符。\
 
+对于这种4个字节的字
+符， JavaScript不能正确处理， 字符串长度会误判为2， 而且charAt方法无法读取整个字符， charCodeAt方法只能分别返回前两个字节和后两个字节的
+值。
+
+ES6提供了codePointAt方法， 能够正确处理4个字节储存的字符， 返回一个字符的码点。
 ## String.fromCodePoint()
+ES6提供了String.fromCodePoint方法， 可以识别0xFFFF的字符， 弥补了String.fromCharCode方法的不足。 在作用上， 正好与codePointAt方法相
+反。
 
 ## 字符串的遍历器接口
-
+ES6为字符串添加了遍历器接口（详见《Iterator》 一章） ， 使得字符串可以被for...of循环遍历
 ## at()
 
 ## normalize()
+许多欧洲语言有语调符号和重音符号。 为了表示它们， Unicode提供了两种方法。 一种是直接提供带重音符号的字符， 比如Ǒ（\u01D1） 。 另一种是提
+供合成符号（combining character） ， 即原字符与重音符号的合成， 两个字符合成一个字符， 比如O（\u004F） 和ˇ（\u030C） 合
+成Ǒ（\u004F\u030C） 。\
+ES6提供字符串实例的normalize()方法， 用来将字符的不同表示方法统一为同样的形式， 这称为Unicode正规化。\
+normalize方法可以接受一个参数来指定normalize的方式， 参数的四个可选值如下。\
+- NFC， 默认参数， 表示“标准等价合成”（Normalization Form Canonical Composition） ， 返回多个简单字符的合成字符。 所谓“标准等价”指的是视
+觉和语义上的等价。
+- NFD， 表示“标准等价分解”（Normalization Form Canonical Decomposition） ， 即在标准等价的前提下， 返回合成字符分解的多个简单字符。
+- NFKC， 表示“兼容等价合成”（Normalization Form Compatibility Composition） ， 返回合成字符。 所谓“兼容等价”指的是语义上存在等价， 但视觉
+上不等价， 比如“囍”和“喜喜”。 （这只是用来举例， normalize方法不能识别中文。 ）
+- NFKD ， 表示“兼容等价分解”（Normalization Form Compatibility Decomposition） ， 即在兼容等价的前提下， 返回合成字符分解的多个简单字符。
 
 ## includes(),startsWith(),endsWith()
+传统上， JavaScript只有indexOf 方法， 可以用来确定一个字符串是否包含在另一个字符串中。 ES6又提供了三种新方法。
++ includes()： 返回布尔值， 表示是否找到了参数字符串。
++ startsWith()： 返回布尔值， 表示参数字符串是否在源字符串的头部。
++ endsWith()： 返回布尔值， 表示参数字符串是否在源字符串的尾部。
+```javascript
+var s = 'Hello world!';
+s.startsWith('Hello') // true
+s.endsWith('!') // true
+s.includes('o') // true
+```
+这三个方法都支持第二个参数，表示开始搜索的位置。
+```javascript
+var s = 'Hello world!';
+s.startsWith('world', 6) // true
+s.endsWith('Hello', 5) // true
+s.includes('Hello', 6) // false
+```
 
 ## repeat()
-
+repeat 方法返回一个新字符串， 表示将原字符串重复n 次。\
+参数如果是小数， 会被取整。\
+如果repeat 的参数是负数或者Infinity ， 会报错。\
+但是， 如果参数是0到-1之间的小数， 则等同于0， 这是因为会先进行取整运算。 0到-1之间的小数， 取整以后等于-0 ， repeat 视同为0。\
+参数NaN 等同于0。\
+如果repeat的参数是字符串， 则会先转换成数字。
 ## padStart(),padEnd()
-
+ES7推出了字符串补全长度的功能。 如果某个字符串不够指定长度， 会在头部或尾部补全。 padStart用于头部补全， padEnd用于尾部补全。
+```javascript
+'x'.padStart(5, 'ab') // 'ababx'
+'x'.padStart(4, 'ab') // 'abax'
+'x'.padEnd(5, 'ab') // 'xabab'
+'x'.padEnd(4, 'ab') // 'xaba'
+```
+上面代码中， padStart和padEnd一共接受两个参数， 第一个参数用来指定字符串的最小长度， 第二个参数是用来补全的字符串。
+如果原字符串的长度， 等于或大于指定的最小长度， 则返回原字符串
+```javascript
+'xxx'.padStart(2, 'ab') // 'xxx'
+'xxx'.padEnd(2, 'ab') // 'xxx
+```
+如果用来补全的字符串与原字符串， 两者的长度之和超过了指定的最小长度， 则会截去超出位数的补全字符串。
+```javascript
+'abc'.padStart(10, '0123456789')
+// '0123456abc
+```
+如果省略第二个参数， 则会用空格补全长度
+```javascript
+'x'.padStart(4) // ' x'
+'x'.padEnd(4) // 'x '
+```
+padStart的常见用途是为数值补全指定位数。 下面代码生成10位的数值字符串。
+```javascript
+'1'.padStart(10, '0') // "0000000001"
+'12'.padStart(10, '0') // "0000000012"
+'123456'.padStart(10, '0') // "0000123456"
+```
+另一个用途是提示字符串格式。
+```javascript
+'12'.padStart(10, 'YYYY-MM-DD') // "YYYY-MM-12"
+'09-12'.padStart(10, 'YYYY-MM-DD') // "YYYY-09-12"
+```
 ## 模板字符串
+模板字符串（template string） 是增强版的字符串， 用反引号（`） 标识。 它可以当作普通字符串使用， 也可以用来定义多行字符串， 或者在字符串中
+嵌入变量。
+```javascript
+// 普通字符串
+`In JavaScript '\n' is a line-feed.`
+// 多行字符串
+`In JavaScript this is
+not legal.`
+console.log(`string text line 1
+string text line 2`);
+// 字符串中嵌入变量
+var name = "Bob", time = "today";
+`Hello ${name}, how are you ${time}?`
+```
+如果使用模板字符串表示多行字符串， 所有的空格和缩进都会被保留在输出之中。
+```javascript
+$('#list').html(`
+<ul>
+<li>first</li>
+<li>second</li>
+</ul>
+`);
+```
+上面代码中， 所有模板字符串的空格和换行， 都是被保留的， 比如<ul>标签前面会有一个换行。 如果你不想要这个换行， 可以使用trim方法消除它。
+```javascript
+$('#list').html(`
+<ul>
+<li>first</li>
+<li>second</li>
+</ul>
+`.trim());
+```
+模板字符串中嵌入变量， 需要将变量名写在${}之中。
+```javascript
+function authorize(user, action) {
+if (!user.hasPrivilege(action)) {
+throw new Error(
+// 传统写法为
+// 'User '
+// + user.name
+// + ' is not authorized to do '
+// + action
+// + '.'
+`User ${user.name} is not authorized to do ${action}.`);
+}
+}
+```
+大括号内部可以放入任意的JavaScript表达式， 可以进行运算， 以及引用对象属性。
+
+模板字符串之中还能调用函数。
+
+如果大括号中的值不是字符串， 将按照一般的规则转为字符串。 比如， 大括号中是一个对象， 将默认调用对象的toString方法。
+如果模板字符串中的变量没有声明， 将报错。\
+由于模板字符串的大括号内部， 就是执行JavaScript代码， 因此如果大括号内部是一个字符串， 将会原样输出。\
+模板字符串甚至还能嵌套。
+```javascript
+const tmpl = addrs => `
+<table>
+${addrs.map(addr => `
+<tr><td>${addr.first}</td></tr>
+<tr><td>${addr.last}</td></tr>
+`).join('')}
+</table>
+`;
+```
 
 ## 模板编译
+```javascript
+var template = `
+<ul>
+<% for(var i=0; i < data.supplies.length; i++) { %>
+<li><%= data.supplies[i] %></li>
+<% } %>
+</ul>
+`;
+```
+上面代码在模板字符串之中， 放置了一个常规模板。 该模板使用<%...%>放置JavaScript代码， 使用<%= ... %>输出JavaScript表达式。
+怎么编译这个模板字符串呢？
+一种思路是将其转换为JavaScript表达式字符串。
+```javascript
+echo('<ul>');
+for(var i=0; i < data.supplies.length; i++) {
+echo('<li>');
+echo(data.supplies[i]);
+echo('</li>');
+};
+echo('</ul>');
+```
+这个转换使用正则表达式就行了。
+```javascript
+var evalExpr = /<%=(.+?)%>/g;
+var expr = /<%([\s\S]+?)%>/g;
+template = template
+.replace(evalExpr, '`); \n echo( $1 ); \n echo(`')
+.replace(expr, '`); \n $1 \n echo(`');
+template = 'echo(`' + template + '`);';
+```
+然后， 将template封装在一个函数里面返回， 就可以了。
+```javascript
+var script =
+`(function parse(data){
+var output = "";
+function echo(html){
+output += html;
+} $
+{ template }
+return output;
+})`;
+return script;
+```
+将上面的内容拼装成一个模板编译函数compile。
+```javascript
+function compile(template){
+var evalExpr = /<%=(.+?)%>/g;
+var expr = /<%([\s\S]+?)%>/g;template = template
+.replace(evalExpr, '`); \n echo( $1 ); \n echo(`')
+.replace(expr, '`); \n $1 \n echo(`');
+template = 'echo(`' + template + '`);';
+var script =
+`(function parse(data){
+var output = "";
+function echo(html){
+output += html;
+} $
+{ template }
+return output;
+})`;
+return script;
+}
+```
+compile函数的用法如下。
+```javascript
+var parse = eval(compile(template));
+div.innerHTML = parse({ supplies: [ "broom", "mop", "cleaner" ] });
+// <ul>
+// <li>broom</li>
+// <li>mop</li>
+// <li>cleaner</li>
+// </ul>
+```
 
 ## 标签模板
+模板字符串的功能， 不仅仅是上面这些。 它可以紧跟在一个函数名后面， 该函数将被调用来处理这个模板字符串。 这被称为“标签模板”功能（tagged
+template） 。\
+```javascript
+alert`123`
+// 等同于
+alert(123)
+```
+标签模板其实不是模板， 而是函数调用的一种特殊形式。 “标签”指的就是函数， 紧跟在后面的模板字符串就是它的参数。
+但是， 如果模板字符里面有变量， 就不是简单的调用了， 而是会将模板字符串先处理成多个参数， 再调用函数。
 
 ## String.raw()
+ES6还为原生的String对象， 提供了一个raw方法。
+String.raw方法， 往往用来充当模板字符串的处理函数， 返回一个斜杠都被转义（即斜杠前面再加一个斜杠） 的字符串， 对应于替换变量后的模板字
+符串。
+```javascript
+String.raw`Hi\n${2+3}!`;
+// "Hi\\n5!"
+String.raw`Hi\u000A!`;
+// 'Hi\\u000A!
+```
+如果原字符串的斜杠已经转义， 那么String.raw不会做任何处理。
+```javascript
+String.raw`Hi\\n`
+// "Hi\\n
+```
 
 # 正则的扩展
+
 ## RegExp构造函数
+在ES5中， RegExp构造函数的参数有两种情况。
+第一种情况是， 参数是字符串， 这时第二个参数表示正则表达式的修饰符（flag） 。
+```javascript
+var regex = new RegExp('xyz', 'i');
+// 等价于
+var regex = /xyz/i;
+```
+第二种情况是， 参数是一个正则表示式， 这时会返回一个原有正则表达式的拷贝。
+```javascript
+var regex = new RegExp(/xyz/i);
+// 等价于
+var regex = /xyz/i;
+```
+但是， ES5不允许此时使用第二个参数， 添加修饰符， 否则会报错。\
+ES6改变了这种行为。 如果RegExp构造函数第一个参数是一个正则对象， 那么可以使用第二个参数指定修饰符。 而且， 返回的正则表达式会忽略原有
+的正则表达式的修饰符， 只使用新指定的修饰符。
+```javascript
+new RegExp(/abc/ig, 'i').flags
+// "i
+```
 ## 字符串的正则方法
-## 修饰符
+字符串对象共有4个方法， 可以使用正则表达式： match()、 replace()、 search()和split()。
+
+ES6将这4个方法， 在语言内部全部调用RegExp的实例方法， 从而做到所有与正则相关的方法， 全都定义在RegExp对象上。
+- String.prototype.match 调用 RegExp.prototype[Symbol.match]
+- String.prototype.replace 调用 RegExp.prototype[Symbol.replace]
+- String.prototype.search 调用 RegExp.prototype[Symbol.search]
+- String.prototype.split 调用 RegExp.prototype[Symbol.split]
+
+## u修饰符
+
 ## y修饰符
+
 ## sticky属性
+
 ## flags属性
+
 ## RegExp.escape()
+
 ## 后行断言
 
 # 数值的扩展
+
 ## 二进制和八进制的表示法
+
 ## Number.isFinite(), Number.isNaN()
+
 ## Number.parseInt(), Number.parseFloat()
+
 ## Number.isInteger()
+
 ## Number.EPSILON
+
 ## 安全整数和Number.isSafeInteger()
+
 ## Math对象的扩展
+
 ## 指数运算符
 
 # 数组的扩展
+
 ## Array.from()
+
 ## Array.of()
+
 ##
 ##
 ##

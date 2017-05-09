@@ -18,4 +18,20 @@ const PI = 3.14;
 
 console.log(PI);
 
+// 字符串扩展
+var a = "\u{20BB7}";
+console.log(a);
+
+var s = "𠮷";
+console.log(s.length);
+console.log(s.charAt(0));
+console.log(s.charAt(1));
+console.log(s.charCodeAt(0));
+console.log(s.charCodeAt(1));
+
+var s = 'Hello world!';
+s.startsWith('Hello'); // true
+s.endsWith('!'); // true
+s.includes('o'); // true
+
 //# sourceMappingURL=es6-compiled.js.map
