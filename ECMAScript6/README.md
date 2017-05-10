@@ -1397,12 +1397,133 @@ console.log(index, elem);
 // 1 "b"
 ```
 ## 数组实例的includes()
+Array.prototype.includes方法返回一个布尔值， 表示某个数组是否包含给定的值， 与字符串的includes方法类似。 该方法属于ES7， 但Babel转码器
+已经支持。
+该方法的第二个参数表示搜索的起始位置， 默认为0。 如果第二个参数为负数， 则表示倒数的位置， 如果这时它大于数组长度（比如第二个参数为-4，
+但数组长度为3） ， 则会重置为从0开始。
+```javascript
+[1, 2, 3].includes(2); // true
+[1, 2, 3].includes(4); // false
+[1, 2, NaN].includes(NaN); // true
+[1, 2, 3].includes(3, 3); // false
+[1, 2, 3].includes(3, -1); // true
+```
+没有该方法之前， 我们通常使用数组的indexOf方法， 检查是否包含某个值。
+indexOf方法有两个缺点， 一是不够语义化， 它的含义是找到参数值的第一个出现位置， 所以要去比较是否不等于-1， 表达起来不够直观。 二是， 它内
+部使用严格相当运算符（===） 进行判断， 这会导致对NaN的误判。
+
+另外， Map和Set数据结构有一个has方法， 需要注意与includes区分。
+- Map结构的has方法， 是用来查找键名的， 比
+  如Map.prototype.has(key)、 WeakMap.prototype.has(key)、 Reflect.has(target, propertyKey)。
+- Set结构的has方法， 是用来查找值的， 比如Set.prototype.has(value)、 WeakSet.prototype.has(value)。
 
 ## 数组的空位
+数组的空位指， 数组的某一个位置没有任何值。 比如， Array构造函数返回的数组都是空位。\
+注意， 空位不是undefined， 一个位置的值等于undefined， 依然是有值的。 空位是没有任何值， in运算符可以说明这一点。\
+```javascript
+0 in [undefined, undefined, undefined] // true
+0 in [, , ,] // false
+```
+上面代码说明， 第一个数组的0号位置是有值的， 第二个数组的0号位置没有值。
+ES5对空位的处理， 已经很不一致了， 大多数情况下会忽略空位。
+- forEach(), filter(), every() 和some()都会跳过空位。
+- map()会跳过空位， 但会保留这个值
+- join()和toString()会将空位视为undefined， 而undefined和null会被处理成空字符串。
+
+ES6则是明确将空位转为undefined。
+Array.from方法会将数组的空位， 转为undefined， 也就是说， 这个方法不会忽略空位。
+
+扩展运算符（...） 也会将空位转为undefined。
+
+copyWithin()会连空位一起拷贝。\
+fill()会将空位视为正常的数组位置。\
+for...of循环也会遍历空位。\
+上面代码中， 数组arr有两个空位， for...of并没有忽略它们。 如果改成map方法遍历， 空位是会跳过的。
+entries()、 keys()、 values()、 find()和findIndex()会将空位处理成undefined。
 
 # 函数的扩展
-##
-##
+## 函数参数的默认值
+### 基础用法 
+在ES6之前， 不能直接为函数的参数指定默认值， 只能采用变通的方法。\
+```javascript
+function log(x, y) {
+y = y || 'World';
+console.log(x, y);
+} 
+log('Hello') // Hello World
+log('Hello', 'China') // Hello China
+log('Hello', '') // Hello World
+```
+上面代码检查函数log的参数y有没有赋值， 如果没有， 则指定默认值为World。 这种写法的缺点在于， 如果参数y赋值了， 但是对应的布尔值
+为false， 则该赋值不起作用。 就像上面代码的最后一行， 参数y等于空字符， 结果被改为默认值。
+为了避免这个问题， 通常需要先判断一下参数y是否被赋值， 如果没有， 再等于默认值。
+```javascript
+if (typeof y === 'undefined') {
+y = 'World';
+}
+```
+ES6允许为函数的参数设置默认值， 即直接写在参数定义的后面。
+```javascript
+function log(x, y = 'World') {
+console.log(x, y);
+} 
+log('Hello') // Hello World
+log('Hello', 'China') // Hello China
+log('Hello', '') // Hello
+```
+### 与解构赋值默认值结合使用
+参数默认值可以与解构赋值的默认值， 结合起来使用。
+```javascript
+function foo({x, y = 5}) {
+console.log(x, y);
+} 
+foo({}) // undefined, 5
+foo({x: 1}) // 1, 5
+foo({x: 1, y: 2}) // 1, 2
+foo() // TypeError: Cannot read property 'x' of undefined
+```
+### 参数默认值的位置
+通常情况下， 定义了默认值的参数， 应该是函数的尾参数。 因为这样比较容易看出来， 到底省略了哪些参数。 如果非尾部的参数设置默认值， 实际上
+这个参数是没法省略的。
+```javascript
+// 例一
+function f(x = 1, y) {
+return [x, y];
+} f
+() // [1, undefined]
+f(2) // [2, undefined])
+f(, 1) // 报错
+f(undefined, 1) // [1, 1]
+// 例二
+function f(x, y = 5, z) {
+return [x, y, z];
+} 
+f() // [undefined, 5, undefined]
+f(1) // [1, 5, undefined]
+f(1, ,2) // 报错
+f(1, undefined, 2) // [1, 5, 2]
+```
+上面代码中， 有默认值的参数都不是尾参数。 这时， 无法只省略该参数， 而不省略它后面的参数， 除非显式输入undefined。
+如果传入undefined， 将触发该参数等于默认值， null则没有这个效果。
+
+### 函数的默认值
+指定了默认值以后， 函数的length属性， 将返回没有指定默认值的参数个数。 也就是说， 指定了默认值后， length属性将失真。
+```javascript
+(function (a) {}).length // 1(function (a) {}).length // 1
+(function (a = 5) {}).length // 0
+(function (a, b, c = 5) {}).length // 2
+```
+上面代码中， length属性的返回值， 等于函数的参数个数减去指定了默认值的参数个数。 比如， 上面最后一个函数， 定义了3个参数， 其中有一个参
+数c指定了默认值， 因此length属性等于3减去1， 最后得到2。
+这是因为length属性的含义是， 该函数预期传入的参数个数。 某个参数指定默认值以后， 预期传入的参数个数就不包括这个参数了。 同理， rest参数也
+不会计入length属性。
+
+### 作用域
+一个需要注意的地方是， 如果参数默认值是一个变量， 则该变量所处的作用域， 与其他变量的作用域规则是一样的， 即先是当前函数的作用域， 然后
+才是全局作用域。
+
+### 应用
+
 ##
 ##
 ##

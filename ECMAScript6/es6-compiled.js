@@ -50,4 +50,10 @@ console.log(arr1);
 let arr2 = Array.from(arrayLike); // ['a', 'b', 'c']
 console.log(arr2);
 
+//数组的空位
+console.log(0 in [undefined, undefined, undefined]); // true
+console.log(0 in [,,,]); // false
+
+console.log([...['a', 'b']]);
+
 //# sourceMappingURL=es6-compiled.js.map

@@ -47,4 +47,10 @@ var arr1 = [].slice.call(arrayLike); // ['a', 'b', 'c']
 console.log(arr1)
 // ES6的写法
 let arr2 = Array.from(arrayLike); // ['a', 'b', 'c']
-console.log(arr2)
+console.log(arr2);
+
+//数组的空位
+console.log(0 in [undefined, undefined, undefined]) // true
+console.log(0 in [, , ,]) // false
+
+console.log([...['a','b']])
