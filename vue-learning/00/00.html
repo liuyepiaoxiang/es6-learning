@@ -40,6 +40,15 @@
     </ol>
 </div>
 <p class="tip">试试</p>
+<div id="app-8">
+<input
+        type="checkbox"
+        v-model="toggle"
+        v-bind:true-value="a"
+        v-bind:false-value="b"
+>
+    <p>{{ toggle }}</p>
+</div>
 </body>
 <script>
     var app = new Vue({
@@ -101,6 +110,16 @@
             ]
         }
     })
+var vm = new Vue({
+    el:"#app-8",
+    data:{
+        toggle:"asd"
+    }
+})
 
+    // 当选中时
+    vm.toggle === vm.a;
+    // 当没有选中时
+    vm.toggle === vm.b;
 </script>
 </html>

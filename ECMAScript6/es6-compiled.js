@@ -1,3 +1,5 @@
+var _this = this;
+
 /**
  *@filename:es6.js
  *@abstract:to do this
@@ -55,5 +57,44 @@ console.log(0 in [undefined, undefined, undefined]); // true
 console.log(0 in [,,,]); // false
 
 console.log([...['a', 'b']]);
+
+var go = function* () {
+    yield 1;
+    yield 2;
+    yield 3;
+};
+console.log([...go()]); // [1, 2, 3]
+//箭头函数
+const numbers = (...nums) => console.log(_this);
+
+numbers(1, 2, 3, 4, 5);
+
+let insert = value => ({ into: array => ({ after: afterValue => {
+            array.splice(array.indexOf(afterValue) + 1, 0, value);
+            return array;
+        } }) });
+insert(2).into([1, 3]).after(1); //[1, 2, 3]
+
+var fix = f => (x => f(v => x(x)(v)))(x => f(v => x(x)(v)));
+
+var fix2 = function (f) {
+    "use strict";
+
+    return function (x) {
+        return f(function (v) {
+            return x(x)(v);
+        });
+    };
+};
+
+//属性名表达式
+var lastWord = 'last word';
+var a = {
+    'first word': 'hello',
+    [lastWord]: 'world'
+};
+console.log(a['first word']); // "hello"
+console.log(a[lastWord]); // "world"
+console.log(a['last word']); // "world
 
 //# sourceMappingURL=es6-compiled.js.map
