@@ -23,3 +23,9 @@ p.tip {
     border-bottom-right-radius: 2px;
     border-top-right-radius: 2px;
 }
+.fade-enter-active, .fade-leave-active {
+    transition: opacity .5s
+}
+.fade-enter, .fade-leave-active {
+    opacity: 0
+}
