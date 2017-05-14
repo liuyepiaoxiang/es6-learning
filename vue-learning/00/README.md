@@ -1,6 +1,6 @@
 [TOC]
 
-# 介绍
+# 基础
 ## 起步
 [在线文档](https://cn.vuejs.org/v2/guide/)
 ```
@@ -1825,3 +1825,225 @@ var vm = new Vue({
 </keep-alive>
 ```
 ### 杂项
+#### 编写可复用组件
+在编写组件时，记住是否要复用组件有好处。一次性组件跟其它组件紧密耦合没关系，但是可复用组件应当定义一个清晰的公开接口。
+
+Vue组件的API来自三部分-props,events和slots:
+- Props允许外部环境传递数据给组件
+- Events允许组件触发外部环境的副作用
+- Slots允许外部环境将额外的内容组合在组件中。
+使用v-bind和v-on的简写语法，模板的缩进清晰且简洁。
+```vue
+<my-component
+   :foo="baz"
+   :bar="qux"
+   @event-a="doThis"
+   @event-b="doTaht"
+   >
+   <img slot="icon" src="...">
+     <p slot="main-text">Hello!</p>
+     </my-component>
+```
+
+#### 子组件索引
+尽管有props和events，但是有时仍需要在JavaScript中直接访问子组件。为此可以使用ref为子组件指定一个索引ID。
+```vue
+<div id="parent">
+<user-profile ref="profile"></user-profile>
+</div> 
+```
+```javascript
+var parent = new Vue({el:"#parent"})
+var child = parent.$refs.profile
+```
+当ref和v-for一起使用时，ref是一个数组或对象，包含相应的子组件。
+> $refs 只在组件渲染完成后才填充，并且它是非响应式的。它仅仅作为一个直接访问子组件的应急方案——应当避免在模版或计算属性中使用 $refs 。
+
+#### 异步组件
+在大型应用中，我们可能需要将应用拆分为多个小模块，按需从服务器下载。为了让事情更简单，Vus.js允许将组件定义为一个工厂函数，动态地解析组件的定义。Vue.js只在组件需要渲染时触发工厂函数，并且把结果缓存起来，用于后面的再次渲染。
+```javascript
+Vue.component('async-example', function (resolve, reject) {
+  setTimeout(function () {
+    // Pass the component definition to the resolve callback
+    resolve({
+      template: '<div>I am async!</div>'
+    })
+  }, 1000)
+})
+```
+工厂函数接收一个resolve回调，在收到从服务器下载的组件定义时调用。也可以调用reject（reason）指示加载失败。这里setTimeout只是为了演示。
+```javascript
+Vue.component('async-webpack-example', function (resolve) {
+  // 这个特殊的 require 语法告诉 webpack
+  // 自动将编译后的代码分割成不同的块，
+  // 这些块将通过 Ajax 请求自动下载。
+  require(['./my-async-component'], resolve)
+})
+```
+你可以使用 Webpack 2 + ES2015 的语法返回一个 Promise resolve 函数：
+```javascript
+Vue.component(
+  'async-webpack-example',
+  () => import('./my-async-component')
+)
+```
+> 如果你是 Browserify 用户,可能就无法使用异步组件了,它的作者已经表明 Browserify 是不支持异步加载的。Browserify 社区发现 一些解决方法，可能有助于已存在的复杂应用。对于其他场景，我们推荐简单实用 Webpack 构建，一流的异步支持
+
+#### 高级异步组件
+```javascript
+const AsyncComp = () => ({
+  // 需要加载的组件. 应当是一个 Promise
+  component: import('./MyComp.vue'),
+  // loading 时应当渲染的组件
+  loading: LoadingComp,
+  // 出错时渲染的组件
+  error: ErrorComp,
+  // 渲染 loading 组件前的等待时间。默认：200ms.
+  delay: 200,
+  // 最长等待时间。超出此时间则渲染 error 组件。默认：Infinity
+  timeout: 3000
+})
+```
+注意，当一个异步组件被作为 vue-router 的路由组件使用时，这些高级选项都是无效的，因为在路由切换前就会提前加载所需要的异步组件。另外，如果你要在路由组件中上述写法，需要使用 vue-router 2.4.0+。
+
+#### 组件命名约定
+当注册组件（或者 props）时，可以使用 kebab-case ，camelCase ，或 TitleCase 。Vue 不关心这个。
+```javascript
+// 在组件定义中
+components: {
+  // 使用 kebab-case 形式注册
+  'kebab-cased-component': { /* ... */ },
+  // register using camelCase
+  'camelCasedComponent': { /* ... */ },
+  // register using TitleCase
+  'TitleCasedComponent': { /* ... */ }
+}
+```
+在 HTML 模版中，请使用 kebab-case 形式：
+```vue
+<!-- 在HTML模版中始终使用 kebab-case -->
+<kebab-cased-component></kebab-cased-component>
+<camel-cased-component></camel-cased-component>
+<title-cased-component></title-cased-component>
+```
+当使用字符串模式时，可以不受 HTML 的 case-insensitive 限制。这意味实际上在模版中，你可以使用 camelCase 、 TitleCase 或者 kebab-case 来引用：
+```vue
+<!-- 在字符串模版中可以用任何你喜欢的方式! -->
+<my-component></my-component>
+<myComponent></myComponent>
+<MyComponent></MyComponent>
+```
+如果组件未经 slot 元素传递内容，你甚至可以在组件名后使用 / 使其自闭合：
+```vue
+<my-component/>
+```
+当然，这只在字符串模版中有效。因为自闭的自定义元素是无效的 HTML ，浏览器原生的解析器也无法识别它。
+
+#### 递归组件
+组件在它的模板内可以递归地调用自己，不过，只有当它有 name 选项时才可以：
+```javascript
+name: 'unique-name-of-my-component'
+```
+当你利用Vue.component全局注册了一个组件, 全局的ID作为组件的 name 选项，被自动设置.
+```javascript
+Vue.component('unique-name-of-my-component', {
+  // ...
+})
+```
+如果你不谨慎, 递归组件可能导致死循环:
+```javascript
+name: 'stack-overflow',
+template: '<div><stack-overflow></stack-overflow></div>'
+```
+上面组件会导致一个错误 “max stack size exceeded” ，所以要确保递归调用有终止条件 (比如递归调用时使用 v-if 并让他最终返回 false )。
+
+#### 组件间的循环引用
+假设你正在构建一个文件目录树，像在Finder或文件资源管理器中。你可能有一个 tree-folder组件:
+```html
+<p>
+  <span>{{ folder.name }}</span>
+  <tree-folder-contents :children="folder.children"/>
+</p>
+```
+然后 一个tree-folder-contents组件：
+```vue
+<ul>
+  <li v-for="child in children">
+    <tree-folder v-if="child.children" :folder="child"/>
+    <span v-else>{{ child.name }}</span>
+  </li>
+</ul>
+```
+当你仔细看时，会发现在渲染树上这两个组件同时为对方的父节点和子节点–这点是矛盾的。当使用Vue.component将这两个组件注册为全局组件的时候，框架会自动为你解决这个矛盾，如果你是这样做的，就不用继续往下看了。
+然而，如果你使用诸如Webpack或者Browserify之类的模块化管理工具来requiring/importing组件的话，就会报错了：
+Failed to mount component: template or render function not defined.
+为了解释为什么会报错，简单的将上面两个组件称为 A 和 B ，模块系统看到它需要 A ，但是首先 A 需要 B ，但是 B 需要 A， 而 A 需要 B，陷入了一个无限循环，因此不知道到底应该先解决哪个。要解决这个问题，我们需要在其中一个组件中（比如 A ）告诉模块化管理系统，“A 虽然需要 B ，但是不需要优先导入 B”
+在我们的例子中，我们选择在tree-folder 组件中来告诉模块化管理系统循环引用的组件间的处理优先级，我们知道引起矛盾的子组件是tree-folder-contents，所以我们在beforeCreate 生命周期钩子中去注册它：
+```javascript
+beforeCreate: function () {
+  this.$options.components.TreeFolderContents = require('./tree-folder-contents.vue')
+}
+```
+
+#### 内联模板
+如果子组件有 inline-template 特性，组件将把它的内容当作它的模板，而不是把它当作分发内容。这让模板更灵活。
+```vue
+<my-component inline-template>
+  <div>
+    <p>These are compiled as the component's own template.</p>
+    <p>Not parent's transclusion content.</p>
+  </div>
+</my-component>
+```
+但是 inline-template 让模板的作用域难以理解。最佳实践是使用 template 选项在组件内定义模板或者在 .vue 文件中使用 template 元素。
+
+#### X-Templates
+另一种定义模版的方式是在 JavaScript 标签里使用 text/x-template 类型，并且指定一个id。例如：
+```vue
+<script type="text/x-template" id="hello-world-template">
+  <p>Hello hello hello</p>
+</script>
+```
+```javascript
+Vue.component('hello-world', {
+  template: '#hello-world-template'
+})
+```
+这在有很多模版或者小的应用中有用，否则应该避免使用，因为它将模版和组件的其他定义隔离了。
+
+#### 对低开销的静态组件使用v-once
+尽管在 Vue 中渲染 HTML 很快，不过当组件中包含大量静态内容时，可以考虑使用 v-once 将渲染结果缓存起来，就像这样：
+```javascript
+Vue.component('terms-of-service', {
+  template: '\
+    <div v-once>\
+      <h1>Terms of Service</h1>\
+      ... a lot of static content ...\
+    </div>\
+  '
+})
+```
+
+
+# 进阶
+## 深入响应式布局
+我们已经涵盖了大部分的基础知识 - 现在是时候深入底层原理了！Vue 最显著的特性之一便是不太引人注意的响应式系统(reactivity system)。模型层(model)只是普通 JavaScript 对象，修改它则更新视图(view)。这会让状态管理变得非常简单且直观，不过理解它的工作原理以避免一些常见的问题也是很重要的。在本节中，我们将开始深入挖掘 Vue 响应式系统的底层细节。
+
+### 如何追踪变化
+把一个普通 JavaScript 对象传给 Vue 实例的 data 选项，Vue 将遍历此对象所有的属性，并使用 Object.defineProperty 把这些属性全部转为 getter/setter。Object.defineProperty 是仅 ES5 支持，且无法 shim 的特性，这也就是为什么 Vue 不支持 IE8 以及更低版本浏览器的原因。\
+用户看不到 getter/setter，但是在内部它们让 Vue 追踪依赖，在属性被访问和修改时通知变化。这里需要注意的问题是浏览器控制台在打印数据对象时 getter/setter 的格式化并不同，所以你可能需要安装 vue-devtools 来获取更加友好的检查接口。\
+每个组件实例都有相应的 watcher 实例对象，它会在组件渲染的过程中把属性记录为依赖，之后当依赖项的 setter 被调用时，会通知 watcher 重新计算，从而致使它关联的组件得以更新。\
+![](https://cn.vuejs.org/images/data.png)
+
+### 变化检测问题
+受现代 JavaScript 的限制（以及废弃 Object.observe），Vue 不能检测到对象属性的添加或删除。由于 Vue 会在初始化实例时对属性执行 getter/setter 转化过程，所以属性必须在 data 对象上存在才能让 Vue 转换它，这样才能让它是响应的。例如：
+```javascript
+var vm = new Vue({
+  data:{
+  a:1
+  }
+})
+// `vm.a` 是响应的
+vm.b = 2
+// `vm.b` 是非响应的
+```
