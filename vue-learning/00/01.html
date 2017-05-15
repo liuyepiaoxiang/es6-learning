@@ -17,12 +17,24 @@
     </transition>
 
 </div>
+<div id="with-mode-demo" class="demo">
+    <transition name="fade" mode="in-out">
+        <button v-on:click="on = !on" class="demo">{{ on ? 'on': 'off'}}</button>
+    </transition>
+</div>
 </body>
 <script>
     new Vue({
         el: '#demo',
         data: {
             show: true
+        }
+    })
+
+   var demo = new Vue({
+        el: '#with-mode-demo',
+        data: {
+            on: true
         }
     })
 </script>
