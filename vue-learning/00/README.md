@@ -3067,3 +3067,1072 @@ new Vue({
 我们能在组件中结合使用这一节讲到各种过渡策略和 Vue 内建的过渡系统。总之，对于完成各种过渡动效几乎没有阻碍。
 
 ### Render函数
+
+#### 基础
+Vue 推荐在绝大多数情况下使用 template 来创建你的 HTML。然而在一些场景中，你真的需要 JavaScript 的完全编程的能力，这就是 render 函数，它比 template 更接近编译器。
+```vue
+<h1>
+  <a name="hello-world" href="#hello-world">
+    Hello world!
+  </a>
+</h1>
+```
+在 HTML 层， 我们决定这样定义组件接口：
+```vue
+<anchored-heading :level="1">Hello world!</anchored-heading>
+```
+当我们开始写一个通过 level prop 动态生成heading 标签的组件，你可能很快想到这样实现：
+```vue
+<script type="text/x-template" id="anchored-heading-template">
+  <div>
+    <h1 v-if="level === 1">
+      <slot></slot>
+    </h1>
+    <h2 v-if="level === 2">
+      <slot></slot>
+    </h2>
+    <h3 v-if="level === 3">
+      <slot></slot>
+    </h3>
+    <h4 v-if="level === 4">
+      <slot></slot>
+    </h4>
+    <h5 v-if="level === 5">
+      <slot></slot>
+    </h5>
+    <h6 v-if="level === 6">
+      <slot></slot>
+    </h6>
+  </div>
+</script>
+```
+```javascript
+Vue.component('anchored-heading', {
+  template: '#anchored-heading-template',
+  props: {
+    level: {
+      type: Number,
+      required: true
+    }
+  }
+})
+```
+在这种场景中使用 template 并不是最好的选择：首先代码冗长，为了在不同级别的标题中插入锚点元素，我们需要重复地使用 <slot></slot>。其次由于组件必须有根节点，标题和锚点元素被包裹在了一个无用的 div 中。
+虽然模板在大多数组件中都非常好用，但是在这里它就不是很简洁的了。那么，我们来尝试使用 render 函数重写上面的例子：
+```javascript
+Vue.component('anchored-heading', {
+  render: function (createElement) {
+    return createElement(
+      'h' + this.level,   // tag name 标签名称
+      this.$slots.default // 子组件中的阵列
+    )
+  },
+  props: {
+    level: {
+      type: Number,
+      required: true
+    }
+  }
+})
+```
+简单清晰很多！简单来说，这样代码精简很多，但是需要非常熟悉 Vue 的实例属性。在这个例子中，你需要知道当你不使用 slot 属性向组件中传递内容时，比如 anchored-heading 中的 Hello world!, 这些子元素被存储在组件实例中的 $slots.default中。如果你还不了解， 在深入 render 函数之前推荐阅读 instance properties API。
+
+#### createElement参数
+第二件你需要熟悉的是如何在 createElement 函数中生成模板。这里是 createElement 接受的参数：
+```javascript
+// @returns {VNode}
+createElement(
+  // {String | Object | Function}
+  // 一个 HTML 标签字符串，组件选项对象，或者一个返回值类型为String/Object的函数，必要参数
+  'div',
+  // {Object}
+  // 一个包含模板相关属性的数据对象
+  // 这样，您可以在 template 中使用这些属性.可选参数.
+  {
+    // (详情见下一节)
+  },
+  // {String | Array}
+  // 子节点(VNodes)，可以是一个字符串或者一个数组. 可选参数.
+  [
+    createElement('h1', 'hello world'),
+    createElement(MyComponent, {
+      props: {
+        someProp: 'foo'
+      }
+    }),
+    'bar'
+  ]
+)
+```
+#### 深入data object参数
+有一件事要注意：正如在模板语法中，v-bind:class 和 v-bind:style ，会被特别对待一样，在 VNode 数据对象中，下列属性名是级别最高的字段。
+```javascript
+{
+  // 和`v-bind:class`一样的 API
+  'class': {
+    foo: true,
+    bar: false
+  },
+  // 和`v-bind:style`一样的 API
+  style: {
+    color: 'red',
+    fontSize: '14px'
+  },
+  // 正常的 HTML 特性
+  attrs: {
+    id: 'foo'
+  },
+  // 组件 props
+  props: {
+    myProp: 'bar'
+  },
+  // DOM 属性
+  domProps: {
+    innerHTML: 'baz'
+  },
+  // 事件监听器基于 "on"
+  // 所以不再支持如 v-on:keyup.enter 修饰器
+  // 需要手动匹配 keyCode。
+  on: {
+    click: this.clickHandler
+  },
+  // 仅对于组件，用于监听原生事件，而不是组件内部使用 vm.$emit 触发的事件。
+  nativeOn: {
+    click: this.nativeClickHandler
+  },
+  // 自定义指令. 注意事项：不能对绑定的旧值设值
+  // Vue 会为您持续追踪
+  directives: [
+    {
+      name: 'my-custom-directive',
+      value: '2'
+      expression: '1 + 1',
+      arg: 'foo',
+      modifiers: {
+        bar: true
+      }
+    }
+  ],
+  // Scoped slots in the form of
+  // { name: props => VNode | Array<VNode> }
+  scopedSlots: {
+    default: props => h('span', props.text)
+  },
+  // 如果组件是其他组件的子组件，需为slot指定名称
+  slot: 'name-of-slot'
+  // 其他特殊顶层属性
+  key: 'myKey',
+  ref: 'myRef'
+}
+```
+
+#### 完整示例
+有了这些知识，我们现在可以完成我们最开始想实现的组件：
+```javascript
+var getChildrenTextContent = function (children) {
+  return children.map(function (node) {
+    return node.children
+      ? getChildrenTextContent(node.children)
+      : node.text
+  }).join('')
+}
+Vue.component('anchored-heading', {
+  render: function (createElement) {
+    // create kebabCase id
+    var headingId = getChildrenTextContent(this.$slots.default)
+      .toLowerCase()
+      .replace(/\W+/g, '-')
+      .replace(/(^\-|\-$)/g, '')
+    return createElement(
+      'h' + this.level,
+      [
+        createElement('a', {
+          attrs: {
+            name: headingId,
+            href: '#' + headingId
+          }
+        }, this.$slots.default)
+      ]
+    )
+  },
+  props: {
+    level: {
+      type: Number,
+      required: true
+    }
+  }
+})
+```
+
+#### 约束
+**VNodes 必须唯一**
+组件树中的所有 VNodes 必须是唯一的。这意味着，下面的 render function 是无效的：
+```javascript
+render: function (createElement) {
+  var myParagraphVNode = createElement('p', 'hi')
+  return createElement('div', [
+    // 错误-重复的VNodes
+    myParagraphVNode, myParagraphVNode
+  ])
+}
+```
+如果你真的需要重复很多次的元素/组件，你可以使用工厂函数来实现。例如，下面这个例子 render 函数完美有效地渲染了 20 个重复的段落：
+```javascript
+render: function (createElement) {
+  return createElement('div',
+    Array.apply(null, { length: 20 }).map(function () {
+      return createElement('p', 'hi')
+    })
+  )
+}
+```
+
+### 使用JavaScript代替模板功能
+
+#### `v-if` and `v-for`
+由于使用原生的 JavaScript 来实现某些东西很简单，Vue 的 render 函数没有提供专用的 API。比如， template 中的 v-if 和 v-for:
+```vue
+<ul v-if="items.length">
+  <li v-for="item in items">{{ item.name }}</li>
+</ul>
+<p v-else>No items found.</p>
+``` 
+这些都会在 render 函数中被 JavaScript 的 if/else 和 map 重写：
+```javascript
+render: function (createElement) {
+  if (this.items.length) {
+    return createElement('ul', this.items.map(function (item) {
+      return createElement('li', item.name)
+    }))
+  } else {
+    return createElement('p', 'No items found.')
+  }
+}
+```
+
+#### v-model
+render函数中没有与v-model相应的api - 你必须自己来实现相应的逻辑:
+```javascript
+render: function (createElement) {
+  var self = this
+  return createElement('input', {
+    domProps: {
+      value: self.value
+    },
+    on: {
+      input: function (event) {
+        self.value = event.target.value
+      }
+    }
+  })
+}
+```
+
+#### 事件&按键修饰符
+对于 .capture 和 .once事件修饰符, Vue 提供了相应的前缀可以用于 on:
+
+修饰符  |  前缀
+---  |  ---
+.capture   |  !
+.once |  ~
+`.capture.once` or `.once.capture` | ~!
+
+```javascript
+on: {
+  '!click': this.doThisInCapturingMode,
+  '~keyup': this.doThisOnce,
+  `~!mouseover`: this.doThisOnceInCapturingMode
+}
+```
+
+对于其他的修饰符, 前缀不是很重要, 因为你可以直接在事件处理函数中使用事件方法:
+
+修饰符  |  等效句柄
+--- | ---
+.stop | event.stopPropagation()
+.prevent | event.preventDefault()
+.self | if(event.target !== event.currentTarget) return
+Keys:.enter,.13  | if (event.keyCode !== 13) return (change 13 to another key code for other key modifiers)
+Modifiers Keys:.ctrl, .alt, .shift, .meta  | if (!event.ctrlKey) return (change ctrlKey to altKey, shiftKey, or metaKey, respectively)
+
+这里是一个使用所有修饰符的例子:
+```javascript
+on: {
+  keyup: function (event) {
+    // 如果触发事件的元素不是事件绑定的元素
+    // 则返回
+    if (event.target !== event.currentTarget) return
+    // 如果按下去的不是enter键或者
+    // 没有同时按下shift键
+    // 则返回
+    if (!event.shiftKey || event.keyCode !== 13) return
+    // 阻止 事件冒泡
+    event.stopPropagation()
+    // 阻止该元素默认的keyup事件
+    event.preventDefault()
+    // ...
+  }
+}
+```
+
+#### slots
+你可以从this.$slots获取VNodes列表中的静态内容:
+```javascript
+render: function (createElement) {
+  // <div><slot></slot></div>
+  return createElement('div', this.$slots.default)
+}
+```
+
+```javascript
+render: function (createElement) {
+  // <div><slot :text="msg"></slot></div>
+  return createElement('div', [
+    this.$scopedSlots.default({
+      text: this.msg
+    })
+  ])
+}
+```
+```javascript
+render (createElement) {
+  return createElement('div', [
+    createElement('child', {
+      // pass scopedSlots in the data object
+      // in the form of { name: props => VNode | Array<VNode> }
+      scopedSlots: {
+        default: function (props) {
+          return createElement('span', props.text)
+        }
+      }
+    })
+  ])
+}
+```
+
+### JSX
+如果你写了很多 render 函数，可能会觉得痛苦：
+```javascript
+createElement(
+  'anchored-heading', {
+    props: {
+      level: 1
+    }
+  }, [
+    createElement('span', 'Hello'),
+    ' world!'
+  ]
+)
+```
+
+特别是模板如此简单的情况下：
+```vue
+<anchored-heading :level="1">
+  <span>Hello</span> world!
+</anchored-heading>
+```
+这就是会有一个 Babel plugin 插件，用于在 Vue 中使用 JSX 语法的原因，它可以让我们回到于更接近模板的语法上。
+```javascript
+import AnchoredHeading from './AnchoredHeading.vue'
+new Vue({
+  el: '#demo',
+  render (h) {
+    return (
+      <AnchoredHeading level={1}>
+        <span>Hello</span> world!
+      </AnchoredHeading>
+    )
+  }
+})
+```
+
+> 将 h 作为 createElement 的别名是 Vue 生态系统中的一个通用惯例，实际上也是 JSX 所要求的，如果在作用域中 h 失去作用， 在应用中会触发报错。
+
+### 函数化组件
+之前创建的锚点标题组件是比较简单，没有管理或者监听任何传递给他的状态，也没有生命周期方法。它只是一个接收参数的函数。
+在这个例子中，我们标记组件为 functional， 这意味它是无状态（没有 data），无实例（没有 this 上下文）。
+一个 函数化组件 就像这样：
+```javascript
+Vue.component('my-component', {
+  functional: true,
+  // 为了弥补缺少的实例
+  // 提供第二个参数作为上下文
+  render: function (createElement, context) {
+    // ...
+  },
+  // Props 可选
+  props: {
+    // ...
+  }
+})
+```
+
+> 注意：在 <2.3.0 的版本中，如果一个函数式组件想要接受 props，则 props 选项是必须的。在 2.3.0 或以上的版本中，你可以省略 props 选项，所有组件上的属性都会被自动解析为 props。
+
+组件需要的一切都是通过上下文传递，包括：
+- props: 提供props 的对象
+- children: VNode 子节点的数组
+- slots: slots 对象
+- data: 传递给组件的 data 对象
+- parent: 对父组件的引用
+- listeners: (2.3.0+) 一个包含了组件上所注册的 v-on 侦听器的对象。这只是一个指向 data.on 的别名。
+- injections: (2.3.0+) 如果使用了 inject 选项, 则该对象包含了应当被注入的属性。
+在添加 functional: true 之后，锚点标题组件的 render 函数之间简单更新增加 context 参数，this.$slots.default 更新为 context.children，之后this.level 更新为 context.props.level。
+因为函数化组件只是一个函数，所以渲染开销也低很多。在作为包装组件时它们也同样非常有用，比如，当你需要做这些时：
+- 程序化地在多个组件中选择一个
+- 在将 children, props, data 传递给子组件之前操作它们。
+下面是一个依赖传入 props 的值的 smart-list 组件例子，它能代表更多具体的组件：
+```javascript
+var EmptyList = { /* ... */ }
+var TableList = { /* ... */ }
+var OrderedList = { /* ... */ }
+var UnorderedList = { /* ... */ }
+Vue.component('smart-list', {
+  functional: true,
+  render: function (createElement, context) {
+    function appropriateListComponent () {
+      var items = context.props.items
+      if (items.length === 0)           return EmptyList
+      if (typeof items[0] === 'object') return TableList
+      if (context.props.isOrdered)      return OrderedList
+      return UnorderedList
+    }
+    return createElement(
+      appropriateListComponent(),
+      context.data,
+      context.children
+    )
+  },
+  props: {
+    items: {
+      type: Array,
+      required: true
+    },
+    isOrdered: Boolean
+  }
+})
+```
+
+#### slots()和children对比
+你可能想知道为什么同时需要 slots() 和 children。slots().default 不是和 children 类似的吗？在一些场景中，是这样，但是如果是函数式组件和下面这样的 children 呢？
+```vue
+<my-functional-component>
+  <p slot="foo">
+    first
+  </p>
+  <p>second</p>
+</my-functional-component>
+```
+对于这个组件，children 会给你两个段落标签，而 slots().default 只会传递第二个匿名段落标签，slots().foo 会传递第一个具名段落标签。同时拥有 children 和 slots() ，因此你可以选择让组件通过 slot() 系统分发或者简单的通过 children 接收，让其他组件去处理。
+
+### 模板编译
+你可能有兴趣知道，Vue 的模板实际是编译成了 render 函数。这是一个实现细节，通常不需要关心，但如果你想看看模板的功能是怎样被编译的，你会发现会非常有趣。下面是一个使用 Vue.compile 来实时编译模板字符串的简单 demo：
+```vue
+<div>
+  <h1>I'm a template!</h1>
+  <p v-if="message">
+    {{ message }}
+  </p>
+  <p v-else>
+    No message.
+  </p>
+</div>    
+```
+
+## 自定义指令
+### 简介
+除了默认设置的核心指令( v-model 和 v-show ),Vue 也允许注册自定义指令。注意，在 Vue2.0 里面，代码复用的主要形式和抽象是组件——然而，有的情况下,你仍然需要对纯 DOM 元素进行底层操作,这时候就会用到自定义指令。下面这个例子将聚焦一个 input 元素，像这样：
+
+当页面加载时，元素将获得焦点。事实上，你访问后还没点击任何内容，input 就获得了焦点。现在让我们完善这个指令：
+```javascript
+// 注册一个全局自定义指令 v-focus
+Vue.directive('focus', {
+  // 当绑定元素插入到 DOM 中。
+  inserted: function (el) {
+    // 聚焦元素
+    el.focus()
+  }
+})
+```
+也可以注册局部指令，组件中接受一个 directives 的选项：
+```javascript
+directives: {
+  focus: {
+    // 指令的定义---
+  }
+}
+```
+然后你可以在模板中任何元素上使用新的 v-focus 属性：
+```vue
+<input v-focus>
+```
+
+### 钩子函数
+指令定义函数提供了几个钩子函数（可选）：
+- bind: 只调用一次，指令第一次绑定到元素时调用，用这个钩子函数可以定义一个在绑定时执行一次的初始化动作。
+- inserted: 被绑定元素插入父节点时调用（父节点存在即可调用，不必存在于 document 中）。
+- update: 被绑定元素所在的模板更新时调用，而不论绑定值是否变化。通过比较更新前后的绑定值，可以忽略不必要的模板更新（详细的钩子函数参数见下）。
+- componentUpdated: 被绑定元素所在模板完成一次更新周期时调用。
+- unbind: 只调用一次， 指令与元素解绑时调用。
+接下来我们来看一下钩子函数的参数 (包括 el，binding，vnode，oldVnode) 。
+
+
+### 钩子函数参数
+钩子函数被赋予了以下参数：
+- el: 指令所绑定的元素，可以用来直接操作 DOM 。
+- binding: 一个对象，包含以下属性：
+- name: 指令名，不包括 v- 前缀。
+- value: 指令的绑定值， 例如： v-my-directive="1 + 1", value 的值是 2。
+- oldValue: 指令绑定的前一个值，仅在 update 和 componentUpdated 钩子中可用。无论值是否改变都可用。
+- expression: 绑定值的字符串形式。 例如 v-my-directive="1 + 1" ， expression 的值是 "1 + 1"。
+- arg: 传给指令的参数。例如 v-my-directive:foo， arg 的值是 "foo"。
+- modifiers: 一个包含修饰符的对象。 例如： v-my-directive.foo.bar, 修饰符对象 modifiers 的值是 { foo: true, bar: true }。
+- vnode: Vue 编译生成的虚拟节点，查阅 VNode API 了解更多详情。
+- oldVnode: 上一个虚拟节点，仅在 update 和 componentUpdated 钩子中可用。
+
+> 除了 el 之外，其它参数都应该是只读的，尽量不要修改他们。如果需要在钩子之间共享数据，建议通过元素的 dataset 来进行。
+
+一个使用了这些参数的自定义钩子样例：
+```vue
+<div id="hook-arguments-example" v-demo:hello.a.b="message"></div>
+```
+```javascript
+Vue.directive('demo', {
+  bind: function (el, binding, vnode) {
+    var s = JSON.stringify
+    el.innerHTML =
+      'name: '       + s(binding.name) + '<br>' +
+      'value: '      + s(binding.value) + '<br>' +
+      'expression: ' + s(binding.expression) + '<br>' +
+      'argument: '   + s(binding.arg) + '<br>' +
+      'modifiers: '  + s(binding.modifiers) + '<br>' +
+      'vnode keys: ' + Object.keys(vnode).join(', ')
+  }
+})
+new Vue({
+  el: '#hook-arguments-example',
+  data: {
+    message: 'hello!'
+  }
+})
+```
+
+### 函数简写
+大多数情况下，我们可能想在 bind 和 update 钩子上做重复动作，并且不想关心其它的钩子函数。可以这样写:
+```javascript
+Vue.directive('color-swatch', function (el, binding) {
+  el.style.backgroundColor = binding.value
+})
+```
+
+### 对象字面量
+如果指令需要多个值，可以传入一个 JavaScript 对象字面量。记住，指令函数能够接受所有合法类型的 JavaScript 表达式。
+```vue
+<div v-demo="{ color: 'white', text: 'hello!' }"></div>
+```
+```javascript
+Vue.directive('demo', function (el, binding) {
+  console.log(binding.value.color) // => "white"
+  console.log(binding.value.text)  // => "hello!"
+})
+```
+
+## 混合
+### 基础
+混合是一种灵活的分布式复用 Vue 组件的方式。混合对象可以包含任意组件选项。以组件使用混合对象时，所有混合对象的选项将被混入该组件本身的选项。
+```javascript
+// 定义一个混合对象
+var myMixin = {
+  created: function () {
+    this.hello()
+  },
+  methods: {
+    hello: function () {
+      console.log('hello from mixin!')
+    }
+  }
+}
+// 定义一个使用混合对象的组件
+var Component = Vue.extend({
+  mixins: [myMixin]
+})
+var component = new Component() // -> "hello from mixin!"
+```
+### 选项合并
+当组件和混合对象含有同名选项时，这些选项将以恰当的方式混合。比如，同名钩子函数将混合为一个数组，因此都将被调用。另外，混合对象的 钩子将在组件自身钩子 之前 调用 ：
+```javascript
+var mixin = {
+  created: function () {
+    console.log('混合对象的钩子被调用')
+  }
+}
+new Vue({
+  mixins: [mixin],
+  created: function () {
+    console.log('组件钩子被调用')
+  }
+})
+// -> "混合对象的钩子被调用"
+// -> "组件钩子被调用"
+```
+值为对象的选项，例如 methods, components 和 directives，将被混合为同一个对象。 两个对象键名冲突时，取组件对象的键值对。
+```javascript
+var mixin = {
+  methods: {
+    foo: function () {
+      console.log('foo')
+    },
+    conflicting: function () {
+      console.log('from mixin')
+    }
+  }
+}
+var vm = new Vue({
+  mixins: [mixin],
+  methods: {
+    bar: function () {
+      console.log('bar')
+    },
+    conflicting: function () {
+      console.log('from self')
+    }
+  }
+})
+vm.foo() // -> "foo"
+vm.bar() // -> "bar"
+vm.conflicting() // -> "from self"
+```
+注意： Vue.extend() 也使用同样的策略进行合并。
+
+### 全局混合
+也可以全局注册混合对象。 注意使用！ 一旦使用全局混合对象，将会影响到 所有 之后创建的 Vue 实例。使用恰当时，可以为自定义对象注入处理逻辑。
+```javascript
+// 为自定义的选项 'myOption' 注入一个处理器。 
+Vue.mixin({
+  created: function () {
+    var myOption = this.$options.myOption
+    if (myOption) {
+      console.log(myOption)
+    }
+  }
+})
+new Vue({
+  myOption: 'hello!'
+})
+// -> "hello!"
+```
+
+> 谨慎使用全局混合对象，因为会影响到每个单独创建的 Vue 实例（包括第三方模板）。大多数情况下，只应当应用于自定义选项，就像上面示例一样。 也可以将其用作 Plugins 以避免产生重复应用
+
+### 自定义选项混合策略
+自定义选项将使用默认策略，即简单地覆盖已有值。 如果想让自定义选项以自定义逻辑混合，可以向 Vue.config.optionMergeStrategies 添加一个函数：
+```javascript
+Vue.config.optionMergeStrategies.myOption = function (toVal, fromVal) {
+  // return mergedVal
+}
+```
+对于大多数对象选项，可以使用 methods 的合并策略:
+```javascript
+var strategies = Vue.config.optionMergeStrategies
+strategies.myOption = strategies.methods
+```
+更多高级的例子可以在 Vuex 1.x的混合策略里找到:
+```javascript
+const merge = Vue.config.optionMergeStrategies.computed
+Vue.config.optionMergeStrategies.vuex = function (toVal, fromVal) {
+  if (!toVal) return fromVal
+  if (!fromVal) return toVal
+  return {
+    getters: merge(toVal.getters, fromVal.getters),
+    state: merge(toVal.state, fromVal.state),
+    actions: merge(toVal.actions, fromVal.actions)
+  }
+}
+```
+
+## 插件
+### 开发插件
+插件通常会为Vue添加全局功能。插件的范围没有限制——一般有下面几种：
+1. 添加全局方法或者属性，如: vue-element
+2. 添加全局资源：指令/过滤器/过渡等，如 vue-touch
+3. 通过全局 mixin方法添加一些组件选项，如: vuex
+4. 添加 Vue 实例方法，通过把它们添加到 Vue.prototype 上实现。
+5. 一个库，提供自己的 API，同时提供上面提到的一个或多个功能，如 vue-router
+
+Vue.js 的插件应当有一个公开方法 install 。这个方法的第一个参数是 Vue 构造器 , 第二个参数是一个可选的选项对象:
+```javascript
+MyPlugin.install = function (Vue, options) {
+  // 1. 添加全局方法或属性
+  Vue.myGlobalMethod = function () {
+    // 逻辑...
+  }
+  // 2. 添加全局资源
+  Vue.directive('my-directive', {
+    bind (el, binding, vnode, oldVnode) {
+      // 逻辑...
+    }
+    ...
+  })
+  // 3. 注入组件
+  Vue.mixin({
+    created: function () {
+      // 逻辑...
+    }
+    ...
+  })
+  // 4. 添加实例方法
+  Vue.prototype.$myMethod = function (options) {
+    // 逻辑...
+  }
+}
+```
+
+### 使用插件
+通过全局方法 Vue.use() 使用插件:
+```javascript
+// 调用 `MyPlugin.install(Vue)`
+Vue.use(MyPlugin)
+```
+也可以传入一个选项对象：
+```javascript
+Vue.use(MyPlugin, { someOption: true })
+```
+Vue.use 会自动阻止注册相同插件多次，届时只会注册一次该插件。
+一些插件，如 vue-router 如果 Vue 是全局变量则自动调用 Vue.use() 。不过在模块环境中应当始终显式调用 Vue.use() :
+```javascript
+// 通过 Browserify 或 Webpack 使用 CommonJS 兼容模块
+var Vue = require('vue')
+var VueRouter = require('vue-router')
+// 不要忘了调用此方法
+Vue.use(VueRouter)
+```
+[awesome-vue](https://github.com/vuejs/awesome-vue#libraries--plugins)
+
+## 单文件组件
+### 介绍
+在很多Vue项目中，我们使用 Vue.component 来定义全局组件，紧接着用 new Vue({ el: '#container '}) 在每个页面内指定一个容器元素。
+这种方式在很多中小规模的项目中运作的很好，在这些项目里 JavaScript 只被用来加强特定的视图。但当在更复杂的项目中，或者你的前端完全由 JavaScript 驱动的时候，下面这些缺点将变得非常明显：
+- 全局定义(Global definitions) 强制要求每个 component 中的命名不得重复
+- 字符串模板(String templates) 缺乏语法高亮，在 HTML 有多行的时候，需要用到丑陋的 \
+- 不支持CSS(No CSS support) 意味着当 HTML 和 JavaScript 组件化时，CSS 明显被遗漏
+- 没有构建步骤(No build step) 限制只能使用 HTML 和 ES5 JavaScript, 而不能使用预处理器，如 Pug (formerly Jade) 和 Babel
+文件扩展名为 .vue 的 single-file components(单文件组件) 为以上所有问题提供了解决方法，并且还可以使用 Webpack 或 Browserify 等构建工具。
+这是一个文件名为 Hello.vue 的简单实例：
+```vue
+<template>
+  <div class="hello">
+    <h1>{{ msg }}</h1>
+    <h2>Essential Links</h2>
+    <ul>
+      <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
+      <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>
+      <li><a href="https://gitter.im/vuejs/vue" target="_blank">Gitter Chat</a></li>
+      <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
+      <br>
+      <li><a href="http://vuejs-templates.github.io/webpack/" target="_blank">Docs for This Template</a></li>
+    </ul>
+    <h2>Ecosystem</h2>
+    <ul>
+      <li><a href="http://router.vuejs.org/" target="_blank">vue-router</a></li>
+      <li><a href="http://vuex.vuejs.org/" target="_blank">vuex</a></li>
+      <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
+      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
+    </ul>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'hello',
+  data() {
+    return {
+      msg: 'Welcome to Your Vue.js App',
+    };
+  },
+};
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+h1, h2 {
+  font-weight: normal;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  display: inline-block;
+  margin: 0 10px;
+}
+
+a {
+  color: #42b983;
+}
+</style>
+
+```
+### 起步
+#### 针对刚接触JavaScript模块开发系统的用户
+
+有了 .vue 组件，我们就进入了高级 JavaScript 应用领域。如果你没有准备好的话，意味着还需要学会使用一些附加的工具：
+- Node Package Manager (NPM): 阅读 [Getting Started guide](https://docs.npmjs.com/getting-started/what-is-npm) 直到 10: Uninstalling global packages章节.
+- Modern JavaScript with ES2015/16: 阅读 Babel 的 [Learn ES2015 guide](https://babeljs.io/docs/learn-es2015/). 你不需要立刻记住每一个方法，但是你可以保留这个页面以便后期参考。
+
+在你花一些时日了解这些资源之后，我们建议你参考 [webpack-simple](https://github.com/vuejs-templates/webpack-simple) 。只要遵循指示，你就能很快的运行一个用到 .vue 组件，ES2015 和 热重载( hot-reloading ) 的Vue项目!
+
+这个模板使用 [Webpack](https://webpack.github.io/)，一个能将多个模块打包成最终应用的模块打包工具。 [这个视频](https://www.youtube.com/watch?v=WQue1AN93YU) 介绍了Webpack的更多相关信息。 学习了这些基础知识后， 你可能想看看 [这个在 Egghead.io上的 高级 Webpack 课程](https://egghead.io/courses/using-webpack-for-production-javascript-applications).
+
+在 Webpack中，每个模块被打包到 bundle 之前都由一个相应的 “loader” 来转换，Vue 也提供 [vue-loader](https://github.com/vuejs/vue-loader) 插件来执行 .vue 单文件组件 的转换. 这个 [webpack-simple](https://github.com/vuejs-templates/webpack-simple) 模板已经为你准备好了所有的东西，但是如果你想了解更多关于 .vue 组件和 Webpack 如何一起运转的信息，你可以阅读 [vue-loader](https://vue-loader.vuejs.org/) 的文档。
+
+#### 针对高级用户
+<p>无论你更钟情 Webpack 或是 Browserify，我们为简单的和更复杂的项目都提供了一些文档模板。我们建议浏览 <a href="https://github.com/vuejs-templates" target="_blank" rel="external">github.com/vuejs-templates</a>，找到你需要的部分，然后参考 README 中的说明，使用 <a href="https://github.com/vuejs/vue-cli" target="_blank" rel="external">vue-cli</a> 工具生成新的项目。</p>
+<p>模板中使用 <a href="https://webpack.github.io/" target="_blank" rel="external">Webpack</a> ，一个模块加载器加载多个模块然后构建成最终应用。为了进一步了解 Webpack, 可以看 <a href="https://www.youtube.com/watch?v=WQue1AN93YU" target="_blank" rel="external">官方介绍视频</a>。如果你有基础，可以看 <a href="https://egghead.io/courses/using-webpack-for-production-javascript-applications" target="_blank" rel="external">在 Egghead.io 上的 Webpack 进阶教程</a>。</p>
+
+## 生产环境部署
+### 删除警告
+为了减少文件大小，Vue 精简独立版本已经删除了所有警告，但是当你使用 Webpack 或 Browserify 等工具时，你需要一些额外的配置实现这点。
+
+#### Webpack
+使用 Webpack 的 DefinePlugin 来指定生产环境，以便在压缩时可以让 UglifyJS 自动删除代码块内的警告语句。例如配置：
+```javascript
+var webpack = require('webpack')
+module.exports = {
+  // ...
+  plugins: [
+    // ...
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: '"production"'
+      }
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      }
+    })
+  ]
+}
+```
+
+#### Browserify
+- 运行打包命令，设置 NODE_ENV 为 "production"。等于告诉 vueify 避免引入热重载和开发相关代码。
+- 使用一个全局 envify 转换你的 bundle 文件。这可以精简掉包含在 Vue 源码中所有环境变量条件相关代码块内的警告语句。例如：
+```shell
+NODE_ENV=production browserify -g envify -e main.js | uglifyjs -c -m > build.js
+```
+- 使用 vueify 中包含的 extract-css 插件，提取样式到单独的css文件。
+```shell
+NODE_ENV=production browserify -g envify -p [ vueify/plugins/extract-css -o build.css ] -e main.js | uglifyjs -c -m > build.js
+```
+### 跟踪运行时错误
+如果在组件渲染时出现运行错误，错误将会被传递至全局 Vue.config.errorHandler 配置函数（如果已设置）。利用这个钩子函数和错误跟踪服务（如 Sentry，它为 Vue 提供官方集成），可能是个不错的主意。
+
+### 提取CSS
+使用单文件组件时，<style> 标签在开发运行过程中会被动态实时注入。在生产环境中，你可能需要从所有组件中提取样式到单独的 CSS 文件中。有关如何实现的详细信息，请查阅 vue-loader 和 vueify 相应文档。
+vue-cli 已经配置好了官方的 webpack 模板。
+
+
+## 路由
+### 官方路由
+对于大多数单页面应用，都推荐使用官方支持的[vue-router](https://github.com/vuejs/vue-router)库。更多细节可以看[vue-router文档](http://vuejs.github.io/vue-router/)。
+
+### 从零开始简单的路由
+如果只需要非常简单的路由而不需要引入整个路由库，可以动态渲染一个页面级的组件像这样：
+```javascript
+const NotFound = { template: '<p>Page not found</p>' }
+const Home = { template: '<p>home page</p>' }
+const About = { template: '<p>about page</p>' }
+const routes = {
+  '/': Home,
+  '/about': About
+}
+new Vue({
+  el: '#app',
+  data: {
+    currentRoute: window.location.pathname
+  },
+  computed: {
+    ViewComponent () {
+      return routes[this.currentRoute] || NotFound
+    }
+  },
+  render (h) { return h(this.ViewComponent) }
+})
+```
+结合HTML5 History API，你可以建立一个非常基本但功能齐全的客户端路由器。
+
+### 整合第三方路由
+<p>如果有非常喜欢的第三方路由，如<a href="https://github.com/visionmedia/page.js" target="_blank" rel="external">Page.js</a>或者 <a href="https://github.com/flatiron/director" target="_blank" rel="external">Director</a>, 整合<a href="https://github.com/chrisvfritz/vue-2.0-simple-routing-example/compare/master...pagejs" target="_blank" rel="external">很简单</a>。 这有个用了Page.js的<a href="https://github.com/chrisvfritz/vue-2.0-simple-routing-example/tree/pagejs" target="_blank" rel="external">复杂示例</a> 。</p>
+
+## 状态管理
+### 类Flux状态管理的官方实现
+由于多个状态分散的跨越在许多组件和交互间各个角落，大型应用复杂度也经常逐渐增长。为了解决这个问题，Vue 提供 vuex： 我们有受到 Elm 启发的状态管理库。vuex 甚至集成到 vue-devtools，无需配置即可访问时光旅行。
+
+### 简单状态管理起步使用
+经常被忽略的是，Vue 应用中原始 数据 对象的实际来源 - 当访问数据对象时，一个 Vue 实例只是简单的代理访问。所以，如果你有一处需要被多个实例间共享的状态，可以简单地通过维护一份数据来实现共享：
+```javascript
+const sourceOfTruth = {}
+const vmA = new Vue({
+  data: sourceOfTruth
+})
+const vmB = new Vue({
+  data: sourceOfTruth
+})
+```
+现在当 sourceOfTruth 发生变化，vmA 和 vmB 都将自动的更新引用它们的视图。子组件们的每个实例也会通过 this.$root.$data 去访问。现在我们有了唯一的实际来源，但是，调试将会变为噩梦。任何时间，我们应用中的任何部分，在任何数据改变后，都不会留下变更过的记录。
+
+为了解决这个问题，我们采用一个简单的 store 模式：
+```javascript
+var store = {
+  debug: true,
+  state: {
+    message: 'Hello!'
+  },
+  setMessageAction (newValue) {
+    this.debug && console.log('setMessageAction triggered with', newValue)
+    this.state.message = newValue
+  },
+  clearMessageAction () {
+    this.debug && console.log('clearMessageAction triggered')
+    this.state.message = 'clearMessageAction triggered'
+  }
+}
+```
+
+需要注意，所有 store 中 state 的改变，都放置在 store 自身的 action 中去管理。这种集中式状态管理能够被更容易地理解哪种类型的 mutation 将会发生，以及它们是如何被触发。当错误出现时，我们现在也会有一个 log 记录 bug 之前发生了什么。
+此外，每个实例/组件仍然可以拥有和管理自己的私有状态：
+```javascript
+var vmA = new Vue({
+  data: {
+    privateState: {},
+    sharedState: store.state
+  }
+})
+var vmB = new Vue({
+  data: {
+    privateState: {},
+    sharedState: store.state
+  }
+})
+```
+![](https://cn.vuejs.org/images/state.png)
+
+> 重要的是，注意你不应该在 action 中 替换原始的状态对象 - 组件和 store 需要引用同一个共享对象，mutation 才能够被观察
+
+接着我们继续延伸约定，组件不允许直接修改属于 store 实例的 state，而应执行 action 来分发 (dispatch) 事件通知 store 去改变，我们最终达成了 Flux 架构。这样约定的好处是，我们能够记录所有 store 中发生的 state 改变，同时实现能做到记录变更 (mutation) 、保存状态快照、历史回滚/时光旅行的先进的调试工具。
+
+## 单元测试
+### 配置和工具
+任何兼容基于模块的构建系统都可以正常使用，但如果你需要一个具体的建议，可以使用 Karma 进行自动化测试。它有很多社区版的插件，包括对 Webpack 和 Browserify 的支持。更多详细的安装步骤，请参考各项目的安装文档，通过这些 Karma 配置的例子可以快速帮助你上手（Webpack 配置，Browserify 配置）。
+
+### 简单的断言
+在测试的代码结构方面，你不必为了可测试在你的组件中做任何特殊的操作。只要导出原始设置就可以了：
+```vue
+<template>
+  <span>{{ message }}</span>
+</template>
+<script>
+  export default {
+    data () {
+      return {
+        message: 'hello!'
+      }
+    },
+    created () {
+      this.message = 'bye!'
+    }
+  }
+</script>
+```
+当测试的组件时，所要做的就是导入对象和 Vue 然后使用许多常见的断言：
+```javascript
+// 导入 Vue.js 和组件，进行测试
+import Vue from 'vue'
+import MyComponent from 'path/to/MyComponent.vue'
+// 这里是一些 Jasmine 2.0 的测试，你也可以使用你喜欢的任何断言库或测试工具。
+describe('MyComponent', () => {
+  // 检查原始组件选项
+  it('has a created hook', () => {
+    expect(typeof MyComponent.created).toBe('function')
+  })
+  // 评估原始组件选项中的函数的结果
+  it('sets the correct default data', () => {
+    expect(typeof MyComponent.data).toBe('function')
+    const defaultData = MyComponent.data()
+    expect(defaultData.message).toBe('hello!')
+  })
+  // 检查mount中的组件实例
+  it('correctly sets the message when created', () => {
+    const vm = new Vue(MyComponent).$mount()
+    expect(vm.message).toBe('bye!')
+  })
+  // 创建一个实例并检查渲染输出
+  it('renders the correct message', () => {
+    const Ctor = Vue.extend(MyComponent)
+    const vm = new Ctor().$mount()
+    expect(vm.$el.textContent).toBe('bye!')
+  })
+})
+```
+
+### 编写可被测试的组件
+很多组件的渲染输出由它的 props 决定。事实上，如果一个组件的渲染输出完全取决于它的 props，那么它会让测试变得简单，就好像断言不同参数的纯函数的返回值。看下面这个例子:
+```vue
+<template>
+  <p>{{ msg }}</p>
+</template>
+<script>
+  export default {
+    props: ['msg']
+  }
+</script>
+```
+你可以在不同的 props 中，通过 propsData 选项断言它的渲染输出:
+```javascript
+import Vue from 'vue'
+import MyComponent from './MyComponent.vue'
+// 挂载元素并返回已渲染的文本的工具函数 
+function getRenderedText (Component, propsData) {
+  const Ctor = Vue.extend(Component)
+  const vm = new Ctor({ propsData }).$mount()
+  return vm.$el.textContent
+}
+describe('MyComponent', () => {
+  it('render correctly with different props', () => {
+    expect(getRenderedText(MyComponent, {
+      msg: 'Hello'
+    })).toBe('Hello')
+    expect(getRenderedText(MyComponent, {
+      msg: 'Bye'
+    })).toBe('Bye')
+  })
+})
+```
+
+### 断言异步更新
+由于 Vue 进行 异步更新DOM 的情况，一些依赖DOM更新结果的断言必须在 Vue.nextTick 回调中进行：
+```javascript
+// 在状态更新后检查生成的 HTML
+it('updates the rendered message when vm.message updates', done => {
+  const vm = new Vue(MyComponent).$mount()
+  vm.message = 'foo'
+  // 在状态改变后和断言 DOM 更新前等待一刻
+  Vue.nextTick(() => {
+    expect(vm.$el.textContent).toBe('foo')
+    done()
+  })
+})
+```
+
+
+## 服务端渲染
+### SSR完全指南
+在 2.3 发布后我们发布了一份完整的构建 Vue 服务端渲染应用的指南。这份指南非常深入，适合已经熟悉 Vue, webpack 和 Node.js 开发的开发者阅读。请移步 [ssr.vuejs.org](https://ssr.vuejs.org/)。（目前只有英文版，社区正在进行中文版的翻译）
+
+### Nuxt.js
+从头搭建一个服务端渲染的应用是相当复杂的。幸运的是，我们有一个优秀的社区项目 [Nuxt.js](https://nuxtjs.org/) 让这一切变得非常简单。Nuxt 是一个基于 Vue 生态的更高层的框架，为开发服务端渲染的 Vue 应用提供了极其便利的开发体验。更酷的是，你甚至可以用它来做为静态站生成器。推荐尝试。
+
+
