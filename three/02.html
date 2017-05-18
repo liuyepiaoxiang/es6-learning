@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>基础</title>
+    <title>正交投影照相机</title>
     <!--引入Three.js-->
     <script src="three.js"></script>
     <script type="text/javascript">
@@ -15,30 +15,35 @@
 
        var scene = new THREE.Scene();
 
-       var camera = new THREE.PerspectiveCamera(45,4/3,1,1000);
+       var camera = new THREE.PerspectiveCamera(60,4/3,1,10);
 
        camera.position.set(0,0,5);
-       camera.lookAt(new THREE.Vector3(0,0,0));
+       // camera.lookAt(new THREE.Vector3(0,0,0));
        scene.add(camera);
 
-       var material = new THREE.MeshBasicMaterial({
-           colcr:0xffffff
-       });
+       var cube = new THREE.Mesh(new THREE.CubeGeometry(1,1,1),
+           new THREE.MeshBasicMaterial({
+                color:0xff0000,
+                wireframe:true
+           })
+           );
+
+       scene.add(cube);
        //plane
-        var planeGeo = new THREE.PlaneGeometry(1.5,1.5);
+      /*  var planeGeo = new THREE.PlaneGeometry(1.5,1.5);
         var plane = new THREE.Mesh(planeGeo,material);
         plane.position.x = 1;
-        scene.add(plane);
+        scene.add(plane);*/
 
         //triangle
 
-        var triGeo = new THREE.Geometry();
+        /*var triGeo = new THREE.Geometry();
         triGeo.vertices = [new THREE.Vector3(0,-0.8,0),
             new THREE.Vector3(-2,-0.8,0),new THREE.Vector3(-1,0.8,0)];
 
         triGeo.faces.push(new THREE.Face3(0,2,1));
         var triangle = new THREE.Mesh(triGeo, material);
-        scene.add(triangle);
+        scene.add(triangle);*/
 
         renderer.render(scene,camera);
         }
@@ -48,8 +53,8 @@
         div#canvas3d{
             border: none;
             cursor: move;
-            width: 1400px;
-            height: 600px;
+            width: 400px;
+            height: 300px;
             background-color: #EEEEEE;
         }
     </style>
@@ -57,6 +62,6 @@
 
 <body onload='init()'>
 <!--盛放canvas的容器-->
-<canvas id="canvas3d" width="1400px" height="600px"></canvas>
+<canvas id="canvas3d" width="400px" height="300px"></canvas>
 </body>
 </html>
