@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/liuyepiaoxiang/es6-learning/issues"
   },
-  "homepage": "https://github.com/liuyepiaoxiang/es6-learning#readme"
+  "homepage": "https://github.com/liuyepiaoxiang/es6-learning#readme",
+  "dependencies": {
+    "three": "^0.85.2"
+  }
 }
