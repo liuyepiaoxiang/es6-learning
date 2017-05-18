@@ -3067,3 +3067,100 @@ new Vue({
 我们能在组件中结合使用这一节讲到各种过渡策略和 Vue 内建的过渡系统。总之，对于完成各种过渡动效几乎没有阻碍。
 
 ### Render函数
+#### 基础
+Vue 推荐在绝大多数情况下使用 template 来创建你的 HTML。然而在一些场景中，你真的需要 JavaScript 的完全编程的能力，这就是 render 函数，它比 template 更接近编译器。
+```vue
+<h1>
+  <a name="hello-world" href="#hello-world">
+    Hello world!
+  </a>
+</h1>
+```
+在 HTML 层， 我们决定这样定义组件接口：
+```vue
+<anchored-heading :level="1">Hello world!</anchored-heading>
+```
+当我们开始写一个通过 level prop 动态生成heading 标签的组件，你可能很快想到这样实现：
+```vue
+<script type="text/x-template" id="anchored-heading-template">
+  <div>
+    <h1 v-if="level === 1">
+      <slot></slot>
+    </h1>
+    <h2 v-if="level === 2">
+      <slot></slot>
+    </h2>
+    <h3 v-if="level === 3">
+      <slot></slot>
+    </h3>
+    <h4 v-if="level === 4">
+      <slot></slot>
+    </h4>
+    <h5 v-if="level === 5">
+      <slot></slot>
+    </h5>
+    <h6 v-if="level === 6">
+      <slot></slot>
+    </h6>
+  </div>
+</script>
+```
+```javascript
+Vue.component('anchored-heading', {
+  template: '#anchored-heading-template',
+  props: {
+    level: {
+      type: Number,
+      required: true
+    }
+  }
+})
+```
+在这种场景中使用 template 并不是最好的选择：首先代码冗长，为了在不同级别的标题中插入锚点元素，我们需要重复地使用 <slot></slot>。其次由于组件必须有根节点，标题和锚点元素被包裹在了一个无用的 div 中。
+虽然模板在大多数组件中都非常好用，但是在这里它就不是很简洁的了。那么，我们来尝试使用 render 函数重写上面的例子：
+```javascript
+Vue.component('anchored-heading', {
+  render: function (createElement) {
+    return createElement(
+      'h' + this.level,   // tag name 标签名称
+      this.$slots.default // 子组件中的阵列
+    )
+  },
+  props: {
+    level: {
+      type: Number,
+      required: true
+    }
+  }
+})
+```
+简单清晰很多！简单来说，这样代码精简很多，但是需要非常熟悉 Vue 的实例属性。在这个例子中，你需要知道当你不使用 slot 属性向组件中传递内容时，比如 anchored-heading 中的 Hello world!, 这些子元素被存储在组件实例中的 $slots.default中。如果你还不了解， 在深入 render 函数之前推荐阅读 instance properties API。
+
+### createElement参数
+第二件你需要熟悉的是如何在 createElement 函数中生成模板。这里是 createElement 接受的参数：
+```javascript
+// @returns {VNode}
+createElement(
+  // {String | Object | Function}
+  // 一个 HTML 标签字符串，组件选项对象，或者一个返回值类型为String/Object的函数，必要参数
+  'div',
+  // {Object}
+  // 一个包含模板相关属性的数据对象
+  // 这样，您可以在 template 中使用这些属性.可选参数.
+  {
+    // (详情见下一节)
+  },
+  // {String | Array}
+  // 子节点(VNodes)，可以是一个字符串或者一个数组. 可选参数.
+  [
+    createElement('h1', 'hello world'),
+    createElement(MyComponent, {
+      props: {
+        someProp: 'foo'
+      }
+    }),
+    'bar'
+  ]
+)
+```
+#### 深入data object参数
