@@ -413,3 +413,158 @@ THREE.Geometry()
 
 ## 材质
 ### 基本材质
+使用基本材质的物体，渲染后物体的颜色始终为该材质的颜色，而不会由于光照产生明暗、阴影效果。如果没有指定材质的颜色，则颜色是随机的。其构造函数是:
+```javascript
+THREE.MeshLambertMaterial(opt)
+```
+其中opt可以缺省，或者为包含各属性的值。\
+常用的属性:
+- visible：是否可见，默认为true
+- side：渲染面片正面或者反面，默认为正面`THREE.FrontSide`，可设置为反面`THREE.BackSide`,或双面`THREE.DoubleSide`
+- wireframe：是否渲染线而非面，默认为false
+- color：十六进制RGB颜色，
+- map：使用纹理贴图
+
+### Lambert材质
+Lambert材质（MeshLambertMaterial）是符合Lambert光照模型的材质。Lambert光照模型的主要特点是只考虑漫反射而不考虑镜面反射的效果，因而对于金属、镜子等需要镜面反射效果的物体就不适用，对于其他大部分物体的漫反射效果都是适用的。\
+其光照模型公式:
+```javascript
+Idiffuse = Kd * Id * cos(theta)
+```
+其中，Idiffuse是漫反射光强，Kd是物体表面的漫反射属性，Id是光强，theta是光的入射角弧度。\
+color是用来表现材质对散射光的反射能力，也是最常用来设置材质颜色的属性。除此之外，还可以用ambient和emissive控制材质的颜色。\
+ambient表示对环境光的反射能力，只有当设置了AmbientLight后，该值才是有效的，材质对环境光的反射能力与环境光强相乘后得到材质实际表现的颜色。\
+emissive是材质的自发光颜色，可以用来表现光源的颜色
+
+### Phong材质
+Phong材质(MeshPhongMaterial)是符合Phong光照模型的材质。和Lambert不同的是，Phong模型考虑了镜面反射的效果，因此对于金属、镜面的表现尤为适合。\
+漫反射部分和Lambert光照模型是相同的，镜面反射部分的模型为：
+```javascript
+Ispecular = Ks * Is * (cos(alpha))^n
+```
+其中，Ispecular是镜面反射的光强，Ks是材质表面镜面反射系数，Is是光源强度，alpha是反射光与视线的夹角，n是高光指数，越大则高光光斑越小。\
+由于漫反射部分与Lambert模型是一致的，因此，如果不指定镜面反射系数，而只设定漫反射，其效果与Lambert是相同的。
+
+### 法向材质
+法向材质可以将材质的颜色设置为其法向量的方向，有时候对于调试很有帮助。\
+法向材质的设定很简单，甚至不用设置任何参数:
+```javascript
+new THREE.MeshNormalMaterial()
+```
+材质的颜色与照相机与该物体的角度相关。
+
+### 材质的纹理贴图
+导入纹理：
+```javascript
+var texture = THREE.ImageUtils.loadTexture('filename.png');
+var material = new THREE.MeshLambertMaterial({
+map:texture
+});
+```
+需要重新绘制
+```javascript
+var texture = THREE.ImageUtils.loadTexture('filename.png',{},function(){
+    renderer.render(scene,camera);
+});
+var material = new THREE.MeshLambertMaterial({
+map:texture
+});
+```
+
+
+## 网格
+最常用的物体是网格(Mesh)，它代表包含点、线、面的几何体，其构造函数是：
+```javascript
+Mesh(geometry,material)
+```
+创建网格：
+```javascript
+var meterial = new THREE.MeshLambertMaterial({
+color:0xffff00
+});
+var geometry = new THREE.CubeGeometry(1,2,3);
+var mesh = new THREE.Mesh(geometry,material);
+scene.add(mesh);
+```
+如果material和geometry之后不会复用的话，也可以合在一起写为：
+```javascript
+var mesh = new THREE.Mesh(new THREE.CubeGeometry(1,2,3),
+ new THREE.MeshLambertMaterial({
+ color:0xffff00
+ }));
+scene.add(mesh);
+```
+
+### 材质
+除了在构造函数中指定材质，在网格被创建后，也能对材质进行修改。
+
+###　位置、缩放、旋转
+位置、缩放、旋转是物体的三个常用属性。由于`THREE.Mesh`基础自`THREE.Object3D`，因此包含scale、rotation、position三个属性。它们都是`THREE.Vector3`实例，因此修改其值的方法是相同的。
+
+
+## 动画
+### 实现动画效果
+一般FPS在30到60之间都是可取的。
+
+setInterval方法\
+如果要设置特定的FPS，可以使用JavaScript DOM定义的方法：
+```javascript
+setInterval(func,msec)
+```
+其中，func是每过msec毫秒执行的函数，如果将func定义为重绘画面的函数，就能实现动画效果。`setInterval`函数返回一个id，如果需要停止重绘，需要使用`clearInterval`方法，并传入该id。
+
+### requestAnimationFrame方法
+大多数时候，我们并不在意多久重绘一次，这时候就适合用requestAnimationFrame方法。它告诉浏览器在合适的时候调用指定函数，通常可能达到60FPS。
+requestAnimationFrame方法同样有对应的cancelAnimationFrame方法取消动画。
+
+
+## 外部模型
+.obj是最常用的模型格式，导入.obj需要OBJLoader.js;
+- .obj
+- .obj,.mtl
+- .dae
+- .ctm
+- .ply
+- .stl
+- .wrl
+- .vtk
+
+
+## 光与影
+环境光、点光源、平行光、聚光灯
+### 环境光
+环境光是指场景整体的光照效果，是由于场景内若干光源的多次反射形成的亮度一致的效果，通常用来为整个场景指定一个基础亮度。因此，环境光没有明确的光源位置，在各处形成的亮度也是一致的。
+在设置环境光时，只需要指定光的颜色：
+```javascript
+THREE.AmbientLight(hex)
+```
+其中，hex是十六进制的RGB颜色信息。
+```javascript
+var light = new THREE.AmbientLight(0xffffff)
+scene.add(light);
+```
+
+### 点光源
+点光源是不计光源大小，可以看作一个点发出的光源。点光源照到不同物体表面的亮度是线性递减的，因此，离点光源距离越远的物体会显得越暗。
+```javascript
+THREE.PointLight(hex,intensity,distance)
+```
+其中，hex是光源十六进制的颜色值；intensity是亮度，缺省值为1，表示100%亮度；distance是光源最远照射到的距离，缺省值为0。
+```javascript
+var light = new THREE.PointLight(0xffffff,2,100)
+light.position.set(1,1.5,2)
+scene.add(light);
+```
+
+### 平行光
+```javascript
+THREE.DirectionalLight(hex,intensity)
+```
+其中，hex是光源十六进制的颜色值；intensity是亮度，缺省值为1，表示100%亮度。
+
+### 聚光灯
+聚光灯是一种特殊的点光源，它能够朝着一个方向投射光线。聚光灯投射出的是类似圆锥形的光线。
+```javascript
+THREE.SpotLight(hex,intensity,distance,angle,exponent)
+```
+相比点光源，多了angle
