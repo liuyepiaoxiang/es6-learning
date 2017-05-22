@@ -3068,6 +3068,8 @@ new Vue({
 
 ### Render函数
 
+
+
 #### 基础
 Vue 推荐在绝大多数情况下使用 template 来创建你的 HTML。然而在一些场景中，你真的需要 JavaScript 的完全编程的能力，这就是 render 函数，它比 template 更接近编译器。
 ```vue
@@ -3137,6 +3139,7 @@ Vue.component('anchored-heading', {
 ```
 简单清晰很多！简单来说，这样代码精简很多，但是需要非常熟悉 Vue 的实例属性。在这个例子中，你需要知道当你不使用 slot 属性向组件中传递内容时，比如 anchored-heading 中的 Hello world!, 这些子元素被存储在组件实例中的 $slots.default中。如果你还不了解， 在深入 render 函数之前推荐阅读 instance properties API。
 
+
 #### createElement参数
 第二件你需要熟悉的是如何在 createElement 函数中生成模板。这里是 createElement 接受的参数：
 ```javascript
@@ -3164,6 +3167,7 @@ createElement(
   ]
 )
 ```
+
 #### 深入data object参数
 有一件事要注意：正如在模板语法中，v-bind:class 和 v-bind:style ，会被特别对待一样，在 VNode 数据对象中，下列属性名是级别最高的字段。
 ```javascript
