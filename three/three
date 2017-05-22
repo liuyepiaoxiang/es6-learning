@@ -295,3 +295,121 @@ near和far分别是照相机到视景体最近、最远的距离，均为正值�
 
 ## 基本几何形状
 ### 立方体
+虽然这一形状的名字叫立方体(CubeGeometry),但它其实是长方体，也就是长宽高可以设置为不同的值。其构造函数是：
+```javascript
+THREE.CubeGeometry(width,height,depth,widthSegments,heightSegments,depthSegments)
+```
+这里，width是x方向上的长度；height是y方向上的长度；depth是z方向上的长度；\
+后面三个参数分别是在三个方向上的分段数。一般情况下不需要分段的话，可以不设置后三个参数，后三个参数的缺省值为1，其他几何形状中的分段也是类似的。
+
+### 长宽高
+创建立方体直观简单，`new THREE.CubeGeometry(1, 2, 3);`可以创建一个x方向长度为1，y方向长度为2，z方向长度为3的立方体。
+
+### 平面
+这里的平面(PlaneGeometry)其实是一个长方形，而不是数学意义上无限大小的平面。其构造函数为：
+```javascript
+THREE.PlaneGeometry(width,height,widthSegments,heightSegments)
+```
+其中，width是x方向上的长度；height是y方向上的长度；后两个参数同样表示分段。
+
+### 球体
+球体(SphereGeometry)的构造函数为：
+```javascript
+THREE.SphereGeometry(radius,widthSegments,heightSegments,phiStart,phiLength,thetaStart,thetaLength)
+```
+其中，radius是半径；segmentsWidth表示经度上的切片数；segmentsHeight表示纬度上的切片数；phiStart表示经度开始的弧度；phiLength表示纬度跨过的弧度；thetaStart表示纬度开始的弧度；thetaLength表示纬度跨过的弧度。
+
+### 分段
+```javascript
+var sphere = new THREE.SphereGeometry(3,8,6)
+```
+创建一个半径为3，经度划分为8份，纬度划分为6份的球体。
+
+### 经度弧度
+```javascript
+new THREE.SphereGeometry(3,8,6,Math.PI / 6 , Math.PI / 3)
+```
+表示起始经度为Math.PI / 6，经度跨度为Math.PI / 3.
+
+### 纬度弧度
+```javascript
+new THREE.SphereGeometry(3,8,6,0,Math.PI*2,Math.PI / 6,Math.PI / 3)
+```
+意味着纬度从Math.PI / 6跨过 Math.PI / 3。
+
+```javascript
+new THREE.SphereGeometry(3,8,6,Math.PI / 2,Math.PI,Math.PI / 6 ,Math.PI /2)
+```
+
+### 圆形
+圆形(CircleGeometry)可以创建圆形或者扇形，其构造函数:
+```javascript
+THREE.CircleGeometry(radius,segments,thetaStart,thetaLength)
+THREE.CircleGeometry(3,18,Math.PI / 3,Math.PI / 3 * 4)
+```
+
+### 圆柱体
+圆柱体(CylinderGeometry)的构造函数是:
+```javascript
+THREE.CylinderGeometry(radiusTop,radiusBottom,height,radialSegments,heightSegments,openEnded,thetaStart,thetaLength)
+```
+其中，radiusTop与radiusBottom分别是顶面和底面的半径；height是圆柱体的高度。\
+radiusSegments与heightSegments可类比球体中的分段；openEnded是一个布尔值，表示是否没有顶面和地面，缺省值为false，表示有顶面和底面。
+
+### 标准圆柱体
+```javascript
+new THREE.CylinderGeometry(2,2,4,18,3)
+```
+### 圆柱台
+```javascript
+new THREE.CylinderGeometry(2,3,4,18,3)
+```
+
+### 无顶面底面
+```javascript
+new THREE.CylinderGeometry(2,3,4,18,3,true)
+```
+
+### 正四面体、正八面体、正二十面体
+正四面体(TetrahedronGeometry)、正八面体(OctahedronGeometry)、正十二面体(IcosahedronGeometry)的构造函数较为类似，分别为:
+```javascript
+THREE.TetrahedronGeometry(radius,detail)
+THREE.OctahedronGeometry(radius,detail)
+THREE.IcosahedronGeometry(radius,detail)
+```
+radius是半径；detail是细节层次的层数。
+
+### 圆环面
+```javascript
+THREE.TorusGeometry(radius,tube,radialSegments,tubularSegments,arc)
+```
+radius是圆环半径；tube是管道半径；radialSegments与tubularSegments分别是两个分段数；arc是圆环面的弧度，缺省值为Math.PI*2。
+
+### 圆环结
+```javascript
+THREE.TorusKnotGeometry(radius,tube,radialSegments,tubularSegments,p,q,heightScale)
+```
+p和q是控制其样式的参数；heightScale是在z轴方向上的缩放。
+
+### 文字形状
+```javascript
+THREE.TextGeometry(text,parameters)
+```
+text是文字字符串，parameters是以下参数组成的对象：
+- size：字号大小
+- height：文字的厚度
+- curveSegemtns：弧线分段数，使得文字的曲线更加光滑
+- font：字体
+- weight：值为normal或bold，表示是否加粗
+- style：值为normal或italics，表示是否斜体
+- bevelEnabled：布尔值，是否使用倒角，意为在边缘处斜切
+- bevelThickness：倒角厚度
+- bevelSize：倒角宽度
+
+### 自定义形状
+```javascript
+THREE.Geometry()
+```
+
+## 材质
+### 基本材质
