@@ -1,5 +1,6 @@
 # HTML5基础
 ## HTML标签
+[参考](http://www.w3school.com.cn/tags/html_ref_byfunc.asp)
 ### 根元素
 序号 | 标签 | 描述 | 参考
 --- | --- | --- | ---
@@ -23,7 +24,7 @@
 1 | span | 文档中的节 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 2 | a | 定义锚 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 3 | rt | 定义ruby注释的解释 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
-4 | rp | 定义ruby注释 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+4 | rp | 定义若浏览器不支持ruby元素显示的内容注释 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 5 | dfn | 定义项目 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 6 | abbr |  缩写 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 7 | q | 短的引用 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
@@ -31,23 +32,23 @@
 9 | em | 强调文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 10 | time | 日期/时间 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 11 | var | 定义文本的变量部分 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
-12. samp
-13. i
-14. b
-15. sub
-16. sup
-17. small
-18. strong
-19. mark
-20. ruby
-21. ins
-22. del
-23. bdi
-24. bdo
-25. s
-26. kbd
-27. wbr
-28. code
+12 | samp | 定义计算机代码样本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+13 | i | 斜体文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+14 | b | 粗体文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+15 | sub | 下标文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+16 | sup | 上标文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+17 | small | 定义小号文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+18 | strong | 定义语气更为强烈的强调文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+19 | mark | 定义有记号的文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+20 | ruby | 定义ruby注释 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+21 | ins | 定义被插入文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+22 | del | 定义被删除文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+23 | bdi | 定义文本的文本方向，使其脱离其周围文本的方向设置 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+24 | bdo | 定义文字方向 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+25 | s | **不赞成使用** 定义文本的字体、尺寸和颜色 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+26 | kbd | 定义键盘文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+27 | wbr | 定义可能的换行符 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+28 | code | 定义计算机代码文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 
 ### 表单
 1. fieldset
