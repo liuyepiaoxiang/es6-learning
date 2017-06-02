@@ -1,2 +1,5 @@
-# 简介
-## 为什么要开始写这些东西
+# 设计模式
+## 兼容性
+[参考](https://github.com/afarkas/html5shiv)
+
+## 适配性
