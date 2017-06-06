@@ -5,6 +5,7 @@
 序号 | 标签 | 描述 | 参考
 --- | --- | --- | ---
 1 | html | 定义HTML文档 | [内链](html.md),[外链](http://www.w3school.com.cn/tags/tag_html.asp)
+2 | DOCTYPE | 
 
 ### 元数据和脚本
 序号 | 标签 | 描述 | 参考
@@ -51,90 +52,95 @@
 28 | code | 定义计算机代码文本 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 
 ### 表单
-1. fieldset
-2. meter
-3. legend
-4. label
-5. input
-6. textarea
-7. from
-8. select
-9. optgroup
-10. option
-11. output
-12. button
-13. datalist
-14. keygen
-15. progress
+序号 | 标签 | 描述 | 参考
+--- | --- | --- | ---
+1 | fieldset |  | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+2 | meter | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+3 | legend | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+4 | label | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+5 | input | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+6 | textarea | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+7 | from | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+8 | select | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+9 | optgroup | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+10 | option | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+11 | output | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+12 | button | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+13 | datalist | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+14 | keygen | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+15 | progress | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 
 ### 表格数据
-1. col
-2. colgroup
-3. caption
-4. table
-5. tr
-6. td
-7. th
-8. tbody
-9. thead
-10. tfoot
+序号 | 标签 | 描述 | 参考
+--- | --- | --- | ---
+1 | col | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+2 | colgroup | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+3 | caption | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+4 | table | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+5 | tr | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+6 | td | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+7 | th | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+8 | tbody | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+9 | thead | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+10 | tfoot | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 
 ### 组合内容
-1. br
-2. hr
-3. figcaption
-4. figure
-5. p
-6. ol
-7. ul
-8. li
-9. div
-10. pre
-11. blockquote
-12. dl
-13. dt
-14. dd
+序号 | 标签 | 描述 | 参考
+--- | --- | --- | ---
+1 | br | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+2 | hr | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+3 | figcaption | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+4 | figure | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+5 | p | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+6 | ol | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+7 | ul | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+8 | li | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+9 | div | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+10 | pre | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+11 | blockquote | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+12 | dl | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+13 | dt | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+14 | dd | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 
 ### 文档章节
-1. body
-页面内容
-2. aside
-侧边栏
-3. address
-4. h1
-5. h2
-6. h3
-7. h4
-8. h5
-9. h6
-10. section
-一个独立的块
-11. header
-文档头部
-12. nav
-导航
-13. article
-定义外部内容
-14. footer
-尾部
-15. hgroup
+序号 | 标签 | 描述 | 参考
+--- | --- | --- | ---
+1 | body | 页面内容 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+2 | aside | 侧边栏 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+3 | address | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+4 | h1 | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+5 | h2 | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+6 | h3 | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+7 | h4 | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+8 | h5 | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+9 | h6 | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+10 | section | 一个独立的块 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+11 | header | 文档头部 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+12 | nav | 导航 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+13 | article | 定义外部内容 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+14 | footer | 尾部 | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+15 | hgroup | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 
 ### 交互元素
-1. menu
-2. command
-3. summary
-4. details
+序号 | 标签 | 描述 | 参考
+--- | --- | --- | ---
+1 | menu | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+2 | command | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+3 | summary | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+4 | details | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
 
 ### 嵌入式内容
-1. img
-2. area
-3. map
-4. embed
-5. object
-6. param
-7. source
-8. iframe
-9. canvas
-10. track
-11. audio
-12. video
+序号 | 标签 | 描述 | 参考
+--- | --- | --- | ---
+1 | img | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+2 | area | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+3 | map | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+4 | embed | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+5 | object | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+6 | param | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+7 | source | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+8 | iframe | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+9 | canvas | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+10 | track | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+11 | audio | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
+12 | video | | [内链](script.md),[外链](http://www.w3school.com.cn/tags/tag_head.asp)
