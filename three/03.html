@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>正交投影照相机</title>
+    <!--引入Three.js-->
+    <script src="three.js"></script>
+    <script type="text/javascript">
+        //开启Three.js渲染器
+        function init() {
+       var renderer = new THREE.WebGLRenderer({
+           canvas:document.getElementById('canvas3d')
+       });
+       renderer.setClearColor(0x000000);
+
+       var scene = new THREE.Scene();
+
+       var camera = new THREE.PerspectiveCamera(60,4/3,1,10);
+
+       camera.position.set(0,0,5);
+       // camera.lookAt(new THREE.Vector3(0,0,0));
+       scene.add(camera);
+
+      /* var cube = new THREE.Mesh(new THREE.CubeGeometry(1,2,3,2,2,3),
+           new THREE.MeshBasicMaterial({
+                color:0xff0000,
+                wireframe:true
+           })
+           );*/
+       var sphere = new THREE.Mesh(new THREE.SphereGeometry(3,8,6,0,Math.PI*2,Math.PI / 6,Math.PI / 3),
+           new THREE.MeshBasicMaterial({
+                color:0xff0000,
+                wireframe:true
+           })
+           );
+
+       scene.add(cube);
+       //plane
+      /*  var planeGeo = new THREE.PlaneGeometry(1.5,1.5);
+        var plane = new THREE.Mesh(planeGeo,material);
+        plane.position.x = 1;
+        scene.add(plane);*/
+
+        //triangle
+
+        /*var triGeo = new THREE.Geometry();
+        triGeo.vertices = [new THREE.Vector3(0,-0.8,0),
+            new THREE.Vector3(-2,-0.8,0),new THREE.Vector3(-1,0.8,0)];
+
+        triGeo.faces.push(new THREE.Face3(0,2,1));
+        var triangle = new THREE.Mesh(triGeo, material);
+        scene.add(triangle);*/
+
+        renderer.render(scene,camera);
+        }
+
+    </script>
+    <style type="text/css">
+        div#canvas3d{
+            border: none;
+            cursor: move;
+            width: 400px;
+            height: 300px;
+            background-color: #EEEEEE;
+        }
+    </style>
+</head>
+
+<body onload='init()'>
+<!--盛放canvas的容器-->
+<canvas id="canvas3d" width="400px" height="300px"></canvas>
+</body>
+</html>
