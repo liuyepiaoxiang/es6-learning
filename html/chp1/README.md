@@ -233,7 +233,7 @@
 16 | onscroll | 当元素滚动条被滚动时运行的脚本 | [内链](event/onscroll.md),[外链](http://www.w3school.com.cn/tags/tag_onscroll.asp)
 
 ### Media事件
-由媒介（比如视频、图像和音频）触发的事件（适用于所有 HTML 元素，但常见于媒介元素中，比如 <audio>、<embed>、<img>、<object> 以及 <video>）
+由媒介（比如视频、图像和音频）触发的事件（适用于所有 HTML 元素，但常见于媒介元素中，比如` <audio>、<embed>、<img>、<object> 以及 <video>）`
 
 序号 | 属性 | 描述 | 参考
 --- | --- | --- | ---
@@ -337,9 +337,10 @@
 参考，[内链](event/onwaiting.md),[外链](http://www.w3school.com.cn/tags/html_ref_colornames.asp)
 
 ## 画布
-HTML5 <canvas> 标签用于绘制图像（通过脚本，通常是 JavaScript）。
+
+`HTML5 <canvas> 标签用于绘制图像（通过脚本，通常是 JavaScript）。
 不过，<canvas> 元素本身并没有绘制能力（它仅仅是图形的容器） - 您必须使用脚本来完成实际的绘图任务。
-getContext() 方法可返回一个对象，该对象提供了用于在画布上绘图的方法和属性。
+getContext() 方法可返回一个对象，该对象提供了用于在画布上绘图的方法和属性。`
 
 ### 颜色、样式和阴影
 #### 属性
