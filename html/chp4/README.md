@@ -52,6 +52,45 @@ border:5px solid blue;
 
 ## 样式
 ### 背景
+CSS 允许应用纯色作为背景，也允许使用背景图像创建相当复杂的效果。
+CSS 在这方面的能力远远在 HTML 之上。
+#### 背景色
+可以使用 background-color 属性为元素设置背景色。这个属性接受任何合法的颜色值。\
+background-color 不能继承，其默认值是 transparent。transparent 有“透明”之意。也就是说，如果一个元素没有指定背景色，那么背景就是透明的，这样其祖先元素的背景才能可见。
+#### 背景图像
+要把图像放入背景，需要使用 background-image 属性。background-image 属性的默认值是 none，表示背景上没有放置任何图像。\
+#### 背景重复
+如果需要在页面上对背景图像进行平铺，可以使用 background-repeat 属性。
+属性值 repeat 导致图像在水平垂直方向上都平铺，就像以往背景图像的通常做法一样。repeat-x 和 repeat-y 分别导致图像只在水平或垂直方向上重复，no-repeat 则不允许图像在任何方向上平铺。
+#### 背景定位
+可以利用 background-position 属性改变图像在背景中的位置。
+1. 关键字
+图像放置关键字最容易理解，其作用如其名称所表明的。例如，top right 使图像放置在元素内边距区的右上角。
+根据规范，位置关键字可以按任何顺序出现，只要保证不超过两个关键字 - 一个对应水平方向，另一个对应垂直方向。
+如果只出现一个关键字，则认为另一个关键字是 center。
+
+单一关键字 | 等价的关键字
+--- | ---
+center | center center
+top | top center 或center top
+bottom | bottom center 或center bottom
+right | right center 或center right
+left | left center 或center left
+
+2. 百分数值
+百分数值的表现方式更为复杂。假设你希望用百分数值将图像在其元素中居中。\
+这会导致图像适当放置，其中心与其元素的中心对齐。换句话说，百分数值同时应用于元素和图像。也就是说，图像中描述为 50% 50% 的点（中心点）与元素中描述为 50% 50% 的点（中心点）对齐。
+如果图像位于 0% 0%，其左上角将放在元素内边距区的左上角。如果图像位置是 100% 100%，会使图像的右下角放在右边距的右下角。
+因此，如果你想把一个图像放在水平方向 2/3、垂直方向 1/3 处，可以这样声明：
+```css
+body
+  { 
+    background-image:url('');
+    background-repeat:no-repeat;
+    background-position:66% 33%;
+  }
+```
+
 ### 文本
 ### 字体
 ### 链接
