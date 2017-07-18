@@ -14,7 +14,8 @@ capitals = {'Alabama': 'Montgomery', 'Alaska': 'Juneau', 'Arizona': 'Phoenix',
 'Augusta', 'Maryland': 'Annapolis', 'Massachusetts': 'Boston', 'Michigan':
 'Lansing', 'Minnesota': 'Saint Paul', 'Mississippi': 'Jackson', 'Missouri':
 'Jefferson City', 'Montana': 'Helena', 'Nebraska': 'Lincoln', 'Nevada':
-'Carson City', 'New Hampshire': 'Concord', 'New Jersey': 'Trenton', 'NewMexico': 'Santa Fe', 'New York': 'Albany', 'North Carolina': 'Raleigh',
+'Carson City', 'New Hampshire': 'Concord', 'New Jersey': 'Trenton',
+'NewMexico': 'Santa Fe', 'New York': 'Albany', 'North Carolina': 'Raleigh',
 'North Dakota': 'Bismarck', 'Ohio': 'Columbus', 'Oklahoma': 'Oklahoma City',
 'Oregon': 'Salem', 'Pennsylvania': 'Harrisburg', 'Rhode Island': 'Providence',
 'South Carolina': 'Columbia', 'South Dakota': 'Pierre', 'Tennessee':
@@ -35,3 +36,21 @@ for quizNum in range(35):
     states = list(capitals.keys())
     random.shuffle(states)
     # TODO: Loop through all 50 states, making a question for each.
+    for questionNum in range(50):
+        correctAnswer = capitals[states[questionNum]]
+        wrongAnswers = list(capitals.values())
+        del wrongAnswers[wrongAnswers.index(correctAnswer)]
+        answerOptions = wrongAnswers + [correctAnswer]
+        random.shuffle(answerOptions)
+
+        # TODO: Write the question and answer options to the quiz file.
+        quizFile.write('%s. What is the capital of %s?\n' % (questionNum + 1,states[questionNum]))
+        for i in range(4):
+            quizFile.write(' %s. %s\n' % ('ABCD'[i], answerOptions[i]))
+        quizFile.write('\n')
+
+        # TODO: Write the answer key to a file.
+        answerKeyFile.write('%s. %s\n' % (questionNum + 1, 'ABCD'[
+            answerOptions.index(correctAnswer)]))
+        quizFile.close()
+        answerKeyFile.close()
