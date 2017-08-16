@@ -103,3 +103,27 @@
 
 ## 我的管理原则
  
+ 
+ …1) work for what they want and not for what others want of them. 
+ 
+ …1) 干自己真正想做的事情，而非他人逼迫为之
+ 
+ 
+ …2) come up with the best independent opinions they can muster to move toward their goals, 
+ 
+ …2) 达成最好的独立观点，用以实现目标。
+ 
+ 
+ …3) stress-test their opinions by having the smartest people they can find to challenge them so they can find out where they are wrong, 
+ 
+ …3) 对自己的观点进行压力测试，把身边最聪明的人找来挑毛病，找出观点中错误的地方。
+ 
+ 
+ …4) are wary about overconfidence, and good at not knowing 
+ 
+ …4) 不能太过自信，并善于面对“不知”。
+ 
+ 
+ …5) wrestle with reality, experiencing the results of their decisions, and reflecting on what they did to produce them so that they can improve. 
+ 
+ …5) 同现实展开斗争，反思为什么他们的决定会产生这种结果，从中学习与提高。
