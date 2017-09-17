@@ -1154,11 +1154,90 @@ decodeURIComponent()。其中， decodeURI()只能对使用 encodeURI()替换的
 含环境中定义的变量。
 
 严格模式下，在外部访问不到 eval()中创建的任何变量或函数。
+
+3. Global对象的属性
+
+属性 | 说明
+--- | ---
+ undefined | 特殊值undefined
+ NaN | 特殊值NaN
+ Infinity | 特殊值Infinity
+ Object | 构造函数Object
+ Array | 构造函数Array
+ Function | 构造函数Function
+ Boolean | 构造函数Boolean
+ String | 构造函数String
+ Number | 构造函数Number
+ Date | 构造函数Date
+ RegExp | 构造函数RegExp
+ Error | 构造函数Error
+ EvalError | 构造函数EvalError
+ RangeError | 构造函数RangeError
+ ReferenceError | 构造函数ReferenceError
+ SyntaxError | 构造函数SyntaxError
+ TypeError | 构造函数TypeError
+ URIError | 构造函数URIError
+ ECMAScript 5 明确禁止给 undefined、 NaN 和 Infinity 赋值，这样做即使在非严格模式下也会
+ 导致错误。
+ 
+ 4. window对象
+ ECMAScript 虽然没有指出如何直接访问 Global 对象，但 Web 浏览器都是将这个全局对象作为
+ window 对象的一部分加以实现的。因此，在全局作用域中声明的所有变量和函数，就都成为了 window
+ 对象的属性。
+ 
 ### Math对象
+ECMAScript 还为保存数学公式和信息提供了一个公共位置，即 Math 对象。与我们在 JavaScript 直
+接编写的计算功能相比， Math 对象提供的计算功能执行起来要快得多。 Math 对象中还提供了辅助完成
+这些计算的属性和方法。
 
+1. Math对象的属性
 
+属性 | 说明
+--- | ---
+Math.E | 自然对数的底数，即常量e的值
+Math.LN10 | 10的自然对数
+Math.LN2 | 2的自然对数
+Math.LOG2E | 以2为底e的对数
+Math.LOG10E | 以10为底e的对数
+Math.PI | π的值
+Math.SQRT1_2 | 1/2的平方根（即2的平方根的倒数
+Math.SQRT2 | 2的平方根
 
+2. min()和max()方法
+Math 对象还包含许多方法，用于辅助完成简单和复杂的数学计算。
+其中， min()和 max()方法用于确定一组数值中的最小值和最大值。这两个方法都可以接收任意多
+个数值参数。
 
+3. 舍入方法
+下面来介绍将小数值舍入为整数的几个方法： Math.ceil()、 Math.floor()和 Math.round()。
+这三个方法分别遵循下列舍入规则：
+- Math.ceil()执行向上舍入，即它总是将数值向上舍入为最接近的整数；
+- Math.floor()执行向下舍入，即它总是将数值向下舍入为最接近的整数；
+- Math.round()执行标准舍入，即它总是将数值四舍五入为最接近的整数（这也是我们在数学课
+上学到的舍入规则）。
+
+4. random()方法
+Math.random()方法返回大于等于 0 小于 1 的一个随机数。
+
+5. 其他方法
+Math 对象中还包含其他一些与完成各种简单或复杂计算有关的方法，但详细讨论其中每一个方法
+的细节及适用情形超出了本书的范围。下面我们就给出一个表格，其中列出了这些没有介绍到的 Math
+对象的方法。
+
+方法 | 说明
+--- | ---
+Math.abs(num) | 返回num 的绝对值 
+Math.asin(x) | 返回x 的反正弦值
+Math.exp(num) | 返回Math.E 的num 次幂 
+Math.atan(x) | 返回x 的反正切值
+Math.log(num) | 返回num 的自然对数
+Math.atan2(y,x) | 返回y/x 的反正切值
+Math.pow(num,power) | 返回num 的power 次幂 
+Math.cos(x) | 返回x 的余弦值
+Math.sqrt(num) | 返回num 的平方根 
+Math.sin(x) | 返回x 的正弦值
+Math.acos(x) | 返回x 的反余弦值 
+Math.tan(x) | 返回x 的正切值
 
 ---
 # 面向对象的程序设计
