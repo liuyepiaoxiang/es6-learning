@@ -1403,79 +1403,1165 @@ this.edition += newValue - 2004;
 工厂模式是软件工程领域一种广为人知的设计模式，这种模式抽象了创建具体对象的过程。
 考虑到在 ECMAScript 中无法创建类，开发人员
 就发明了一种函数，用函数来封装以特定接口创建对象的细节。
+```javascript
+function createPerson(name, age, job){
+var o = new Object();
+o.name = name;
+o.age = age;
+o.job = job;
+o.sayName = function(){
+alert(this.name);
+};
+return o;
+}
+var person1 = createPerson("Nicholas", 29, "Software Engineer");
+var person2 = createPerson("Greg", 27, "Doctor");
+```
+
+### 构造函数模式
+ECMAScript 中的构造函数可用来创建特定类型的对象。像 Object 和 Array 这样
+的原生构造函数，在运行时会自动出现在执行环境中。此外，也可以创建自定义的构造函数，从而定义
+自定义对象类型的属性和方法。
+```javascript
+function Person(name, age, job){
+this.name = name;
+this.age = age;
+this.job = job;
+this.sayName = function(){
+alert(this.name);
+};
+}
+var person1 = new Person("Nicholas", 29, "Software Engineer");
+var person2 = new Person("Greg", 27, "Doctor");
+```
+在这个例子中， Person()函数取代了 createPerson()函数。我们注意到， Person()中的代码
+除了与 createPerson()中相同的部分外，还存在以下不同之处：
+- 没有显式地创建对象；
+- 直接将属性和方法赋给了 this 对象；
+- 没有 return 语句。
+此外，还应该注意到函数名 Person 使用的是大写字母 P。按照惯例，构造函数始终都应该以一个
+大写字母开头，而非构造函数则应该以一个小写字母开头。这个做法借鉴自其他 OO 语言，主要是为了
+区别于 ECMAScript 中的其他函数；因为构造函数本身也是函数，只不过可以用来创建对象而已。
+要创建 Person 的新实例，必须使用 new 操作符。以这种方式调用构造函数实际上会经历以下 4
+个步骤：
+(1) 创建一个新对象；
+(2) 将构造函数的作用域赋给新对象（因此 this 就指向了这个新对象）；
+(3) 执行构造函数中的代码（为这个新对象添加属性）；
+(4) 返回新对象。
+在前面例子的最后， person1 和 person2 分别保存着 Person 的一个不同的实例。这两个对象都
+有一个 constructor（构造函数）属性，该属性指向 Person。
+对象的 constructor 属性最初是用来标识对象类型的。但是，提到检测对象类型，还是 instanceof 操作符要更可靠一些。我们在这个例子中创建的所有对象既是 Object 的实例，同时也是 Person
+的实例，这一点通过 instanceof 操作符可以得到验证。
+
+1. 将构造函数当作函数
+构造函数与其他函数的唯一区别，就在于调用它们的方式不同。不过，构造函数毕竟也是函数，不
+存在定义构造函数的特殊语法。任何函数，只要通过 new 操作符来调用，那它就可以作为构造函数；而
+任何函数，如果不通过 new 操作符来调用，那它跟普通函数也不会有什么两样。
+
+2. 构造函数的问题
+构造函数模式虽然好用，但也并非没有缺点。使用构造函数的主要问题，就是每个方法都要在每个
+实例上重新创建一遍。在前面的例子中， person1 和 person2 都有一个名为 sayName()的方法，但那
+两个方法不是同一个 Function 的实例。不要忘了——ECMAScript 中的函数是对象，因此每定义一个
+函数，也就是实例化了一个对象。从逻辑角度讲，此时的构造函数也可以这样定义。
+然而，创建两个完成同样任务的 Function 实例的确没有必要；况且有 this 对象在，根本不用在
+执行代码前就把函数绑定到特定对象上面。因此，大可像下面这样，通过把函数定义转移到构造函数外
+部来解决这个问题。
+```javascript
+function Person(name, age, job){
+this.name = name;
+this.age = age;
+this.job = job;
+this.sayName = sayName;
+}
+function sayName(){
+alert(this.name);
+}
+var person1 = new Person("Nicholas", 29, "Software Engineer");
+var person2 = new Person("Greg", 27, "Doctor");
+```
+在这个例子中，我们把 sayName()函数的定义转移到了构造函数外部。而在构造函数内部，我们
+将 sayName 属性设置成等于全局的 sayName 函数。这样一来，由于 sayName 包含的是一个指向函数
+的指针，因此 person1 和 person2 对象就共享了在全局作用域中定义的同一个 sayName()函数。这
+样做确实解决了两个函数做同一件事的问题，可是新问题又来了：在全局作用域中定义的函数实际上只
+能被某个对象调用，这让全局作用域有点名不副实。而更让人无法接受的是：如果对象需要定义很多方
+法，那么就要定义很多个全局函数，于是我们这个自定义的引用类型就丝毫没有封装性可言了。好在，
+这些问题可以通过使用原型模式来解决。
+
+### 原型模式
+在这个例子中，我们把 sayName()函数的定义转移到了构造函数外部。而在构造函数内部，我们
+将 sayName 属性设置成等于全局的 sayName 函数。这样一来，由于 sayName 包含的是一个指向函数
+的指针，因此 person1 和 person2 对象就共享了在全局作用域中定义的同一个 sayName()函数。这
+样做确实解决了两个函数做同一件事的问题，可是新问题又来了：在全局作用域中定义的函数实际上只
+能被某个对象调用，这让全局作用域有点名不副实。而更让人无法接受的是：如果对象需要定义很多方
+法，那么就要定义很多个全局函数，于是我们这个自定义的引用类型就丝毫没有封装性可言了。好在，
+这些问题可以通过使用原型模式来解决。
+```javascript
+function Person(){
+}
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function(){
+alert(this.name);
+};
+var person1 = new Person();
+person1.sayName(); //"Nicholas"
+var person2 = new Person();
+person2.sayName(); //"Nicholas"
+alert(person1.sayName == person2.sayName); //true
+```
+
+1. 理解原型对象
+无论什么时候，只要创建了一个新函数，就会根据一组特定的规则为该函数创建一个 prototype
+属性，这个属性指向函数的原型对象。在默认情况下，所有原型对象都会自动获得一个 constructor
+（构造函数）属性，这个属性包含一个指向 prototype 属性所在函数的指针。
+
+创建了自定义的构造函数之后，其原型对象默认只会取得 constructor 属性；至于其他方法，则
+都是从 Object 继承而来的。当调用构造函数创建一个新实例后，该实例的内部将包含一个指针（内部
+属性），指向构造函数的原型对象。 ECMA-262 第 5 版中管这个指针叫[[Prototype]]。虽然在脚本中
+没有标准的方式访问[[Prototype]]，但 Firefox、 Safari 和 Chrome 在每个对象上都支持一个属性
+__proto__；而在其他实现中，这个属性对脚本则是完全不可见的。不过，要明确的真正重要的一点就
+是，这个连接存在于实例与构造函数的原型对象之间，而不是存在于实例与构造函数之间。
+
+虽然在所有实现中都无法访问到[[Prototype]]，但可以通过 isPrototypeOf()方法来确定对象之
+间是否存在这种关系。从本质上讲，如果[[Prototype]]指向调用 isPrototypeOf()方法的对象
+（Person.prototype），那么这个方法就返回 true。
+
+ECMAScript 5 增加了一个新方法，叫 Object.getPrototypeOf()，在所有支持的实现中，这个
+方法返回[[Prototype]]的值。
+
+每当代码读取某个对象的某个属性时，都会执行一次搜索，目标是具有给定名字的属性。搜索首先
+从对象实例本身开始。如果在实例中找到了具有给定名字的属性，则返回该属性的值；如果没有找到，
+则继续搜索指针指向的原型对象，在原型对象中查找具有给定名字的属性。如果在原型对象中找到了这
+个属性，则返回该属性的值。
+
+虽然可以通过对象实例访问保存在原型中的值，但却不能通过对象实例重写原型中的值。如果我们
+在实例中添加了一个属性，而该属性与实例原型中的一个属性同名，那我们就在实例中创建该属性，该
+属性将会屏蔽原型中的那个属性。使用 delete 操作符则可以完全删除实例属性，从而让我们能够重新访问原型中的属性。
+
+使用 hasOwnProperty()方法可以检测一个属性是存在于实例中，还是存在于原型中。这个方法（不
+要忘了它是从 Object 继承来的）只在给定属性存在于对象实例中时，才会返回 true。
+
+2. 原型与in操作符
+有两种方式使用 in 操作符：单独使用和在 for-in 循环中使用。在单独使用时， in 操作符会在通
+过对象能够访问给定属性时返回 true，无论该属性存在于实例中还是原型中。
+```javascript
+function Person(){
+}
+Person.prototype.name = "Nicholas";
+Person.prototype.age = 29;
+Person.prototype.job = "Software Engineer";
+Person.prototype.sayName = function(){
+alert(this.name);
+};
+var person1 = new Person();
+var person2 = new Person();
+alert(person1.hasOwnProperty("name")); //false
+alert("name" in person1); //true
+person1.name = "Greg";
+alert(person1.name); //"Greg" —— 来自实例
+alert(person1.hasOwnProperty("name")); //true
+alert("name" in person1); //true
+alert(person2.name); //"Nicholas" —— 来自原型
+alert(person2.hasOwnProperty("name")); //false
+alert("name" in person2); //true
+delete person1.name;
+alert(person1.name); //"Nicholas" —— 来自原型
+alert(person1.hasOwnProperty("name")); //false
+alert("name" in person1); //true
+```
+在使用 for-in 循环时，返回的是所有能够通过对象访问的、可枚举的（enumerated）属性，其中
+既包括存在于实例中的属性，也包括存在于原型中的属性。屏蔽了原型中不可枚举属性（即将
+[[Enumerable]]标记为 false 的属性）的实例属性也会在 for-in 循环中返回，因为根据规定，所
+有开发人员定义的属性都是可枚举的——只有在 IE8 及更早版本中例外。
+
+要取得对象上所有可枚举的实例属性，可以使用 ECMAScript 5 的 Object.keys()方法。
+
+如果你想要得到所有实例属性，无论它是否可枚举，都可以使用 Object.getOwnPropertyNames()
+方法。
+
+3. 更简单的原型语法
+为减少
+不必要的输入，也为了从视觉上更好地封装原型的功能，更常见的做法是用一个包含所有属性和方法的
+对象字面量来重写整个原型对象。
+```javascript
+function Person(){
+}
+Person.prototype = {
+name : "Nicholas",
+age : 29,
+job: "Software Engineer",
+sayName : function () {
+alert(this.name);
+}
+};
+```
+在上面的代码中，我们将 Person.prototype 设置为等于一个以对象字面量形式创建的新对象。
+最终结果相同，但有一个例外： constructor 属性不再指向 Person 了。
+
+4. 原型的动态性
+由于在原型中查找值的过程是一次搜索，因此我们对原型对象所做的任何修改都能够立即从实例上
+反映出来——即使是先创建了实例后修改原型也照样如此。
+
+尽管可以随时为原型添加属性和方法，并且修改能够立即在所有对象实例中反映出来，但如果是重
+写整个原型对象，那么情况就不一样了。我们知道，调用构造函数时会为实例添加一个指向最初原型的
+[[Prototype]]指针，而把原型修改为另外一个对象就等于切断了构造函数与最初原型之间的联系。
+请记住：实例中的指针仅指向原型，而不指向构造函数。
+
+5. 原生对象的原型
+原型模式的重要性不仅体现在创建自定义类型方面，就连所有原生的引用类型，都是采用这种模式
+创建的。所有原生引用类型（Object、 Array、 String，等等）都在其构造函数的原型上定义了方法。
+
+6. 原型对象的问题
+原型模式也不是没有缺点。首先，它省略了为构造函数传递初始化参数这一环节，结果所有实例在
+默认情况下都将取得相同的属性值。虽然这会在某种程度上带来一些不方便，但还不是原型的最大问题。
+原型模式的最大问题是由其共享的本性所导致的。
+
+原型中所有属性是被很多实例共享的，这种共享对于函数非常合适。对于那些包含基本值的属性倒
+也说得过去，毕竟（如前面的例子所示），通过在实例上添加一个同名属性，可以隐藏原型中的对应属
+性。然而，对于包含引用类型值的属性来说，问题就比较突出了。
 
 
+### 组合使用构造函数模式和原型模式
+创建自定义类型的最常见的方式，就是组合使用构造函数模式与原型模式。构造函数模式用于定义实例属性。，
+而原型模式用于定义方法和共享的属性。结果，每个实例都会有自己的一份实例属性的副本，但同时又共享着对方法的引用，
+最大限度地节省了内存。。另外，这种混成模式还支持向构造函数传递参数；可谓是集两种模式之长。
+```javascript
+function Person(name, age, job){
+this.name = name;
+this.age = age;
+this.job = job;
+this.friends = ["Shelby", "Court"];
+}
+Person.prototype = {
+constructor : Person,
+sayName : function(){
+alert(this.name);
+}
+}
+var person1 = new Person("Nicholas", 29, "Software Engineer");
+var person2 = new Person("Greg", 27, "Doctor");
+person1.friends.push("Van");
+alert(person1.friends); //"Shelby,Count,Van"
+alert(person2.friends); //"Shelby,Count"
+alert(person1.friends === person2.friends); //false
+alert(person1.sayName === person2.sayName); //true
+```
 
+### 动态原型模式
+有其他 OO 语言经验的开发人员在看到独立的构造函数和原型时，很可能会感到非常困惑。动态原
+型模式正是致力于解决这个问题的一个方案，它把所有信息都封装在了构造函数中，而通过在构造函数
+中初始化原型（仅在必要的情况下），又保持了同时使用构造函数和原型的优点。换句话说，可以通过
+检查某个应该存在的方法是否有效，来决定是否需要初始化原型。
+```javascript
+function Person(name, age, job){
+//属性
+this.name = name;
+this.age = age;
+this.job = job;
+//方法
+if (typeof this.sayName != "function"){
+Person.prototype.sayName = function(){
+alert(this.name);
+};
+}
+}
+var friend = new Person("Nicholas", 29, "Software Engineer");
+friend.sayName();
+```
+这里只在 sayName()方法不存在的情况下，才会将它添加到原
+型中。这段代码只会在初次调用构造函数时才会执行。此后，原型已经完成初始化，不需要再做什么修
+改了。不过要记住，这里对原型所做的修改，能够立即在所有实例中得到反映。因此，这种方法确实可
+以说非常完美。其中， if 语句检查的可以是初始化之后应该存在的任何属性或方法——不必用一大堆
+if 语句检查每个属性和每个方法；只要检查其中一个即可。对于采用这种模式创建的对象，还可以使
+用 instanceof 操作符确定它的类型。
 
+### 寄生构造函数模式
+通常，在前述的几种模式都不适用的情况下，可以使用寄生（parasitic）构造函数模式。这种模式
+的基本思想是创建一个函数，该函数的作用仅仅是封装创建对象的代码，然后再返回新创建的对象；但
+从表面上看，这个函数又很像是典型的构造函数。
+```javascript
+function Person(name, age, job){
+var o = new Object();
+o.name = name;
+o.age = age;
+o.job = job;
+o.sayName = function(){
+alert(this.name);
+};
+return o;
+}
+var friend = new Person("Nicholas", 29, "Software Engineer");
+friend.sayName(); //"Nicholas"
+```
+关于寄生构造函数模式，有一点需要说明：首先，返回的对象与构造函数或者与构造函数的原型属
+性之间没有关系；也就是说，构造函数返回的对象与在构造函数外部创建的对象没有什么不同。为此，
+不能依赖 instanceof 操作符来确定对象类型。由于存在上述问题，我们建议在可以使用其他模式的情
+况下，不要使用这种模式。
 
+### 稳妥构造函数模式
+所谓稳妥对象，指的是没有公共属性，而且其方法也不引用 this 的对象。稳妥对象最适合在
+一些安全的环境中（这些环境中会禁止使用 this 和 new），或者在防止数据被其他应用程序（如 Mashup
+程序）改动时使用。稳妥构造函数遵循与寄生构造函数类似的模式，但有两点不同：一是新创建对象的
+实例方法不引用 this；二是不使用 new 操作符调用构造函数。按照稳妥构造函数的要求，可以将前面
+的 Person 构造函数重写如下。
+```javascript
+function Person(name, age, job){
+//创建要返回的对象
+var o = new Object();
+//可以在这里定义私有变量和函数
+//添加方法
+o.sayName = function(){
+alert(name);
+};
+//返回对象
+return o;
+}
+```
 
+## 继承
+继承是 OO 语言中的一个最为人津津乐道的概念。许多 OO 语言都支持两种继承方式：接口继承和
+实现继承。接口继承只继承方法签名，而实现继承则继承实际的方法。如前所述，由于函数没有签名，
+在 ECMAScript 中无法实现接口继承。 ECMAScript 只支持实现继承，而且其实现继承主要是依靠原型链
+来实现的。
 
+### 原型链
+ECMAScript 中描述了原型链的概念，并将原型链作为实现继承的主要方法。其基本思想是利用原
+型让一个引用类型继承另一个引用类型的属性和方法。简单回顾一下构造函数、原型和实例的关系：每
+个构造函数都有一个原型对象，原型对象都包含一个指向构造函数的指针，而实例都包含一个指向原型
+对象的内部指针。那么，假如我们让原型对象等于另一个类型的实例，结果会怎么样呢？显然，此时的
+原型对象将包含一个指向另一个原型的指针，相应地，另一个原型中也包含着一个指向另一个构造函数
+的指针。假如另一个原型又是另一个类型的实例，那么上述关系依然成立，如此层层递进，就构成了实
+例与原型的链条。这就是所谓原型链的基本概念。
+```javascript
+function SuperType(){
+this.property = true;
+}
+SuperType.prototype.getSuperValue = function(){
+return this.property;
+};
+function SubType(){
+this.subproperty = false;
+}
+//继承了 SuperType
+SubType.prototype = new SuperType();
+SubType.prototype.getSubValue = function (){
+return this.subproperty;
+};
+var instance = new SubType();
+alert(instance.getSuperValue()); //true
+```
 
+1. 别忘记默认的原型
+事实上，前面例子中展示的原型链还少一环。我们知道，所有引用类型默认都继承了 Object，而
+这个继承也是通过原型链实现的。大家要记住，所有函数的默认原型都是 Object 的实例，因此默认原
+型都会包含一个内部指针，指向 Object.prototype。这也正是所有自定义类型都会继承 toString()、
+valueOf()等默认方法的根本原因。所以，我们说上面例子展示的原型链中还应该包括另外一个继承层
+次。
 
+2. 确定原型和实例的关系
+可以通过两种方式来确定原型和实例之间的关系。第一种方式是使用 instanceof 操作符，只要用
+这个操作符来测试实例与原型链中出现过的构造函数，结果就会返回 true。
+由于原型链的关系，我们可以说 instance 是 Object、 SuperType 或 SubType 中任何一个类型
+的实例。因此，测试这三个构造函数的结果都返回了 true。
 
+第二种方式是使用 isPrototypeOf()方法。同样，只要是原型链中出现过的原型，都可以说是该
+原型链所派生的实例的原型，因此 isPrototypeOf()方法也会返回 true。
+
+3. 谨慎地定义方法
+子类型有时候需要重写超类型中的某个方法，或者需要添加超类型中不存在的某个方法。但不管怎
+样，给原型添加方法的代码一定要放在替换原型的语句之后。
+
+**在通过原型链实现继承时，不能使用对象字面量创建原型方法。因为这
+  样做就会重写原型链**
+  
+4. 原型链的问题
+原型链虽然很强大，可以用它来实现继承，但它也存在一些问题。其中，最主要的问题来自包含引
+用类型值的原型。想必大家还记得，我们前面介绍过包含引用类型值的原型属性会被所有实例共享；而
+这也正是为什么要在构造函数中，而不是在原型对象中定义属性的原因。在通过原型来实现继承时，原
+型实际上会变成另一个类型的实例。于是，原先的实例属性也就顺理成章地变成了现在的原型属性了。
+
+原型链的第二个问题是：在创建子类型的实例时，不能向超类型的构造函数中传递参数。实际上，
+应该说是没有办法在不影响所有对象实例的情况下，给超类型的构造函数传递参数。有鉴于此，再加上
+前面刚刚讨论过的由于原型中包含引用类型值所带来的问题，实践中很少会单独使用原型链。
+
+### 借用构造函数
+在解决原型中包含引用类型值所带来问题的过程中，开发人员开始使用一种叫做借用构造函数
+（constructor stealing）的技术（有时候也叫做伪造对象或经典继承）。这种技术的基本思想相当简单，即
+在子类型构造函数的内部调用超类型构造函数。别忘了，函数只不过是在特定环境中执行代码的对象，
+因此通过使用 apply()和 call()方法也可以在（将来）新创建的对象上执行构造函数。
+```javascript
+function SuperType(){
+this.colors = ["red", "blue", "green"];
+}
+function SubType(){
+//继承了 SuperType
+SuperType.call(this);
+}
+var instance1 = new SubType();
+instance1.colors.push("black");
+alert(instance1.colors); //"red,blue,green,black"
+var instance2 = new SubType();
+alert(instance2.colors); //"red,blue,green"
+```
+1. 传递参数
+相对于原型链而言，借用构造函数有一个很大的优势，即可以在子类型构造函数中向超类型构造函
+数传递参数。
+```javascript
+function SuperType(name){
+this.name = name;
+}
+function SubType(){
+//继承了 SuperType，同时还传递了参数
+SuperType.call(this, "Nicholas");
+//实例属性
+this.age = 29;
+}
+var instance = new SubType();
+alert(instance.name); //"Nicholas";
+alert(instance.age); //29
+```
+2. 借用构造函数的问题
+如果仅仅是借用构造函数，那么也将无法避免构造函数模式存在的问题——方法都在构造函数中定
+义，因此函数复用就无从谈起了。而且，在超类型的原型中定义的方法，对子类型而言也是不可见的，结
+果所有类型都只能使用构造函数模式。考虑到这些问题，借用构造函数的技术也是很少单独使用的。
+
+### 组合继承
+组合继承（combination inheritance），有时候也叫做伪经典继承，指的是将原型链和借用构造函数的
+技术组合到一块，从而发挥二者之长的一种继承模式。其背后的思路是使用原型链实现对原型属性和方
+法的继承，而通过借用构造函数来实现对实例属性的继承。这样，既通过在原型上定义方法实现了函数
+复用，又能够保证每个实例都有它自己的属性。
+```javascript
+function SuperType(name){
+this.name = name;
+this.colors = ["red", "blue", "green"];
+}
+SuperType.prototype.sayName = function(){
+alert(this.name);
+};
+function SubType(name, age){
+//继承属性
+SuperType.call(this, name);
+this.age = age;
+}
+//继承方法
+SubType.prototype = new SuperType();
+SubType.prototype.constructor = SubType;
+SubType.prototype.sayAge = function(){
+alert(this.age);
+};
+var instance1 = new SubType("Nicholas", 29);
+instance1.colors.push("black");
+alert(instance1.colors); //"red,blue,green,black"
+instance1.sayName(); //"Nicholas";
+instance1.sayAge(); //29
+var instance2 = new SubType("Greg", 27);
+alert(instance2.colors); //"red,blue,green"
+instance2.sayName(); //"Greg";
+instance2.sayAge(); //27
+```
+
+### 原型式继承
+道格拉斯·克罗克福德在 2006 年写了一篇文章，题为 Prototypal Inheritance in JavaScript （JavaScript
+中的原型式继承）。在这篇文章中，他介绍了一种实现继承的方法，这种方法并没有使用严格意义上的
+构造函数。他的想法是借助原型可以基于已有的对象创建新对象，同时还不必因此创建自定义类型。为
+了达到这个目的，他给出了如下函数。
+```javascript
+function object(o){
+function F(){}
+F.prototype = o;
+return new F();
+}
+```
+ECMAScript 5 通过新增 Object.create()方法规范化了原型式继承。这个方法接收两个参数：一
+个用作新对象原型的对象和（可选的）一个为新对象定义额外属性的对象。在传入一个参数的情况下，
+Object.create()与 object()方法的行为相同。
+Object.create()方法的第二个参数与Object.defineProperties()方法的第二个参数格式相
+同：每个属性都是通过自己的描述符定义的。以这种方式指定的任何属性都会覆盖原型对象上的同名属
+性。
+
+### 寄生式继承
+寄生式（parasitic）继承是与原型式继承紧密相关的一种思路，并且同样也是由克罗克福德推而广
+之的。寄生式继承的思路与寄生构造函数和工厂模式类似，即创建一个仅用于封装继承过程的函数，该
+函数在内部以某种方式来增强对象，最后再像真地是它做了所有工作一样返回对象。
+```javascript
+function createAnother(original){
+var clone = object(original); //通过调用函数创建一个新对象
+clone.sayHi = function(){ //以某种方式来增强这个对象
+alert("hi");
+};
+return clone; //返回这个对象
+}
+```
+
+### 寄生组合式继承
+前面说过，组合继承是 JavaScript 最常用的继承模式；不过，它也有自己的不足。组合继承最大的
+问题就是无论什么情况下，都会调用两次超类型构造函数：一次是在创建子类型原型的时候，另一次是
+在子类型构造函数内部。没错，子类型最终会包含超类型对象的全部实例属性，但我们不得不在调用子
+类型构造函数时重写这些属性。
 
 
 ---
 # 函数表达式
+函数表达式是 JavaScript 中的一个既强大又容易令人困惑的特性。定义函数的
+ 方式有两种：一种是函数声明，另一种就是函数表达式。函数声明的语法是这样的。
+```javascript
+function functionName(arg0, arg1, arg2) {
+//函数体
+}
+``` 
+关于函数声明，它的一个重要特征就是函数声明提升（function declaration hoisting），意思是在执行
+代码之前会先读取函数声明。这就意味着可以把函数声明放在调用它的语句后面。
+ 
+第二种创建函数的方式是使用函数表达式。函数表达式有几种不同的语法形式。
+```javascript
+var functionName = function(arg0, arg1, arg2){
+//函数体
+};
+``` 
+这种形式看起来好像是常规的变量赋值语句，即创建一个函数并将它赋值给变量 functionName。
+这种情况下创建的函数叫做匿名函数（anonymous function），因为 function 关键字后面没有标识符。
+（匿名函数有时候也叫拉姆达函数。）匿名函数的 name 属性是空字符串。
+
+理解函数提升的关键，就是理解函数声明与函数表达式之间的区别。
+
+## 递归
+递归函数是在一个函数通过名字调用自身的情况下构成的。
+```javascript
+function factorial(num){
+if (num <= 1){
+return 1;
+} else {
+return num * factorial(num-1);
+}
+}
+```
+arguments.callee 是一个指向正在执行的函数的指针，因此可以用它来实现对函数
+的递归调用，
+```javascript
+function factorial(num){
+if (num <= 1){
+return 1;
+} else {
+return num * arguments.callee(num-1);
+}
+}
+```
+通过使用 arguments.callee 代替函数名，可以确保无论怎样调用函数都不会
+出问题。因此，在编写递归函数时，使用 arguments.callee 总比使用函数名更保险。
+但在严格模式下，不能通过脚本访问 arguments.callee，访问这个属性会导致错误。不过，可
+以使用命名函数表达式来达成相同的结果。
+```javascript
+var factorial = (function f(num){
+if (num <= 1){
+return 1;
+} else {
+return num * f(num-1);
+}
+});
+```
+
+## 闭包
+闭包是指有权访问另一个
+函数作用域中的变量的函数。创建闭包的常见方式，就是在一个函数内部创建另一个函数
+```javascript
+function createComparisonFunction(propertyName) {
+return function(object1, object2){
+var value1 = object1[propertyName];
+var value2 = object2[propertyName];
+if (value1 < value2){
+return -1;
+} else if (value1 > value2){
+return 1;
+} else {
+return 0;
+}
+};
+}
+```
+
+1. 闭包与变量
+作用域链的这种配置机制引出了一个值得注意的副作用，即闭包只能取得包含函数中任何变量的最
+后一个值。别忘了闭包所保存的是整个变量对象，而不是某个特殊的变量。
+
+2. 关于this对象
+在闭包中使用 this 对象也可能会导致一些问题。我们知道， this 对象是在运行时基于函数的执
+行环境绑定的：在全局函数中， this 等于 window，而当函数被作为某个对象的方法调用时， this 等
+于那个对象。不过，匿名函数的执行环境具有全局性，因此其 this 对象通常指向 window①。但有时候
+由于编写闭包的方式不同，这一点可能不会那么明显。
+
+3. 内存泄漏
+
+## 模仿块级作用域
+JavaScript 从来不会告诉你是否多次声明了同一个变量；遇到这种情况，它只会对后续的声明视而不
+见（不过，它会执行后续声明中的变量初始化）。匿名函数可以用来模仿块级作用域并避免这个问题。
+```javascript
+(function(){
+//这里是块级作用域
+})();
+```
+函数表达式的后面可以跟圆括号。要将函数声明转换成函数表达式，
+只要像下面这样给它加上一对圆括号即可。
+
+## 私有变量
+严格来讲， JavaScript 中没有私有成员的概念；所有对象属性都是公有的。不过，倒是有一个私有
+变量的概念。任何在函数中定义的变量，都可以认为是私有变量，因为不能在函数的外部访问这些变量。
+私有变量包括函数的参数、局部变量和在函数内部定义的其他函数。
+```javascript
+function add(num1, num2){
+var sum = num1 + num2;
+return sum;
+}
+```
+在这个函数内部，有 3 个私有变量： num1、 num2 和 sum。在函数内部可以访问这几个变量，但在
+函数外部则不能访问它们。如果在这个函数内部创建一个闭包，那么闭包通过自己的作用域链也可以访
+问这些变量。而利用这一点，就可以创建用于访问私有变量的公有方法。
+我们把有权访问私有变量和私有函数的公有方法称为特权方法（privileged method）。有两种在对象
+上创建特权方法的方式。第一种是在构造函数中定义特权方法，基本模式如下。
+```javascript
+function MyObject(){
+//私有变量和私有函数
+var privateVariable = 10;
+function privateFunction(){
+return false;
+}
+//特权方法
+this.publicMethod = function (){
+privateVariable++;
+return privateFunction();
+};
+}
+```
+
+### 静态私有变量
+通过在私有作用域中定义私有变量或函数，同样也可以创建特权方法，其基本模式如下所示。
+```javascript
+(function(){
+//私有变量和私有函数
+var privateVariable = 10;
+function privateFunction(){
+return false;
+}
+//构造函数
+MyObject = function(){
+};
+//公有/特权方法
+MyObject.prototype.publicMethod = function(){
+privateVariable++;
+return privateFunction();
+};
+})();
+```
+
+### 模块模式
+前面的模式是用于为自定义类型创建私有变量和特权方法的。而道格拉斯所说的模块模式（module
+pattern）则是为单例创建私有变量和特权方法。所谓单例（singleton），指的就是只有一个实例的对象。
+按照惯例， JavaScript 是以对象字面量的方式来创建单例对象的。
+
+模块模式通过为单例添加私有变量和特权方法能够使其得到增强。
+```javascript
+var singleton = function(){
+//私有变量和私有函数
+var privateVariable = 10;
+function privateFunction(){
+return false;
+}
+//特权/公有方法和属性
+return {
+publicProperty: true,
+publicMethod : function(){
+privateVariable++;
+return privateFunction();
+}
+};
+}();
+```
+
+### 增强的模块模式
+有人进一步改进了模块模式，即在返回对象之前加入对其增强的代码。这种增强的模块模式适合那
+些单例必须是某种类型的实例，同时还必须添加某些属性和（或）方法对其加以增强的情况。
+```javascript
+var application = function(){
+//私有变量和函数
+var components = new Array();
+//初始化
+components.push(new BaseComponent());
+//创建 application 的一个局部副本
+var app = new BaseComponent();
+//公共接口
+app.getComponentCount = function(){
+return components.length;
+};
+app.registerComponent = function(component){
+if (typeof component == "object"){
+components.push(component);
+}
+};
+//返回这个副本
+return app;
+}();
+```
 
 ---
 # BOM
 
+## window对象
+### 全局作用域
+### 窗口关系及框架
+### 窗口位置
+### 窗口大小
+### 导航和打开窗口
+### 间歇调用和超时调用
+### 系统对话框
+
+## location对象
+### 查询字符串参数
+### 位置操作
+
+
+## navigator对象
+### 检测插件
+### 注册处理程序
+
+## screen对象
+
+## history对象
+
+
+
 ---
 # 客户端检测
+## 能力检测
+### 更可靠的能力检测
+### 能力检测，不是浏览器检测
+
+## 怪癖检测
+
+
+## 用户代理检测
+### 用户代理字符串的历史
+### 用户代理字符串检测技术
+### 完整的代码
+### 使用方法
+
 
 ---
 # DOM
+## 节点层次
+### Node类型
+### Document类型
+### Element类型
+### Text类型
+### Comment类型
+### CDATASection类型
+### DocumentFragment类型
+### Attr类型
+
+
+## DOM操作技术
+### 动态脚本
+### 动态样式
+### 操作表格
+### 使用NodeList
+
 
 ---
 # DOM扩展
+## 选择符API
+### querySelector()方法
+### querySelectorAll()方法
+### matchesSelector()方法
+
+## 元素遍历
+
+## HTML5
+### 与类相关的扩充
+### 焦点管理
+### HTMLDocument的变化
+### 字符集属性
+### 自定义数据属性
+### scrollIntoView()方法
+
+## 专有扩展
+### 文档模式
+### children属性
+### contains()方法
+### 插入文本
+### 滚动
 
 ---
 # DOM2和DOM3
 
+## DOM变化
+### 针对XML命名空间的变化
+### 其他方面的变化
+
+## 样式
+### 访问元素的样式
+### 操作样式表
+### 元素大小
+
+## 遍历
+### NodeIterator
+### TreeWalker
+
+## 范围
+### DOM中的范围
+### IE8及更早版本中的范围
+
 ---
 # 事件
+## 事件流
+### 时间冒泡
+### 事件捕获
+### DOM事件流
+
+## 事件处理程序
+### HTML事件处理程序
+### DOM0级事件处理程序
+### DOM2级事件处理程序
+### IE事件处理程序
+### 跨浏览器的事件处理程序
+
+
+## 事件对象
+### DOM中的事件对象
+### IE中的事件对象
+### 跨浏览器的事件对象
+
+
+## 事件类型
+### UI事件
+### 焦点事件
+### 鼠标与滚轮事件
+### 键盘与文本事件
+### 复合事件
+### 变动事件
+### HTML5事件
+### 设备事件
+### 触摸与手势事件
+
+
+## 内存和性能
+### 事件委托
+### 移除事件处理程序
+
+
+## 模拟事件
+### DOM中的事件模拟
+### IE中的事件模拟
 
 ---
 # 表单脚本
+## 表单的基础知识
+### 提交表单
+### 重置表单
+### 表单字段
+
+
+## 文本框脚本
+### 选择文本
+### 过滤输入
+### 自动切换焦点
+### HTML5约束验证API
+
+
+## 选择框脚本
+### 选择选项
+### 添加选项
+### 移除选项
+### 移动和重排选项
+
+
+## 表单序列化
+
+
+
+## 富文本编辑
+### 使用contenteditable属性
+### 操作富文本
+### 富文本选区
+### 表单与富文本
 
 
 ---
 # 使用Canvas绘图
+## 基本用法
+
+
+## 2D上下文
+### 填充和描边
+### 绘制矩形
+### 绘制路径
+### 绘制文本
+### 变换
+### 绘制图像
+### 阴影
+### 渐变
+### 模式
+### 使用图像数据
+### 合成
+
+## WebGL
+### 类型化数组
+### WebGL上下文
+### 支持
 
 ---
 # HTML脚本编程
+## 跨文档消息传递
+
+
+## 原生拖放
+### 拖放事件
+### 自定义放置目标
+### dataTransfer对象
+### dropEffect与effectAllowed
+### 可拖动
+### 其他成员
+
+## 媒体元素
+### 属性
+### 事件
+### 自定义媒体播放器
+### 检测编解码器的支持情况
+### Audio类型
+
+## 历史状态管理
+
 
 ---
 # 错误处理与调试
+## 浏览器报告的错误
+### IE
+### Firefox
+### Safari
+### Opera
+### Chrome
+
+## 错误处理
+### try-catch语句
+### 抛出错误
+### 错误（error）事件
+### 处理错误的策略
+### 常见的错误类型
+### 区分致命错误和非致命错误
+### 把错误记录到服务器
+
+
+## 调试技术
+### 将消息记录到控制台
+### 将消息记录到当前野蛮
+### 抛出错误
+
+## 常见的IE错误
+### 操作终止
+### 无效字符
+### 未找到成员
+### 位置运行时错误
+### 语法错误
+### 系统无法找到指定资源
+
 
 ---
 # JavaScript与XML
+## 浏览器对XML DOM的支持
+### DOM2级核心
+### DOMParser类型
+### XMLSerializer类型
+### IE8及之前版本中的XML
+### 跨浏览器处理XML
+
+
+## 浏览器对XPath的支持
+### DOM3级XPath
+### IE中的XPath
+### 跨浏览器使用XPath
+
+
+## 浏览器对XSLT的支持
+### IE中的XSLT
+### XSLTProcessor类型
+### 跨浏览器使用XSLT
+
 
 ---
 # E4X
+## E4X的类型
+### XML类型
+### XMLList类型
+### Namespace类型
+### QName类型
+
+
+## 一般用法
+### 访问特性
+### 其他节点类型
+### 查询
+### 构建和操作XML
+### 解析和序列化
+### 命名空间
+
+
+## 其他变化
+
+
+
+## 全面启用E4X
+
+
 
 
 ---
 # JSON
+## 语法
+### 简单值
+### 对象
+### 数组
 
+
+
+## 解析与序列化
+### JSON对象
+### 序列化选项
+### 解析选项
 
 ---
 # Ajax与Comet
+## XMLHttpRequest对象
+### XHR的用法
+### HTTP头部信息
+### GET请求
+### POST请求
 
+
+## XMLHttpRequest2级
+### FormData
+### 超时设定
+### overrideMimeType()方法
+
+
+## 进度事件
+### load事件
+### progress事件
+
+## 跨源资源共享
+### IE对CORS的实现
+### 其他浏览器对CORS的实现
+### Prefighted Requests
+### 带凭据的请求
+### 跨浏览器的CORS
+
+
+## 其他跨域技术
+### 图像Ping
+### JSONP
+### Comet
+### 服务器发送事件
+### Web Sockets
+### SSE与Web Sockets
+
+
+## 安全
 
 ---
 # 高级技巧
+## 高级函数
+### 安全的类型检测
+### 作用域安全的构造函数
+### 惰性载入函数
+### 函数绑定
+### 函数柯里化
 
+
+## 防篡改对象
+### 不可扩展对象
+### 密封的对象
+### 冻结的对象
+
+
+## 高级定时器
+### 重复的定时器
+### Yielding Processes
+### 函数节流
+
+
+## 自定义事件
+
+
+
+## 拖放
+### 修缮拖动功能
+### 添加自定义事件
 
 ---
 # 离线应用于客户端存储
+## 离线检测
+
+
+
+## 应用缓存
+
+
+
+## 数据存储
+### Cookie
+### IE用户数据
+### Web存储机制
+### IndexedDB
 
 
 ---
 # 最佳实践
+## 可维护性
+### 什么是可维护的代码
+### 代码约定
+### 松散耦合
+### 编程实践
 
 
+## 性能
+### 注意作用域
+### 选择正确方法
+### 最小化语句数
+### 优化DOM交互
+
+
+## 部署
+### 构建过程
+### 验证
+### 压缩
 
 ---
 # 新兴的API
+## requestAnimatonFrame()
+### 早起动画循环
+### 循环间隔的问题
+### mozRequestAnimatonFrame
+### webkitRequestAnimatonFrame与msRequestAnimatonFrame
+
+
+## Page Visibility API
+
+
+
+## Geolocation API
+
+
+
+## File API
+### FileReader类型
+### 读取部分内容
+### 对象URL
+### 读取拖放的文件
+### 使用XHR上传文件
+
+
+## Web计时
+
+
+## Web Workers
+### 使用Worker
+### Worker全局作用域
+### 包含其他脚本
+### Web Worker的未来
