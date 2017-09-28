@@ -2131,14 +2131,135 @@ parseInt()等方法。
 如果页面中包含框架，则每个框架都拥有自己的 window 对象，并且保存在 frames 集合中。在 frames
 集合中，可以通过数值索引（从 0 开始，从左至右，从上到下）或者框架名称来访问相应的 window 对
 象。每个 window 对象都有一个 name 属性，其中包含框架的名称。
+```html
+<html>
+<head>
+<title>Frameset Example</title>
+</head>
+<frameset rows="160,*">
+<frame src="frame.htm" name="topFrame">
+<frameset cols="50%,50%">
+<frame src="anotherframe.htm" name="leftFrame">
+<frame src="yetanotherframe.htm" name="rightFrame">
+</frameset>
+</frameset>
+</html>
+```
+![img](./img/frame.png)
 
 ### 窗口位置
+用来确定和修改 window 对象位置的属性和方法有很多。 IE、 Safari、 Opera 和 Chrome 都提供了
+screenLeft 和 screenTop 属性，分别用于表示窗口相对于屏幕左边和上边的位置。 Firefox 则在
+screenX 和 screenY 属性中提供相同的窗口位置信息， Safari 和 Chrome 也同时支持这两个属性。 Opera
+虽然也支持 screenX 和 screenY 属性，但与 screenLeft 和 screenTop 属性并不对应，因此建议大
+家不要在 Opera 中使用它们。使用下列代码可以跨浏览器取得窗口左边和上边的位置。
+```javascript
+var leftPos = (typeof window.screenLeft == "number") ?
+window.screenLeft : window.screenX;
+var topPos = (typeof window.screenTop == "number") ?
+window.screenTop : window.screenY;
+```
+
 ### 窗口大小
+跨浏览器确定一个窗口的大小不是一件简单的事。 IE9+、 Firefox、 Safari、 Opera 和 Chrome 均为此提
+供了 4 个属性： innerWidth、 innerHeight、 outerWidth 和 outerHeight。
+
+在 IE、 Firefox、 Safari、 Opera 和 Chrome 中， document.documentElement.clientWidth 和
+document.documentElement.clientHeight 中保存了页面视口的信息。
+虽然最终无法确定浏览器窗口本身的大小，但却可以取得页面视口的大小.
+```javascript
+var pageWidth = window.innerWidth,
+pageHeight = window.innerHeight;
+if (typeof pageWidth != "number"){
+if (document.compatMode == "CSS1Compat"){
+pageWidth = document.documentElement.clientWidth;
+pageHeight = document.documentElement.clientHeight;
+} else {
+pageWidth = document.body.clientWidth;
+pageHeight = document.body.clientHeight;
+}
+}
+```
+
 ### 导航和打开窗口
+使用 window.open()方法既可以导航到一个特定的 URL，也可以打开一个新的浏览器窗口。这个
+方法可以接收 4 个参数：要加载的 URL、窗口目标、一个特性字符串以及一个表示新页面是否取代浏览
+器历史记录中当前加载页面的布尔值。通常只须传递第一个参数，最后一个参数只在不打开新窗口的情
+况下使用。
+
+1.弹出窗口
+如果给 window.open()传递的第二个参数并不是一个已经存在的窗口或框架，那么该方法就会根
+据在第三个参数位置上传入的字符串创建一个新窗口或新标签页。如果没有传入第三个参数，那么就会
+打开一个带有全部默认设置（工具栏、地址栏和状态栏等）的新浏览器窗口（或者打开一个新标签页—
+—根据浏览器设置）。在不打开新窗口的情况下，会忽略第三个参数。
+第三个参数是一个逗号分隔的设置字符串，表示在新窗口中都显示哪些特性。下表列出了可以出现
+在这个字符串中的设置选项。
+
+设置 | 值 | 说明
+--- | --- | ---
+fullscreen | yes或no | 表示浏览器窗口是否最大化。仅限IE
+height | 数值 |  表示新窗口的高度。不能小于100
+left | 数值 | 表示新窗口的左坐标。不能是负值
+location | yes或no | 表示是否在浏览器窗口中显示地址栏。不同浏览器的默认值不同。如果设置为no，地址栏可能会隐藏，也可能会被禁用（取决于浏览器）
+menubar | yes或no | 表示是否在浏览器窗口中显示菜单栏。默认值为no
+resizable | yes或no | 表示是否可以通过拖动浏览器窗口的边框改变其大小。默认值为no
+scrollbars | yes或no | 表示如果内容在视口中显示不下，是否允许滚动。默认值为no
+status | yes或no | 表示是否在浏览器窗口中显示状态栏。默认值为no
+toolbar | yes或no | 表示是否在浏览器窗口中显示工具栏。默认值为no
+top | 数值 | 表示新窗口的上坐标。不能是负值
+width | 数值 | 表示新窗口的宽度。不能小于100
+
+表中所列的部分或全部设置选项，都可以通过逗号分隔的名值对列表来指定。其中，名值对以等号
+表示（注意，整个特性字符串中不允许出现空格）
+
+2. 安全限制
+曾经有一段时间，广告商在网上使用弹出窗口达到了肆无忌惮的程度。他们经常把弹出窗口打扮成
+系统对话框的模样，引诱用户去点击其中的广告。由于看起来像是系统对话框，一般用户很难分辨是真
+是假。为了解决这个问题，有些浏览器开始在弹出窗口配置方面增加限制
+
+3. 弹出窗口屏蔽程序
+
 ### 间歇调用和超时调用
+JavaScript 是单线程语言，但它允许通过设置超时值和间歇时间值来调度代码在特定的时刻执行。
+前者是在指定的时间过后执行代码，而后者则是每隔指定的时间就执行一次代码。
+超时调用需要使用 window 对象的 setTimeout()方法，它接受两个参数：要执行的代码和以毫秒
+表示的时间（即在执行代码前需要等待多少毫秒）。其中，第一个参数可以是一个包含 JavaScript 代码的
+字符串（就和在 eval()函数中使用的字符串一样），也可以是一个函数。
+
+调用 setTimeout()之后，该方法会返回一个数值 ID，表示超时调用。这个超时调用 ID 是计划执
+行代码的唯一标识符，可以通过它来取消超时调用。要取消尚未执行的超时调用计划，可以调用
+clearTimeout()方法并将相应的超时调用 ID 作为参数传递给它，
+```javascript
+//设置超时调用
+var timeoutId = setTimeout(function() {
+alert("Hello world!");
+}, 1000);
+//注意：把它取消
+clearTimeout(timeoutId);
+```
+间歇调用与超时调用类似，只不过它会按照指定的时间间隔重复执行代码，直至间歇调用被取消或
+者页面被卸载。设置间歇调用的方法是 setInterval()，它接受的参数与 setTimeout()相同：要执
+行的代码（字符串或函数）和每次执行之前需要等待的毫秒数。
+
+在使用超时调用时，没有必要跟踪超时调用 ID，因为每次执行代码之后，如果不再设置另
+一次超时调用，调用就会自行停止。一般认为，使用超时调用来模拟间歇调用的是一种最佳模式。在开
+发环境下，很少使用真正的间歇调用，原因是后一个间歇调用可能会在前一个间歇调用结束之前启动。
+而像前面示例中那样使用超时调用，则完全可以避免这一点。所以，最好不要使用间歇调用。
+
 ### 系统对话框
+浏览器通过 alert()、 confirm()和 prompt()方法可以调用系统对话框向用户显示消息。系统对
+话框与在浏览器中显示的网页没有关系，也不包含 HTML。它们的外观由操作系统及（或）浏览器设置
+决定，而不是由 CSS 决定。此外，通过这几个方法打开的对话框都是同步和模态的。也就是说，显示这
+些对话框的时候代码会停止执行，而关掉这些对话框后代码又会恢复执行。
+
 
 ## location对象
+location 是最有用的 BOM 对象之一，它提供了与当前窗口中加载的文档有关的信息，还提供了一
+些导航功能。事实上， location 对象是很特别的一个对象，因为它既是 window 对象的属性，也是
+document 对象的属性；换句话说， window.location 和 document.location 引用的是同一个对象。
+location 对象的用处不只表现在它保存着当前文档的信息，还表现在它将 URL 解析为独立的片段，让
+开发人员可以通过不同的属性访问这些片段。
+
 ### 查询字符串参数
 ### 位置操作
 
