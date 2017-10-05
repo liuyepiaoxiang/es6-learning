@@ -545,8 +545,8 @@ ECMAScript 中所有函数的参数都是按值传递的。也就是说，把函
 这么说是因为有些语句可以在作用域链的前端临时增加一个变量对象，该变量对象会在代码执行后被移
 除。在两种情况下会发生这种现象。具体来说，就是当执行流进入下列任何一个语句时，作用域链就会
 得到加长：
- try-catch 语句的 catch 块；
- with 语句。
+- try-catch 语句的 catch 块；
+- with 语句。
 这两个语句都会在作用域链的前端添加一个变量对象。对 with 语句来说，会将指定的对象添加到
 作用域链中。对 catch 语句来说，会创建一个新的变量对象，其中包含的是被抛出的错误对象的声明。
 
@@ -2260,42 +2260,731 @@ document 对象的属性；换句话说， window.location 和 document.location
 location 对象的用处不只表现在它保存着当前文档的信息，还表现在它将 URL 解析为独立的片段，让
 开发人员可以通过不同的属性访问这些片段。
 
-### 查询字符串参数
-### 位置操作
+属性名 | 例子 | 说明 
+--- | --- | ---
+hash | "#contents" | 返回URL中的hash（#号后跟零或多个字符），如果URL中不包含散列，则返回空字符串
+host | "www.wrox.com:80" | 返回服务器名称和端口号（如果有）
+hostname | "www.wrox.com" | 返回不带端口号的服务器名称
+href | "http:/www.wrox.com" | 返回当前加载页面的完整URL。而location对象的toString()方法也返回这个值
+pathname | "/WileyCDA/" | 返回URL中的目录和（或）文件名
+port | "8080" | 返回URL中指定的端口号。如果URL中不包含端口号，则这个属性返回空字符串
+protocol | "http:" | 返回页面使用的协议。通常是http:或https:
+search | "?q=javascript" | 返回URL的查询字符串。这个字符串以问号开头
 
+### 查询字符串参数
+虽然通过上面的属性可以访问到 location 对象的大多数信息，但其中访问 URL 包含的查询字符
+串的属性并不方便。尽管 location.search 返回从问号到 URL 末尾的所有内容，但却没有办法逐个
+访问其中的每个查询字符串参数。为此，可以像下面这样创建一个函数，用以解析查询字符串，然后返
+回包含所有参数的一个对象。
+```javascript
+function getQueryStringArgs(){
+//取得查询字符串并去掉开头的问号
+var qs = (location.search.length > 0 ? location.search.substring(1) : ""),
+//保存数据的对象
+args = {},
+//取得每一项
+items = qs.length ? qs.split("&") : [],
+item = null,
+name = null,
+value = null,
+//在 for 循环中使用
+i = 0,
+len = items.length;
+//逐个将每一项添加到 args 对象中
+for (i=0; i < len; i++){
+item = items[i].split("=");
+name = decodeURIComponent(item[0]);
+value = decodeURIComponent(item[1]);
+if (name.length) {
+args[name] = value;
+}
+}
+return args;
+}
+```
+### 位置操作
+使用 location 对象可以通过很多方式来改变浏览器的位置。首先，也是最常用的方式，就是使用
+assign()方法并为其传递一个 URL.
+```javascript
+location.assign("http://www.wrox.com");
+```
+这样，就可以立即打开新 URL 并在浏览器的历史记录中生成一条记录。如果是将 location.href
+或 window.location 设置为一个 URL 值，也会以该值调用 assign()方法。
+
+下列两行代码与显式调用 assign()方法的效果完全一样。
+```javascript
+window.location = "http://www.wrox.com";
+location.href = "http://www.wrox.com";
+```
+另外，修改location 对象的其他属性也可以改变当前加载的页面。下面的例子展示了通过将hash、
+search、 hostname、 pathname 和 port 属性设置为新值来改变 URL。
+```javascript
+//假设初始 URL 为 http://www.wrox.com/WileyCDA/
+//将 URL 修改为"http://www.wrox.com/WileyCDA/#section1"
+location.hash = "#section1";
+//将 URL 修改为"http://www.wrox.com/WileyCDA/?q=javascript"
+location.search = "?q=javascript";
+//将 URL 修改为"http://www.yahoo.com/WileyCDA/"
+location.hostname = "www.yahoo.com";
+//将 URL 修改为"http://www.yahoo.com/mydir/"
+location.pathname = "mydir";
+//将 URL 修改为"http://www.yahoo.com:8080/WileyCDA/"
+location.port = 8080;
+```
+
+当通过上述任何一种方式修改 URL 之后，浏览器的历史记录中就会生成一条新记录，因此用户通
+过单击“后退”按钮都会导航到前一个页面。要禁用这种行为，可以使用 replace()方法。这个方法
+只接受一个参数，即要导航到的 URL；结果虽然会导致浏览器位置改变，但不会在历史记录中生成新记
+录。
 
 ## navigator对象
-### 检测插件
-### 注册处理程序
+最早由 Netscape Navigator 2.0 引入的 navigator 对象，现在已经成为识别客户端浏览器的事实标
+准。虽然其他浏览器也通过其他方式提供了相同或相似的信息，但 navigator 对象却是所有支持 JavaScript 的浏览器所共有
+的。与其他 BOM 对象的情况一样，每个浏览器中的 navigator 对象也都有一套自己的属性。
 
+属性或方法 | 说明 | IE | Firefox | Safari/Chrome | Opera
+--- | --- | --- | --- | --- | ---
+appCodeName | 浏览器的名称。通常都是Mozilla，即使在非Mozilla浏览器中也是如此 | 3.0+ | 1.0+ | 1.0+ | 7.0+
+appMinorVersion | 次版本信息 | 4.0+ | －| － | 9.5+
+appName | 完整的浏览器名称 | 3.0+ | 1.0+ | 1.0+ | 7.0+
+appVersion | 浏览器的版本。一般不与实际的浏览器版本对应 | 3.0+ | 1.0+ | 1.0+ | 7.0+
+buildID | 浏览器编译版本 | － | 2.0+ | － | －
+cookieEnabled | 表示cookie是否启用 | 4.0+ | 1.0+ | 1.0+ | 7.0+
+cpuClass | 客户端计算机中使用的CPU类型（x86、68K、 Alpha、 PPC或Other） | 4.0+ | － | － | －
+javaEnabled() | 表示当前浏览器中是否启用了Java | 4.0+ | 1.0+ | 1.0+ | 7.0+
+language | 浏览器的主语言 | － | 1.0+ | 1.0+ | 7.0+
+mimeTypes | 在浏览器中注册的MIME类型数组 | 4.0+ | 1.0+ | 1.0+ | 7.0+
+onLine | 表示浏览器是否连接到了因特网 | 4.0+ | 1.0+ | － | 9.5+
+opsProfile | 似乎早就不用了。查不到相关文档 | 4.0+ | － | － | －
+oscpu | 客户端计算机的操作系统或使用的CPU | － | 1.0+ | － | －
+platform | 浏览器所在的系统平台 | 4.0+ | 1.0+ | 1.0+ | 7.0+
+plugins | 浏览器中安装的插件信息的数组 | 4.0+ | 1.0+ | 1.0+ | 7.0+
+preference() | 设置用户的首选项 | － | 1.5+ | － | －
+product | 产品名称（如 Gecko） | － | 1.0+ | 1.0+ | －
+productSub | 关于产品的次要信息（如Gecko的版本） | － | 1.0+ | 1.0+ | －
+registerContentHandler() | 针对特定的MIME类型将一个站点注册为处理程序 | － | 2.0+ | － | －
+registerProtocolHandler() | 针对特定的协议将一个站点注册为处理程序 | －  | 2.0 | －  | －
+securityPolicy | 已经废弃。安全策略的名称。为了与Netscape Navigator 4向后兼容而保留下来 | － | 1.0+ | － | －
+systemLanguage | 操作系统的语言 | 4.0+ | － | － | －
+taintEnabled() | 已经废弃。表示是否允许变量被修改（taint）。为了与Netscape Navigator 3向后兼容而保留下来 | 4.0+ | 1.0+ | － | 7.0+
+userAgent | 浏览器的用户代理字符串 | 3.0+ | 1.0+ | 1.0+ | 7.0+
+userLanguage | 操作系统的默认语言 | 4.0+ | － | － | 7.0+
+userProfile | 借以访问用户个人信息的对象 | 4.0+ | － | － | －
+vendor | 浏览器的品牌 | － | 1.0+ | 1.0+ | －
+vendorSub | 有关供应商的次要信息 | － | 1.0+ | 1.0+ | －
+
+### 检测插件
+检测浏览器中是否安装了特定的插件是一种最常见的检测例程。对于非 IE 浏览器，可以使用
+plugins 数组来达到这个目的。该数组中的每一项都包含下列属性。
+- name：插件的名字。
+- description：插件的描述。
+- filename：插件的文件名。
+- length：插件所处理的 MIME 类型数量。
+一般来说， name 属性中会包含检测插件必需的所有信息，但有时候也不完全如此。在检测插件时，
+需要像下面这样循环迭代每个插件并将插件的 name 与给定的名字进行比较。
+```javascript
+//检测插件（在 IE 中无效）
+function hasPlugin(name){
+name = name.toLowerCase();
+for (var i=0; i < navigator.plugins.length; i++){
+if (navigator. plugins [i].name.toLowerCase().indexOf(name) > -1){
+return true;
+}
+}
+return false;
+}
+```
+
+检测 IE 中的插件比较麻烦，因为 IE 不支持 Netscape 式的插件。在 IE 中检测插件的唯一方式就是
+使用专有的 ActiveXObject 类型，并尝试创建一个特定插件的实例。 IE 是以 COM 对象的方式实现插
+件的，而 COM 对象使用唯一标识符来标识。因此，要想检查特定的插件，就必须知道其 COM 标识符。
+例如， Flash 的标识符是 ShockwaveFlash.ShockwaveFlash。知道唯一标识符之后，就可以编写类似
+下面的函数来检测 IE 中是否安装相应插件了。
+```javascript
+//检测 IE 中的插件
+function hasIEPlugin(name){
+try {
+new ActiveXObject(name);
+return true;
+} catch (ex){
+return false;
+}
+}
+```
+
+鉴于检测这两种插件的方法差别太大，因此典型的做法是针对每个插件分别创建检测函数，而不是
+使用前面介绍的通用检测方法。
+```javascript
+//检测所有浏览器中的 Flash
+function hasFlash(){
+var result = hasPlugin("Flash");
+if (!result){
+result = hasIEPlugin("ShockwaveFlash.ShockwaveFlash");
+}
+return result;
+}
+//检测所有浏览器中的 QuickTime
+function hasQuickTime(){
+var result = hasPlugin("QuickTime");
+if (!result){
+result = hasIEPlugin("QuickTime.QuickTime");
+}
+return result;
+}
+```
+
+### 注册处理程序
+Firefox 2 为 navigator 对象新增了 registerContentHandler()和 registerProtocolHandler()方
+法。这两个方法可以让一个站点指明它可以处理特定类型的信息。随着 RSS 阅读器和在线电子邮件程序的兴起，
+注册处理程序就为像使用桌面应用程序一样默认使用这些在线应用程序提供了一种方式。
+
+其中， registerContentHandler()方法接收三个参数：要处理的 MIME 类型、可以处理该 MIME
+类型的页面的 URL 以及应用程序的名称。
+```javascript
+navigator.registerContentHandler("application/rss+xml",
+"http://www.somereader.com?feed=%s", "Some Reader");
+```
+第一个参数是 RSS 源的 MIME 类型。第二个参数是应该接收 RSS 源 URL 的 URL，其中的%s 表示
+RSS 源 URL，由浏览器自动插入。当下一次请求 RSS 源时，浏览器就会打开指定的 URL，而相应的
+Web 应用程序将以适当方式来处理该请求。
+
+类似的调用方式也适用于 registerProtocolHandler()方法，它也接收三个参数：要处理的协
+议（例如， mailto 或 ftp）、处理该协议的页面的 URL 和应用程序的名称。
+```javascript
+navigator.registerProtocolHandler("mailto",
+"http://www.somemailclient.com?cmd=%s", "Some Mail Client");
+```
 ## screen对象
+JavaScript 中有几个对象在编程中用处不大，而 screen 对象就是其中之一。 screen 对象基本上只
+用来表明客户端的能力，其中包括浏览器窗口外部的显示器的信息，如像素宽度和高度等。
+
+属性 | 说明 | IE | Firefox | Safari/Chrome | Opera
+--- | --- | --- | --- | --- | ---
+availHeight | 屏幕的像素高度减系统部件高度之后的值（只读） | true  | true  | true  | true 
+availLeft | 未被系统部件占用的最左侧的像素值（只读） | true  | true | 
+availTop | 未被系统部件占用的最上方的像素值（只读） | true  | true |
+availWidth | 屏幕的像素宽度减系统部件宽度之后的值（只读） | true  | true  | true  | true 
+bufferDepth | 读、写用于呈现屏外位图的位数 | true |
+colorDepth | 用于表现颜色的位数；多数系统都是32（只读） | true  | true  | true  | true 
+deviceXDPI | 屏幕实际的水平DPI（只读） | true |
+deviceYDPI | 屏幕实际的垂直DPI（只读） | true |
+fontSmoothingEnabled | 表示是否启用了字体平滑（只读） | true |
+height | 屏幕的像素高度 | true  | true  | true  | true |
+left | 当前屏幕距左边的像素距离 | true |
+logicalXDPI | 屏幕逻辑的水平DPI（只读） | true |
+logicalYDPI | 屏幕逻辑的垂直DPI（只读） | true |
+pixelDepth | 屏幕的位深（只读） | true  | true  | true |
+top | 当前屏幕距上边的像素距离 | true | 
+updateInterval | 读、写以毫秒表示的屏幕刷新时间间隔 | true |
+width | 屏幕的像素宽度 | true  | true  | true  | true |
 
 ## history对象
+history 对象保存着用户上网的历史记录，从窗口被打开的那一刻算起。因为 history 是 window
+对象的属性，因此每个浏览器窗口、每个标签页乃至每个框架，都有自己的 history 对象与特定的
+window 对象关联。出于安全方面的考虑，开发人员无法得知用户浏览过的 URL。不过，借由用户访问
+过的页面列表，同样可以在不知道实际 URL 的情况下实现后退和前进。
+使用 go()方法可以在用户的历史记录中任意跳转，可以向后也可以向前。这个方法接受一个参数，
+表示向后或向前跳转的页面数的一个整数值。负数表示向后跳转（类似于单击浏览器的“后退”按钮），
+正数表示向前跳转（类似于单击浏览器的“前进”按钮）。
 
+也可以给 go()方法传递一个字符串参数，此时浏览器会跳转到历史记录中包含该字符串的第一个
+位置——可能后退，也可能前进，具体要看哪个位置最近。如果历史记录中不包含该字符串，那么这个
+方法什么也不做。
 
-
+另外，还可以使用两个简写方法 back()和 forward()来代替 go()。顾名思义，这两个方法可以
+模仿浏览器的“后退”和“前进”按钮。
 ---
 # 客户端检测
+迄今为止，客户端检测仍然是 Web 开发领域中一个饱受争议的话题。一谈到这个话题，人们总会
+不约而同地提到浏览器应该支持一组最常用的公共功能。在理想状态下，确实应该如此。但是，在现实
+当中，浏览器之间的差异以及不同浏览器的“怪癖”（quirk），多得简直不胜枚举。因此，客户端检测除
+了是一种补救措施之外，更是一种行之有效的开发策略。
+
+检测 Web 客户端的手段很多，而且各有利弊。但最重要的还是要知道，不到万不得已，就不要使
+用客户端检测。只要能找到更通用的方法，就应该优先采用更通用的方法。一言以蔽之，先设计最通用
+的方案，然后再使用特定于浏览器的技术增强该方案。
+
 ## 能力检测
+最常用也最为人们广泛接受的客户端检测形式是能力检测（又称特性检测）。能力检测的目标不是
+识别特定的浏览器，而是识别浏览器的能力。采用这种方式不必顾及特定的浏览器如何如何，只要确定
+浏览器支持特定的能力，就可以给出解决方案。
+
+要理解能力检测，首先必须理解两个重要的概念。如前所述，第一个概念就是先检测达成目的的最常
+用的特性。第二个重要的概念就是必须测试实际要用到的特性。一个特性存在，不一定意味着另一个特性也存在。
+
 ### 更可靠的能力检测
+能力检测对于想知道某个特性是否会按照适当方式行事（而不仅仅是某个特性存在）非常有用。
+
+在可能的情况下，要尽量使用 typeof 进行能力检测。特别是，宿主对象没有义务让 typeof 返回
+合理的值。
+
 ### 能力检测，不是浏览器检测
+检测某个或某几个特性并不能够确定浏览器。
 
 ## 怪癖检测
-
+与能力检测类似， 怪癖检测（quirks detection）的目标是识别浏览器的特殊行为。但与能力检测确
+认浏览器支持什么能力不同，怪癖检测是想要知道浏览器存在什么缺陷（“怪癖”也就是 bug）。这通常
+需要运行一小段代码，以确定某一特性不能正常工作。
 
 ## 用户代理检测
+第三种，也是争议最大的一种客户端检测技术叫做用户代理检测。用户代理检测通过检测用户代理
+字符串来确定实际使用的浏览器。在每一次 HTTP 请求过程中，用户代理字符串是作为响应首部发送的，
+而且该字符串可以通过 JavaScript 的 navigator.userAgent 属性访问。在服务器端，通过检测用户代
+理字符串来确定用户使用的浏览器是一种常用而且广为接受的做法。而在客户端，用户代理检测一般被
+当作一种万不得已才用的做法，其优先级排在能力检测和（或）怪癖检测之后。
+
 ### 用户代理字符串的历史
 ### 用户代理字符串检测技术
 ### 完整的代码
+```javascript
+var client = function(){
+//呈现引擎
+var engine = {
+ie: 0,
+gecko: 0,
+webkit: 0,
+khtml: 0,
+opera: 0,
+//完整的版本号
+ver: null
+};
+//浏览器
+var browser = {
+//主要浏览器
+ie: 0,
+firefox: 0,
+safari: 0,
+konq: 0,
+opera: 0,
+chrome: 0,
+//具体的版本号
+ver: null
+};
+//平台、设备和操作系统
+var system = {
+win: false,
+mac: false,
+x11: false,
+//移动设备
+iphone: false,
+ipod: false,
+ipad: false,
+ios: false,
+android: false,
+nokiaN: false,
+winMobile: false,
+//游戏系统
+wii: false,
+ps: false
+};
+//检测呈现引擎和浏览器
+var ua = navigator.userAgent;
+if (window.opera){
+engine.ver = browser.ver = window.opera.version();
+engine.opera = browser.opera = parseFloat(engine.ver);
+} else if (/AppleWebKit\/(\S+)/.test(ua)){
+engine.ver = RegExp["$1"];
+engine.webkit = parseFloat(engine.ver);
+//确定是 Chrome 还是 Safari
+if (/Chrome\/(\S+)/.test(ua)){
+browser.ver = RegExp["$1"];
+browser.chrome = parseFloat(browser.ver);
+} else if (/Version\/(\S+)/.test(ua)){
+browser.ver = RegExp["$1"];
+browser.safari = parseFloat(browser.ver);
+} else {
+//近似地确定版本号
+var safariVersion = 1;
+if (engine.webkit < 100){
+safariVersion = 1;
+} else if (engine.webkit < 312){
+safariVersion = 1.2;
+} else if (engine.webkit < 412){
+safariVersion = 1.3;
+} else {
+safariVersion = 2;
+}
+browser.safari = browser.ver = safariVersion;
+}
+} else if (/KHTML\/(\S+)/.test(ua) || /Konqueror\/([^;]+)/.test(ua)){
+engine.ver = browser.ver = RegExp["$1"];
+engine.khtml = browser.konq = parseFloat(engine.ver);
+} else if (/rv:([^\)]+)\) Gecko\/\d{8}/.test(ua)){
+engine.ver = RegExp["$1"];
+engine.gecko = parseFloat(engine.ver);
+//确定是不是 Firefox
+if (/Firefox\/(\S+)/.test(ua)){
+browser.ver = RegExp["$1"];
+browser.firefox = parseFloat(browser.ver);
+}
+} else if (/MSIE ([^;]+)/.test(ua)){
+engine.ver = browser.ver = RegExp["$1"];
+engine.ie = browser.ie = parseFloat(engine.ver);
+}
+//检测浏览器
+browser.ie = engine.ie;
+browser.opera = engine.opera;
+//检测平台
+var p = navigator.platform;
+system.win = p.indexOf("Win") == 0;
+system.mac = p.indexOf("Mac") == 0;
+system.x11 = (p == "X11") || (p.indexOf("Linux") == 0);
+//检测 Windows 操作系统
+if (system.win){
+if (/Win(?:dows )?([^do]{2})\s?(\d+\.\d+)?/.test(ua)){
+if (RegExp["$1"] == "NT"){
+switch(RegExp["$2"]){
+case "5.0":
+system.win = "2000";
+break;
+case "5.1":
+system.win = "XP";
+break;
+case "6.0":
+system.win = "Vista";
+break;
+case "6.1":
+system.win = "7";
+break;
+default:
+system.win = "NT";
+break;
+}
+} else if (RegExp["$1"] == "9x"){
+system.win = "ME";
+} else {
+system.win = RegExp["$1"];
+}
+}
+}
+
+//移动设备
+system.iphone = ua.indexOf("iPhone") > -1;
+system.ipod = ua.indexOf("iPod") > -1;
+system.ipad = ua.indexOf("iPad") > -1;
+system.nokiaN = ua.indexOf("NokiaN") > -1;
+//windows mobile
+if (system.win == "CE"){
+system.winMobile = system.win;
+} else if (system.win == "Ph"){
+if(/Windows Phone OS (\d+.\d+)/.test(ua)){;
+system.win = "Phone";
+system.winMobile = parseFloat(RegExp["$1"]);
+}
+}
+//检测 iOS 版本
+if (system.mac && ua.indexOf("Mobile") > -1){
+if (/CPU (?:iPhone )?OS (\d+_\d+)/.test(ua)){
+system.ios = parseFloat(RegExp.$1.replace("_", "."));
+} else {
+system.ios = 2; //不能真正检测出来，所以只能猜测
+}
+}
+//检测 Android 版本
+if (/Android (\d+\.\d+)/.test(ua)){
+system.android = parseFloat(RegExp.$1);
+}
+//游戏系统
+system.wii = ua.indexOf("Wii") > -1;
+system.ps = /playstation/i.test(ua);
+//返回这些对象
+return {
+engine: engine,
+browser: browser,
+system: system
+};
+}();
+```
 ### 使用方法
 
 
 ---
 # DOM
+DOM（文档对象模型）是针对 HTML 和 XML 文档的一个 API（应用程序编程接口）。 DOM 描
+绘了一个层次化的节点树，允许开发人员添加、移除和修改页面的某一部分。 DOM 脱胎于
+Netscape 及微软公司创始的 DHTML（动态 HTML），但现在它已经成为表现和操作页面标记的真正的跨
+平台、语言中立的方式。
+
 ## 节点层次
+DOM 可以将任何 HTML 或 XML 文档描绘成一个由多层节点构成的结构。节点分为几种不同的类
+型，每种类型分别表示文档中不同的信息及（或）标记。每个节点都拥有各自的特点、数据和方法，另
+外也与其他节点存在某种关系。节点之间的关系构成了层次，而所有页面标记则表现为一个以特定节点
+为根节点的树形结构。
+
+文档节点是每个文档的根节点。在这个例子中，文档节点只有一个子节点，即<html>元素，我们
+称之为文档元素。文档元素是文档的最外层元素，文档中的其他所有元素都包含在文档元素中。每个文
+档只能有一个文档元素。在 HTML 页面中，文档元素始终都是<html>元素。在 XML 中，没有预定义
+的元素，因此任何元素都可能成为文档元素。
+
+每一段标记都可以通过树中的一个节点来表示： HTML 元素通过元素节点表示，特性（attribute）
+通过特性节点表示，文档类型通过文档类型节点表示，而注释则通过注释节点表示。总共有 12 种节点
+类型，这些类型都继承自一个基类型。
+
 ### Node类型
+DOM1 级定义了一个 Node 接口，该接口将由 DOM 中的所有节点类型实现。这个 Node 接口在
+JavaScript 中是作为 Node 类型实现的；除了 IE 之外，在其他所有浏览器中都可以访问到这个类型。
+JavaScript 中的所有节点类型都继承自 Node 类型，因此所有节点类型都共享着相同的基本属性和方法。
+每个节点都有一个 nodeType 属性，用于表明节点的类型。节点类型由在 Node 类型中定义的下列
+12 个数值常量来表示，任何节点类型必居其一：
+- Node.ELEMENT_NODE(1)；
+- Node.ATTRIBUTE_NODE(2)；
+- Node.TEXT_NODE(3)；
+- Node.CDATA_SECTION_NODE(4)；
+- Node.ENTITY_REFERENCE_NODE(5)；
+- Node.ENTITY_NODE(6)；
+- Node.PROCESSING_INSTRUCTION_NODE(7)；
+- Node.COMMENT_NODE(8)；
+- Node.DOCUMENT_NODE(9)；
+- Node.DOCUMENT_TYPE_NODE(10)；
+- Node.DOCUMENT_FRAGMENT_NODE(11)；
+- Node.NOTATION_NODE(12)。
+
+1. nodeName 和 nodeValue 属性
+要了解节点的具体信息，可以使用 nodeName 和 nodeValue 这两个属性。这两个属性的值完全取
+决于节点的类型。在使用这两个值以前，最好是像下面这样先检测一下节点的类型。
+```javascript
+if (someNode.nodeType == 1){
+value = someNode.nodeName; //nodeName 的值是元素的标签名
+}
+```
+
+2. 节点关系
+文档中所有的节点之间都存在这样或那样的关系。节点间的各种关系可以用传统的家族关系来描
+述，相当于把文档树比喻成家谱。在 HTML 中，可以将<body>元素看成是<html>元素的子元素；相应
+地，也就可以将<html>元素看成是<body>元素的父元素。而<head>元素，则可以看成是<body>元素
+的同胞元素，因为它们都是同一个父元素<html>的直接子元素。
+
+每个节点都有一个 childNodes 属性，其中保存着一个 NodeList 对象。 NodeList 是一种类数组
+对象，用于保存一组有序的节点，可以通过位置来访问这些节点。请注意，虽然可以通过方括号语法来
+访问 NodeList 的值，而且这个对象也有 length 属性，但它并不是 Array 的实例。 NodeList 对象的
+独特之处在于，它实际上是基于 DOM 结构动态执行查询的结果，因此 DOM 结构的变化能够自动反映
+在 NodeList 对象中。我们常说， NodeList 是有生命、有呼吸的对象，而不是在我们第一次访问它们
+的某个瞬间拍摄下来的一张快照。
+
+每个节点都有一个 parentNode 属性，该属性指向文档树中的父节点。包含在 childNodes 列表中
+的所有节点都具有相同的父节点，因此它们的 parentNode 属性都指向同一个节点。此外，包含在
+childNodes 列表中的每个节点相互之间都是同胞节点。通过使用列表中每个节点的 previousSibling
+和 nextSibling 属性，可以访问同一列表中的其他节点。列表中第一个节点的 previousSibling 属性
+值为 null，而列表中最后一个节点的 nextSibling 属性的值同样也为 null。
+
+3. 操作节点
+因为关系指针都是只读的，所以 DOM 提供了一些操作节点的方法。其中，最常用的方法是
+appendChild()，用于向 childNodes 列表的末尾添加一个节点。添加节点后， childNodes 的新增
+节点、父节点及以前的最后一个子节点的关系指针都会相应地得到更新。更新完成后， appendChild()
+返回新增的节点。
+
+如果传入到 appendChild()中的节点已经是文档的一部分了，那结果就是将该节点从原来的位置
+转移到新位置。即使可以将 DOM 树看成是由一系列指针连接起来的，但任何 DOM 节点也不能同时出
+现在文档中的多个位置上。因此，如果在调用 appendChild()时传入了父节点的第一个子节点，那么
+该节点就会成为父节点的最后一个子节点。
+
+如果需要把节点放在 childNodes 列表中某个特定的位置上，而不是放在末尾，那么可以使用
+insertBefore()方法。这个方法接受两个参数：要插入的节点和作为参照的节点。插入节点后，被插
+入的节点会变成参照节点的前一个同胞节点（previousSibling），同时被方法返回。
+
+replaceChild()方法接受的两个参数是：要插入的节点和要替换的节点。要替换的节点将由这个
+方法返回并从文档树中被移除，同时由要插入的节点占据其位置。
+
+如果只想移除而非替换节点，可以使用 removeChild()方法。这个方法接受一个参数，即要移除
+的节点。被移除的节点将成为方法的返回值。
+
+4. 其他方法
+有两个方法是所有类型的节点都有的。第一个就是 cloneNode()，用于创建调用这个方法的节点
+的一个完全相同的副本。 cloneNode()方法接受一个布尔值参数，表示是否执行深复制。在参数为 true
+的情况下，执行深复制，也就是复制节点及其整个子节点树；在参数为 false 的情况下，执行浅复制，
+即只复制节点本身。复制后返回的节点副本属于文档所有，但并没有为它指定父节点。因此，这个节点
+副本就成为了一个“孤儿”，除非通过 appendChild()、 insertBefore()或 replaceChild()将它
+添加到文档中。
+
+ normalize()，这个方法唯一的作用就是处理文档树中的文本节点。
+由于解析器的实现或 DOM 操作等原因，可能会出现文本节点不包含文本，或者接连出现两个文本节点
+的情况。当在某个节点上调用这个方法时，就会在该节点的后代节点中查找上述两种情况。如果找到了
+空文本节点，则删除它；如果找到相邻的文本节点，则将它们合并为一个文本节点。
+
 ### Document类型
+JavaScript 通过 Document 类型表示文档。在浏览器中， document 对象是 HTMLDocument（继承
+自 Document 类型）的一个实例，表示整个 HTML 页面。而且， document 对象是 window 对象的一个
+属性，因此可以将其作为全局对象来访问。 
+- nodeType 的值为 9；
+- nodeName 的值为"#document"；
+- nodeValue 的值为 null；
+- parentNode 的值为 null；
+- ownerDocument 的值为 null；
+- 其子节点可能是一个 DocumentType（最多一个）、 Element（最多一个）、 ProcessingInstruction
+或 Comment。
+
+1. 文档的子节点
+虽然 DOM 标准规定 Document 节点的子节点可以是 DocumentType、 Element、 ProcessingInstruction 或 Comment，但还有两个内置的访问其子节点的快捷方式。 第一个就是 documentElement
+属性，该属性始终指向 HTML 页面中的<html>元素。另一个就是通过 childNodes 列表访问文档元素，
+但通过 documentElement 属性则能更快捷、更直接地访问该元素。
+```javascript
+var html = document.documentElement; //取得对<html>的引用
+```
+作为 HTMLDocument 的实例， document 对象还有一个 body 属性，直接指向<body>元素。因为开
+发人员经常要使用这个元素，所以 document.body 在 JavaScript 代码中出现的频率非常高，其用法如下。
+```
+var body = document.body; //取得对<body>的引用
+```
+Document 另一个可能的子节点是 DocumentType。通常将<!DOCTYPE>标签看成一个与文档其他
+部分不同的实体，可以通过 doctype 属性（在浏览器中是 document.doctype）来访问它的信息。
+```javascript
+var doctype = document.doctype; //取得对<!DOCTYPE>的引用
+```
+
+2. 文档信息
+作为 HTMLDocument 的一个实例， document 对象还有一些标准的 Document 对象所没有的属性。
+这些属性提供了 document 对象所表现的网页的一些信息。其中第一个属性就是 title，包含着
+`<title>`元素中的文本——显示在浏览器窗口的标题栏或标签页上。通过这个属性可以取得当前页面的
+标题，也可以修改当前页面的标题并反映在浏览器的标题栏中。修改 title 属性的值不会改变`<title>`
+元素。
+
+```javascript
+//取得文档标题
+var originalTitle = document.title;
+//设置文档标题
+document.title = "New page title";
+```
+接下来要介绍的 3 个属性都与对网页的请求有关，它们是 URL、 domain 和 referrer。 URL 属性
+中包含页面完整的 URL（即地址栏中显示的 URL）， domain 属性中只包含页面的域名，而 referrer
+属性中则保存着链接到当前页面的那个页面的 URL。在没有来源页面的情况下， referrer 属性中可能
+会包含空字符串。所有这些信息都存在于请求的 HTTP 头部，只不过是通过这些属性让我们能够在
+JavaScrip 中访问它们而已。
+```javascript
+//取得完整的 URL
+var url = document.URL;
+//取得域名
+var domain = document.domain;
+//取得来源页面的 URL
+var referrer = document.referrer;
+```
+在这 3 个属性中，只有 domain 是可以设置的。
+当页面中包含来自其他子域的框架或内嵌框架时，能够设置 document.domain 就非常方便了。由
+于 跨 域 安 全 限 制 ， 来 自 不 同 子 域 的 页 面 无 法 通 过 JavaScript 通 信 。 而 通 过 将 每 个 页 面 的
+document.domain 设置为相同的值，这些页面就可以互相访问对方包含的 JavaScript 对象了。
+
+3. 查找元素
+取得元素的操作可以使用 document 对象的几个方法来完成。其中， Document 类型为此提供了两个方
+法： getElementById()和 getElementsByTagName()。
+
+第一个方法， getElementById()，接收一个参数：要取得的元素的 ID。如果找到相应的元素则
+返回该元素，如果不存在带有相应 ID 的元素，则返回 null。注意，这里的 ID 必须与页面中元素的 id
+特性（attribute）严格匹配，包括大小写。
+
+另一个常用于取得元素引用的方法是 getElementsByTagName()。这个方法接受一个参数，即要
+取得元素的标签名，而返回的是包含零或多个元素的 NodeList。在 HTML 文档中，这个方法会返回一
+个 HTMLCollection 对象，作为一个“动态”集合，该对象与 NodeList 非常类似。
+```javascript
+var images = document.getElementsByTagName("img");
+```
+这行代码会将一个 HTMLCollection 对象保存在 images 变量中。与 NodeList 对象类似，可以
+使用方括号语法或 item()方法来访问 HTMLCollection 对象中的项。而这个对象中元素的数量则可以
+通过其 length 属性取得。
+```javascript
+alert(images.length); //输出图像的数量
+alert(images[0].src); //输出第一个图像元素的 src 特性
+alert(images.item(0).src); //输出第一个图像元素的 src 特性
+```
+HTMLCollection 对象还有一个方法，叫做 namedItem()，使用这个方法可以通过元素的 name
+特性取得集合中的项。
+例如，假设上面提到的页面中包含如下<img>元素：
+```html
+<img src="myimage.gif" name="myImage">
+```
+那么就可以通过如下方式从 images 变量中取得这个<img>元素：
+```javascript
+var myImage = images.namedItem("myImage");
+```
+在提供按索引访问项的基础上， HTMLCollection 还支持按名称访问项，这就为我们取得实际想要
+的元素提供了便利。而且，对命名的项也可以使用方括号语法来访问，如下所示：
+```javascript
+var myImage = images["myImage"];
+```
+对 HTMLCollection 而言，我们可以向方括号中传入数值或字符串形式的索引值。在后台，对数
+值索引就会调用 item()，而对字符串索引就会调用 namedItem()。
+要想取得文档中的所有元素，可以向 getElementsByTagName()中传入"*"。在 JavaScript 及 CSS
+中，星号（*）通常表示“全部”。
+
+第三个方法，也是只有 HTMLDocument 类型才有的方法，是 getElementsByName()。顾名思义，
+这个方法会返回带有给定 name 特性的所有元素。最常使用 getElementsByName()方法的情况是取得
+单选按钮；为了确保发送给浏览器的值正确无误，所有单选按钮必须具有相同的 name 特性。
+
+4. 特殊集合
+除了属性和方法， document 对象还有一些特殊的集合。这些集合都是 HTMLCollection 对象，
+为访问文档常用的部分提供了快捷方式，包括：
+- document.anchors，包含文档中所有带 name 特性的`<a>`元素；
+- document.applets，包含文档中所有的`<applet>`元素，因为不再推荐使用`<applet>`元素，
+所以这个集合已经不建议使用了；
+- document.forms，包含文档中所有的`<form>`元素，与 document.getElementsByTagName("form")
+得到的结果相同；
+- document.images，包含文档中所有的`<img>`元素，与 document.getElementsByTagName
+("img")得到的结果相同；
+- document.links，包含文档中所有带 href 特性的`<a>`元素。
+
+5. DOM一致性检测
+由于 DOM 分为多个级别，也包含多个部分，因此检测浏览器实现了 DOM 的哪些部分就十分必要
+了。 document.implementation 属性就是为此提供相应信息和功能的对象，与浏览器对 DOM 的实现
+直接对应。 DOM1 级只为 document.implementation 规定了一个方法，即 hasFeature()。这个方
+法接受两个参数：要检测的 DOM 功能的名称及版本号。如果浏览器支持给定名称和版本的功能，则该
+方法返回 true。
+```javascript
+var hasXmlDom = document.implementation.hasFeature("XML", "1.0");
+```
+下表列出了可以检测的不同的值及版本号。
+
+功能 | 版本号 | 说明
+--- | --- | ---
+Core | 1.0、 2.0、 3.0 | 基本的DOM，用于描述表现文档的节点树
+XML | 1.0、 2.0、 3.0 | Core的XML扩展，添加了对CDATA、处理指令及实体的支持
+HTML | 1.0、 2.0 | XML的HTML扩展，添加了对HTML特有元素及实体的支持
+Views | 2.0 | 基于某些样式完成文档的格式化
+StyleSheets | 2.0 | 将样式表关联到文档
+CSS | 2.0 | 对层叠样式表1级的支持
+CSS2 | 2.0 | 对层叠样式表2级的支持
+Events | 2.0， 3.0 | 常规的DOM事件
+UIEvents | 2.0， 3.0 | 用户界面事件
+MouseEvents | 2.0， 3.0 | 由鼠标引发的事件（click、 mouseover等）
+MutationEvents | 2.0， 3.0 | DOM树变化时引发的事件
+HTMLEvents | 2.0 | HTML4.01事件
+Range | 2.0 | 用于操作DOM树中某个范围的对象和方法
+Traversal | 2.0 | 遍历DOM树的方法
+LS | 3.0 | 文件与DOM树之间的同步加载和保存
+LS-Async | 3.0 | 文件与DOM树之间的异步加载和保存
+Validation | 3.0 | 在确保有效的前提下修改DOM树的方法
+
+6. 文档写入
+有一个 document 对象的功能已经存在很多年了，那就是将输出流写入到网页中的能力。这个能力
+体现在下列 4 个方法中： write()、 writeln()、 open()和 close()。其中， write()和 writeln()
+方法都接受一个字符串参数，即要写入到输出流中的文本。 write()会原样写入，而 writeln()则会
+在字符串的末尾添加一个换行符（\n）。在页面被加载的过程中，可以使用这两个方法向页面中动态地
+加入内容。
+
+方法 open()和 close()分别用于打开和关闭网页的输出流。如果是在页面加载期间使用 write()
+或 writeln()方法，则不需要用到这两个方法。
+
 ### Element类型
+除了 Document 类型之外， Element 类型就要算是 Web 编程中最常用的类型了。 Element 类型用
+于表现 XML 或 HTML 元素，提供了对元素标签名、子节点及特性的访问。 Element 节点具有以下特征：
+- nodeType 的值为 1；
+- nodeName 的值为元素的标签名；
+- nodeValue 的值为 null；
+- parentNode 可能是 Document 或 Element；
+- 其子节点可能是 Element、 Text、 Comment、 ProcessingInstruction、 CDATASection 或
+EntityReference。
+要访问元素的标签名，可以使用 nodeName 属性，也可以使用 tagName 属性；这两个属性会返回
+相同的值（使用后者主要是为了清晰起见）。
+
+1. HTML元素
+所有 HTML 元素都由 HTMLElement 类型表示，不是直接通过这个类型，也是通过它的子类型来表
+示。HTMLElement 类型直接继承自 Element 并添加了一些属性。添加的这些属性分别对应于每个 HTML
+元素中都存在的下列标准特性。
+- id，元素在文档中的唯一标识符。
+- title，有关元素的附加说明信息，一般通过工具提示条显示出来。
+- lang，元素内容的语言代码，很少使用。
+- dir，语言的方向，值为"ltr"（left-to-right，从左至右）或"rtl"（right-to-left，从右至左），
+也很少使用。
+- className，与元素的 class 特性对应，即为元素指定的 CSS 类。没有将这个属性命名为 class，
+是因为 class 是 ECMAScript 的保留字。
+
 ### Text类型
 ### Comment类型
 ### CDATASection类型
