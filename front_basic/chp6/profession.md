@@ -2985,147 +2985,2142 @@ EntityReference。
 - className，与元素的 class 特性对应，即为元素指定的 CSS 类。没有将这个属性命名为 class，
 是因为 class 是 ECMAScript 的保留字。
 
-### Text类型
-### Comment类型
-### CDATASection类型
-### DocumentFragment类型
-### Attr类型
+元素 | 类型 | 元素 | 类型
+--- | --- | --- | ---
+A | HTMLAnchorElement | EM | HTMLElement
+ABBR | HTMLElement | FIELDSET | HTMLFieldSetElement
+ACRONYM | HTMLElement | FONT | HTMLFontElement
+ADDRESS | HTMLElement | FORM | HTMLFormElement
+APPLET | HTMLAppletElement | FRAME | HTMLFrameElement
+AREA | HTMLAreaElement | FRAMESET | HTMLFrameSetElement
+B | HTMLElement | H1 | HTMLHeadingElement
+BASE | HTMLBaseElement | H2 | HTMLHeadingElement
+BASEFONT | HTMLBaseFontElement | H3 | HTMLHeadingElement
+BDO | HTMLElement | H4 | HTMLHeadingElement
+BIG | HTMLElement | H5 | HTMLHeadingElement
+BLOCKQUOTE | HTMLQuoteElement | H6 | HTMLHeadingElement
+BODY | HTMLBodyElement | HEAD | HTMLHeadElement
+BR | HTMLBRElement | HR | HTMLHRElement
+BUTTON | HTMLButtonElement | HTML | HTMLHtmlElement
+CAPTION | HTMLTableCaptionElement | I | HTMLElement
+CENTER | HTMLElement | IFRAME | HTMLIFrameElement
+CITE | HTMLElement | IMG | HTMLImageElement
+CODE | HTMLElement | INPUT | HTMLInputElement
+COL | HTMLTableColElement | INS | HTMLModElement
+COLGROUP | HTMLTableColElement | ISINDEX | HTMLIsIndexElement
+DD | HTMLElement | KBD | HTMLElement
+DEL | HTMLModElement | LABEL | HTMLLabelElement
+DFN | HTMLElement | LEGEND | HTMLLegendElement
+DIR | HTMLDirectoryElement | LI | HTMLLIElement
+DIV | HTMLDivElement | LINK | HTMLLinkElement
+DL | HTMLDListElement | MAP | HTMLMapElement
+DT | HTMLElement | MENU | HTMLMenuElement
+META | HTMLMetaElement | STRONG | HTMLElement
+NOFRAMES | HTMLElement | STYLE | HTMLStyleElement
+NOSCRIPT | HTMLElement | SUB | HTMLElement
+OBJECT | HTMLObjectElement | SUP | HTMLElement
+OL | HTMLOListElement | TABLE | HTMLTableElement
+OPTGROUP | HTMLOptGroupElement | TBODY | HTMLTableSectionElement
+OPTION | HTMLOptionElement | TD | HTMLTableCellElement
+P | HTMLParagraphElement | TEXTAREA | HTMLTextAreaElement
+PARAM | HTMLParamElement | TFOOT | HTMLTableSectionElement
+PRE | HTMLPreElement | TH | HTMLTableCellElement
+Q | HTMLQuoteElement | THEAD | HTMLTableSectionElement
+S | HTMLElement | TITLE | HTMLTitleElement
+SAMP | HTMLElement | TR | HTMLTableRowElement
+SCRIPT | HTMLScriptElement | TT | HTMLElement
+SELECT | HTMLSelectElement | U | HTMLElement
+SMALL | HTMLElement | UL | HTMLUListElement
+SPAN | HTMLElement | VAR | HTMLElement
+STRIKE | HTMLElement
 
+2. 取得特性
+每个元素都有一或多个特性，这些特性的用途是给出相应元素或其内容的附加信息。操作特性的
+DOM 方法主要有三个，分别是 getAttribute()、 setAttribute()和 removeAttribute()。这三
+个方法可以针对任何特性使用，包括那些以 HTMLElement 类型属性的形式定义的特性。
+
+有两类特殊的特性，它们虽然有对应的属性名，但属性的值与通过 getAttribute()返回的值并不
+相同。第一类特性就是 style，用于通过 CSS 为元素指定样式。在通过 getAttribute()访问时，返
+回的 style 特性值中包含的是 CSS 文本，而通过属性来访问它则会返回一个对象。由于 style 属性是
+用于以编程方式访问元素样式的（本章后面讨论），因此并没有直接映射到 style 特性。
+第二类与众不同的特性是 onclick 这样的事件处理程序。当在元素上使用时， onclick 特性中包
+含的是 JavaScript 代码，如果通过 getAttribute()访问，则会返回相应代码的字符串。而在访问
+onclick 属性时，则会返回一个 JavaScript 函数（如果未在元素中指定相应特性，则返回 null）。这是
+因为 onclick 及其他事件处理程序属性本身就应该被赋予函数值。
+
+3. 设置特性
+与 getAttribute()对应的方法是 setAttribute()，这个方法接受两个参数：要设置的特性名和
+值。如果特性已经存在，setAttribute()会以指定的值替换现有的值；如果特性不存在，setAttribute()
+则创建该属性并设置相应的值。
+
+removeAttribute()，这个方法用于彻底删除元素的特性。调用这个方
+法不仅会清除特性的值，而且也会从元素中完全删除特性，
+
+4. attribute属性
+Element 类型是使用 attributes 属性的唯一一个 DOM 节点类型。attributes 属性中包含一个
+NamedNodeMap，与 NodeList 类似，也是一个“动态”的集合。元素的每一个特性都由一个 Attr 节
+点表示，每个节点都保存在 NamedNodeMap 对象中。
+- getNamedItem(name)：返回 nodeName 属性等于 name 的节点；
+- removeNamedItem(name)：从列表中移除 nodeName 属性等于 name 的节点；
+- setNamedItem(node)：向列表中添加节点，以节点的 nodeName 属性为索引；
+- item(pos)：返回位于数字 pos 位置处的节点
+
+5. 创建元素
+使用 document.createElement()方法可以创建新元素。这个方法只接受一个参数，即要创建元
+素的标签名。这个标签名在 HTML 文档中不区分大小写，而在 XML（包括 XHTML）文档中，则是区
+分大小写的。
+
+6. 元素的子节点
+元 素 可 以 有 任 意 数 目 的 子 节 点 和 后 代 节 点 ， 因 为 元 素 可 以 是 其 他 元 素 的 子 节 点 。 元 素 的
+childNodes 属性中包含了它的所有子节点，这些子节点有可能是元素、文本节点、注释或处理指令。
+
+
+### Text类型
+文本节点由 Text 类型表示，包含的是可以照字面解释的纯文本内容。纯文本中可以包含转义后的
+HTML 字符，但不能包含 HTML 代码。 Text 节点具有以下特征：
+- nodeType 的值为 3；
+- nodeName 的值为"#text"；
+- nodeValue 的值为节点所包含的文本；
+- parentNode 是一个 Element；
+- 不支持（没有）子节点。
+
+可以通过 nodeValue 属性或 data 属性访问 Text 节点中包含的文本，这两个属性中包含的值相
+同。对 nodeValue 的修改也会通过 data 反映出来，反之亦然。使用下列方法可以操作节点中的文本。
+- appendData(text)：将 text 添加到节点的末尾。
+- deleteData(offset, count)：从 offset 指定的位置开始删除 count 个字符。
+- insertData(offset, text)：在 offset 指定的位置插入 text。
+- replaceData(offset, count, text)：用 text 替换从 offset 指定的位置开始到 offset+
+count 为止处的文本。
+- splitText(offset)：从 offset 指定的位置将当前文本节点分成两个文本节点。
+- substringData(offset, count)：提取从 offset 指定的位置开始到 offset+count 为止
+处的字符串。
+
+1. 创建文本节点
+可以使用 document.createTextNode()创建新文本节点，这个方法接受一个参数——要插入节点
+中的文本。与设置已有文本节点的值一样，作为参数的文本也将按照 HTML 或 XML 的格式进行编码。
+
+2. 规范化文本节点
+DOM 文档中存在相邻的同胞文本节点很容易导致混乱，因为分不清哪个文本节点表示哪个字符串。
+另外， DOM 文档中出现相邻文本节点的情况也不在少数，于是就催生了一个能够将相邻文本节点合并
+的方法。这个方法是由 Node 类型定义的（因而在所有节点类型中都存在），名叫 normalize()。如果
+在一个包含两个或多个文本节点的父元素上调用 normalize()方法，则会将所有文本节点合并成一个
+节点，结果节点的 nodeValue 等于将合并前每个文本节点的 nodeValue 值拼接起来的值。
+
+3. 分隔文本节点
+Text 类型提供了一个作用与 normalize()相反的方法： splitText()。这个方法会将一个文本节
+点分成两个文本节点，即按照指定的位置分割 nodeValue 值。原来的文本节点将包含从开始到指定位
+置之前的内容，新文本节点将包含剩下的文本。这个方法会返回一个新文本节点，该节点与原节点的
+parentNode 相同。
+
+### Comment类型
+注释在 DOM 中是通过 Comment 类型来表示的。 Comment 节点具有下列特征：
+- nodeType 的值为 8；
+- nodeName 的值为"#comment"；
+- nodeValue 的值是注释的内容；
+- parentNode 可能是 Document 或 Element；
+- 不支持（没有）子节点。
+
+### CDATASection类型
+CDATASection 类型只针对基于 XML 的文档，表示的是 CDATA 区域。与 Comment 类似，
+CDATASection 类型继承自 Text 类型，因此拥有除 splitText()之外的所有字符串操作方法。
+CDATASection 节点具有下列特征：
+- nodeType 的值为 4；
+- nodeName 的值为"#cdata-section"；
+- nodeValue 的值是 CDATA 区域中的内容；
+- parentNode 可能是 Document 或 Element；
+- 不支持（没有）子节点。
+
+### DocumentType类型
+DocumentType 类型在 Web 浏览器中并不常用，仅有 Firefox、 Safari 和 Opera 支持它。
+Document-Type 包含着与文档的 doctype 有关的所有信息，它具有下列特征：
+- nodeType 的值为 10；
+- nodeName 的值为 doctype 的名称；
+- nodeValue 的值为 null；
+- parentNode 是 Document；
+- 不支持（没有）子节点。
+
+在 DOM1 级中， DocumentType 对象不能动态创建，而只能通过解析文档代码的方式来创建。支
+持 它 的 浏 览 器 会 把 DocumentType 对 象 保 存 在 document.doctype 中 。 DOM1 级 描 述 了
+DocumentType 对象的 3 个属性： name、 entities 和 notations。其中， name 表示文档类型的名称；
+entities 是由文档类型描述的实体的 NamedNodeMap 对象； notations 是由文档类型描述的符号的
+NamedNodeMap 对象。
+
+### DocumentFragment类型
+在所有节点类型中，只有 DocumentFragment 在文档中没有对应的标记。 DOM 规定文档片段
+（document fragment）是一种“轻量级”的文档，可以包含和控制节点，但不会像完整的文档那样占用
+额外的资源。 DocumentFragment 节点具有下列特征：
+- nodeType 的值为 11；
+- nodeName 的值为"#document-fragment"；
+- nodeValue 的值为 null；
+- parentNode 的值为 null；
+- 子节点可以是 Element、 ProcessingInstruction、 Comment、 Text、 CDATASection 或
+EntityReference。
+虽然不能把文档片段直接添加到文档中，但可以将它作为一个“仓库”来使用，即可以在里面保存将
+来可能会添加到文档中的节点。要创建文档片段，可以使用 document.createDocumentFragment()方
+法。
+### Attr类型
+元素的特性在 DOM 中以 Attr 类型来表示。在所有浏览器中（包括 IE8），都可以访问 Attr 类型
+的构造函数和原型。从技术角度讲，特性就是存在于元素的 attributes 属性中的节点。特性节点具有
+下列特征：
+- nodeType 的值为 2；
+- nodeName 的值是特性的名称；
+- nodeValue 的值是特性的值；
+- parentNode 的值为 null；
+- 在 HTML 中不支持（没有）子节点；
+- 在 XML 中子节点可以是 Text 或 EntityReference。
+
+Attr 对象有 3 个属性： name、 value 和 specified。其中， name 是特性名称（与 nodeName 的
+值相同）， value 是特性的值（与 nodeValue 的值相同），而 specified 是一个布尔值，用以区别特
+性是在代码中指定的，还是默认的。
 
 ## DOM操作技术
 ### 动态脚本
+使用<script>元素可以向页面中插入 JavaScript 代码，一种方式是通过其 src 特性包含外部文件，
+另一种方式就是用这个元素本身来包含代码。而这一节要讨论的动态脚本，指的是在页面加载时不存在，
+但将来的某一时刻通过修改 DOM 动态添加的脚本。跟操作 HTML 元素一样，创建动态脚本也有两种方
+式：插入外部文件和直接插入 JavaScript 代码。
+```javascript
+function loadScript(url){
+var script = document.createElement("script");
+script.type = "text/javascript";
+script.src = url;
+document.body.appendChild(script);
+}
+```
 ### 动态样式
-### 操作表格
-### 使用NodeList
+能够把 CSS 样式包含到 HTML 页面中的元素有两个。其中， <link>元素用于包含来自外部的文件，
+而<style>元素用于指定嵌入的样式。与动态脚本类似，所谓动态样式是指在页面刚加载时不存在的样
+式；动态样式是在页面加载完成后动态添加到页面中的。
+```javascript
+function loadStyles(url){
+var link = document.createElement("link");
+link.rel = "stylesheet";
+link.type = "text/css";
+link.href = url;
+var head = document.getElementsByTagName("head")[0];
+head.appendChild(link);
+}
+```
 
+### 操作表格
+<table>元素是 HTML 中最复杂的结构之一。要想创建表格，一般都必须涉及表示表格行、 单元格、
+表头等方面的标签。由于涉及的标签多，因而使用核心 DOM 方法创建和修改表格往往都免不了要编写
+大量的代码。假设我们要使用 DOM 来创建下面的 HTML 表格。
+
+显然， DOM 代码很长，还有点不太好懂。为了方便构建表格， HTML DOM 还为<table>、 <tbody>
+和<tr>元素添加了一些属性和方法。
+
+为<table>元素添加的属性和方法如下。
+- caption：保存着对<caption>元素（如果有）的指针。
+- tBodies：是一个<tbody>元素的 HTMLCollection。
+- tFoot：保存着对<tfoot>元素（如果有）的指针。
+- tHead：保存着对<thead>元素（如果有）的指针。
+- rows：是一个表格中所有行的 HTMLCollection。
+- createTHead()：创建<thead>元素，将其放到表格中，返回引用。
+- createTFoot()：创建<tfoot>元素，将其放到表格中，返回引用。
+- createCaption()：创建<caption>元素，将其放到表格中，返回引用。
+- deleteTHead()：删除<thead>元素。
+- deleteTFoot()：删除<tfoot>元素。
+- deleteCaption()：删除<caption>元素。
+- deleteRow(pos)：删除指定位置的行。
+- insertRow(pos)：向 rows 集合中的指定位置插入一行。
+
+为<tbody>元素添加的属性和方法如下。
+- rows：保存着<tbody>元素中行的 HTMLCollection。
+- deleteRow(pos)：删除指定位置的行。
+- insertRow(pos)：向 rows 集合中的指定位置插入一行，返回对新插入行的引用。
+
+为<tr>元素添加的属性和方法如下。
+- cells：保存着<tr>元素中单元格的 HTMLCollection。
+- deleteCell(pos)：删除指定位置的单元格。
+- insertCell(pos)：向 cells 集合中的指定位置插入一个单元格，返回对新插入单元格的引用。
+使用这些属性和方法，可以极大地减少创建表格所需的代码数量。例如，使用这些属性和方法可以
+将前面的代码重写如下（加阴影的部分是重写后的代码）。
+
+### 使用NodeList
+理解 NodeList 及其“近亲” NamedNodeMap 和 HTMLCollection，是从整体上透彻理解 DOM 的
+关键所在。这三个集合都是“动态的”；换句话说，每当文档结构发生变化时，它们都会得到更新。因
+此，它们始终都会保存着最新、最准确的信息。从本质上说，所有 NodeList 对象都是在访问 DOM 文
+档时实时运行的查询。
 
 ---
 # DOM扩展
 ## 选择符API
+众多 JavaScript 库中最常用的一项功能，就是根据 CSS 选择符选择与某个模式匹配的 DOM 元素。
+实际上， jQuery（www.jquery.com）的核心就是通过 CSS 选择符查询 DOM 文档取得元素的引用，从而
+抛开了 getElementById()和 getElementsByTagName()。
+Selectors API（www.w3.org/TR/selectors-api/）是由 W3C 发起制定的一个标准，致力于让浏览器原
+生支持 CSS 查询。所有实现这一功能的 JavaScript 库都会写一个基础的 CSS 解析器，然后再使用已有的
+DOM 方法查询文档并找到匹配的节点。尽管库开发人员在不知疲倦地改进这一过程的性能，但到头来
+都只能通过运行 JavaScript 代码来完成查询操作。而把这个功能变成原生 API 之后，解析和树查询操作
+可以在浏览器内部通过编译后的代码来完成，极大地改善了性能。
+Selectors API Level 1 的核心是两个方法： querySelector()和 querySelectorAll()。
+
 ### querySelector()方法
+querySelector()方法接收一个 CSS 选择符，返回与该模式匹配的第一个元素，如果没有找到匹
+配的元素，返回 null。
+
 ### querySelectorAll()方法
+querySelectorAll()方法接收的参数与 querySelector()方法一样，都是一个 CSS 选择符，但
+返回的是所有匹配的元素而不仅仅是一个元素。这个方法返回的是一个 NodeList 的实例。
+
 ### matchesSelector()方法
+Selectors API Level 2 规范为 Element 类型新增了一个方法 matchesSelector()。这个方法接收
+一个参数，即 CSS 选择符，如果调用元素与该选择符匹配，返回 true；否则，返回 false。
 
 ## 元素遍历
+对于元素间的空格， IE9 及之前版本不会返回文本节点，而其他所有浏览器都会返回文本节点。这样，
+就导致了在使用 childNodes 和 firstChild 等属性时的行为不一致。为了弥补这一差异，而同时又保
+持 DOM 规范不变， Element Traversal 规范（www.w3.org/TR/ElementTraversal/）新定义了一组属性。
+Element Traversal API 为 DOM 元素添加了以下 5 个属性。
+- childElementCount：返回子元素（不包括文本节点和注释）的个数。
+- firstElementChild：指向第一个子元素； firstChild 的元素版。
+- lastElementChild：指向最后一个子元素； lastChild 的元素版。
+- previousElementSibling：指向前一个同辈元素； previousSibling 的元素版。
+- nextElementSibling：指向后一个同辈元素； nextSibling 的元素版。
 
 ## HTML5
 ### 与类相关的扩充
+1. getElementsByClassName()方法
+HTML5 添加的 getElementsByClassName()方法是最受人欢迎的一个方法，可以通过 document
+对象及所有 HTML 元素调用该方法。这个方法最早出现在 JavaScript 库中，是通过既有的 DOM 功能实
+现的，而原生的实现具有极大的性能优势。
+getElementsByClassName()方法接收一个参数，即一个包含一或多个类名的字符串，返回带有
+指定类的所有元素的 NodeList。传入多个类名时，类名的先后顺序不重要。
+
+2. classList 属性
+在操作类名时，需要通过 className 属性添加、删除和替换类名。因为 className 中是一个字
+符串，所以即使只修改字符串一部分，也必须每次都设置整个字符串的值。
+
+HTML5 新增了一种操作类名的方式，可以让操作更简单也更安全，那就是为所有元素添加
+classList 属性。这个 classList 属性是新集合类型 DOMTokenList 的实例。
+
+DOMTokenList 有一个表示自己包含多少元素的 length 属性，而要取得每个元素可以使用 item()方
+法，也可以使用方括号语法。此外，这个新类型还定义如下方法。
+- add(value)：将给定的字符串值添加到列表中。如果值已经存在，就不添加了。
+- contains(value)：表示列表中是否存在给定的值，如果存在则返回 true，否则返回 false。
+- remove(value)：从列表中删除给定的字符串。
+- toggle(value)：如果列表中已经存在给定的值，删除它；如果列表中没有给定的值，添加它。
+
 ### 焦点管理
+HTML5 也添加了辅助管理 DOM 焦点的功能。首先就是 document.activeElement 属性，这个
+属性始终会引用 DOM 中当前获得了焦点的元素。元素获得焦点的方式有页面加载、用户输入（通常是
+通过按 Tab 键）和在代码中调用 focus()方法。
+
+默认情况下，文档刚刚加载完成时， document.activeElement 中保存的是 document.body 元
+素的引用。文档加载期间， document.activeElement 的值为 null。
+另外就是新增了 document.hasFocus()方法，这个方法用于确定文档是否获得了焦点。
+
 ### HTMLDocument的变化
+
+1. readyState 属性
+IE4 最早为 document 对象引入了 readyState 属性。然后，其他浏览器也都陆续添加这个属性，
+最终 HTML5 把这个属性纳入了标准当中。 Document 的 readyState 属性有两个可能的值：
+- loading，正在加载文档；
+- complete，已经加载完文档。
+
+2. 兼容模式
+自从 IE6 开始区分渲染页面的模式是标准的还是混杂的，检测页面的兼容模式就成为浏览器的必要
+功能。 IE 为此给 document 添加了一个名为 compatMode 的属性，这个属性就是为了告诉开发人员浏
+览器采用了哪种渲染模式。就像下面例子中所展示的那样，在标准模式下， document.compatMode 的
+值等于"CSS1Compat"，而在混杂模式下， document.compatMode 的值等于"BackCompat"。
+
+3. head 属性
+作为对 document.body 引用文档的<body>元素的补充， HTML5 新增了 document.head 属性，
+引用文档的<head>元素。要引用文档的<head>元素，可以结合使用这个属性和另一种后备方法。
+
 ### 字符集属性
+HTML5 新增了几个与文档字符集有关的属性。其中， charset 属性表示文档中实际使用的字符集，
+也可以用来指定新字符集。默认情况下，这个属性的值为"UTF-16"，但可以通过<meta>元素、响应头
+部或直接设置 charset 属性修改这个值。
+
+另一个属性是 defaultCharset，表示根据默认浏览器及操作系统的设置，当前文档默认的字符集
+应该是什么。如果文档没有使用默认的字符集，那 charset 和 defaultCharset 属性的值可能会不一
+样，
+
 ### 自定义数据属性
+HTML5 规定可以为元素添加非标准的属性，但要添加前缀 data-，目的是为元素提供与渲染无关的
+信息，或者提供语义信息。这些属性可以任意添加、随便命名，只要以 data-开头即可。
+添加了自定义属性之后，可以通过元素的 dataset 属性来访问自定义属性的值。 dataset 属性的
+值是 DOMStringMap 的一个实例，也就是一个名值对儿的映射。在这个映射中，每个 data-name 形式
+的属性都会有一个对应的属性，只不过属性名没有 data-前缀（比如，自定义属性是 data-myname，
+那映射中对应的属性就是 myname）
+
+### 插入标记
+1. innerHTML 属性
+在读模式下， innerHTML 属性返回与调用元素的所有子节点（包括元素、注释和文本节点）对应
+的 HTML 标记。在写模式下， innerHTML 会根据指定的值创建新的 DOM 树，然后用这个 DOM 树完全
+替换调用元素原先的所有子节点。
+
+2. outerHTML 属性
+在读模式下， outerHTML 返回调用它的元素及所有子节点的 HTML 标签。在写模式下， outerHTML
+会根据指定的 HTML 字符串创建新的 DOM 子树，然后用这个 DOM 子树完全替换调用元素。
+
+3. insertAdjacentHTML()方法
+插入标记的最后一个新增方式是 insertAdjacentHTML()方法。这个方法最早也是在 IE中出现的，
+它接收两个参数：插入位置和要插入的 HTML 文本。第一个参数必须是下列值之一：
+- "beforebegin"，在当前元素之前插入一个紧邻的同辈元素；
+- "afterbegin"，在当前元素之下插入一个新的子元素或在第一个子元素之前再插入新的子元素；
+- "beforeend"，在当前元素之下插入一个新的子元素或在最后一个子元素之后再插入新的子元素；
+- "afterend"，在当前元素之后插入一个紧邻的同辈元素。
+
+注意，这些值都必须是小写形式。第二个参数是一个 HTML 字符串（与 innerHTML 和 outerHTML
+的值相同），如果浏览器无法解析该字符串，就会抛出错误
+
+4. 内存与性能问题
+
 ### scrollIntoView()方法
+如何滚动页面也是 DOM 规范没有解决的一个问题。为了解决这个问题，浏览器实现了一些方法，
+以方便开发人员更好地控制页面滚动。在各种专有方法中， HTML5 最终选择了 scrollIntoView()作
+为标准方法。
+scrollIntoView()可以在所有 HTML 元素上调用，通过滚动浏览器窗口或某个容器元素，调用
+元素就可以出现在视口中。如果给这个方法传入 true 作为参数，或者不传入任何参数，那么窗口滚动
+之后会让调用元素的顶部与视口顶部尽可能平齐。如果传入 false 作为参数，调用元素会尽可能全部
+出现在视口中，（可能的话，调用元素的底部会与视口顶部平齐。）不过顶部不一定平齐，
+
 
 ## 专有扩展
 ### 文档模式
+E8 引入了一个新的概念叫“文档模式”（document mode）。页面的文档模式决定了可以使用什么功
+能。换句话说，文档模式决定了你可以使用哪个级别的 CSS，可以在 JavaScript 中使用哪些 API，以及
+如何对待文档类型（doctype）。到了 IE9，总共有以下 4 种文档模式。
+- IE5：以混杂模式渲染页面（IE5 的默认模式就是混杂模式）。 IE8 及更高版本中的新功能都无法
+使用。
+- IE7：以 IE7 标准模式渲染页面。 IE8 及更高版本中的新功能都无法使用。
+- IE8：以 IE8 标准模式渲染页面。 IE8 中的新功能都可以使用，因此可以使用 Selectors API、更多
+CSS2 级选择符和某些 CSS3 功能，还有一些 HTML5 的功能。不过 IE9 中的新功能无法使用。
+- IE9：以 IE9 标准模式渲染页面。 IE9 中的新功能都可以使用，比如 ECMAScript 5、完整的 CSS3
+以及更多 HTML5 功能。这个文档模式是最高级的模式。
+
 ### children属性
+由于 IE9 之前的版本与其他浏览器在处理文本节点中的空白符时有差异，因此就出现了 children
+属性。这个属性是 HTMLCollection 的实例，只包含元素中同样还是元素的子节点。除此之外，
+children 属性与 childNodes 没有什么区别，即在元素只包含元素子节点时，这两个属性的值相同。
+
 ### contains()方法
+在实际开发中，经常需要知道某个节点是不是另一个节点的后代。 IE 为此率先引入了 contains()
+方法，以便不通过在 DOM 文档树中查找即可获得这个信息。调用 contains()方法的应该是祖先节点，
+也就是搜索开始的节点，这个方法接收一个参数，即要检测的后代节点。如果被检测的节点是后代节点，
+该方法返回 true；否则，返回 false。
+
 ### 插入文本
+1. innerText 属性
+通过 innertText 属性可以操作元素中包含的所有文本内容，包括子文档树中的文本。在通过
+innerText 读取值时，它会按照由浅入深的顺序，将子文档树中的所有文本拼接起来。在通过
+innerText 写入值时，结果会删除元素的所有子节点，插入包含相应文本值的文本节点。
+
+2. outerText 属性
+除了作用范围扩大到了包含调用它的节点之外， outerText 与 innerText 基本上没有多大区别。
+在读取文本值时， outerText 与 innerText 的结果完全一样。但在写模式下， outerText 就完全不
+同了： outerText 不只是替换调用它的元素的子节点，而是会替换整个元素（包括子节点）。
+
 ### 滚动
+如前所述， HTML5 之前的规范并没有就与页面滚动相关的 API 做出任何规定。但 HTML5 在将
+scrollIntoView()纳入规范之后，仍然还有其他几个专有方法可以在不同的浏览器中使用。下面列出
+的几个方法都是对 HTMLElement 类型的扩展，因此在所有元素中都可以调用。
+- scrollIntoViewIfNeeded(alignCenter)：只在当前元素在视口中不可见的情况下，才滚
+动浏览器窗口或容器元素，最终让它可见。如果当前元素在视口中可见，这个方法什么也不做。
+如果将可选的 alignCenter 参数设置为 true，则表示尽量将元素显示在视口中部（垂直方向）。
+Safari 和 Chrome 实现了这个方法。
+- scrollByLines(lineCount)：将元素的内容滚动指定的行高， lineCount 值可以是正值，
+也可以是负值。 Safari 和 Chrome 实现了这个方法。
+- scrollByPages(pageCount)：将元素的内容滚动指定的页面高度，具体高度由元素的高度决
+定。 Safari 和 Chrome 实现了这个方法。
+希望大家要注意的是， scrollIntoView()和 scrollIntoViewIfNeeded()的作用对象是元素的
+容器，而 scrollByLines()和 scrollByPages()影响的则是元素自身。
+
 
 ---
 # DOM2和DOM3
+DOM1 级主要定义的是 HTML 和 XML 文档的底层结构。 DOM2 和 DOM3 级则在这个结构
+的基础上引入了更多的交互能力，也支持了更高级的 XML 特性。为此， DOM2 和 DOM3
+级分为许多模块（模块之间具有某种关联），分别描述了 DOM 的某个非常具体的子集。这些模块
+如下。
+- DOM2 级核心（DOM Level 2 Core）：在 1 级核心基础上构建，为节点添加了更多方法和属性。
+- DOM2 级视图（DOM Level 2 Views）：为文档定义了基于样式信息的不同视图。
+- DOM2 级事件（DOM Level 2 Events）：说明了如何使用事件与 DOM 文档交互。
+- DOM2 级样式（DOM Level 2 Style）：定义了如何以编程方式来访问和改变 CSS 样式信息。
+- DOM2 级遍历和范围（DOM Level 2 Traversal and Range）：引入了遍历 DOM 文档和选择其特定
+部分的新接口。
+- DOM2 级 HTML（DOM Level 2 HTML）：在 1 级 HTML 基础上构建，添加了更多属性、方法和
+新接口。
 
 ## DOM变化
+DOM2 级和 3 级的目的在于扩展 DOM API，以满足操作 XML 的所有需求，同时提供更好的错误处
+理及特性检测能力。从某种意义上讲，实现这一目的很大程度意味着对命名空间的支持。“DOM2 级核
+心”没有引入新类型，它只是在 DOM1 级的基础上通过增加新方法和新属性来增强了既有类型。“DOM3
+级核心”同样增强了既有类型，但也引入了一些新类型。
+类似地，“DOM2 级视图”和“DOM2 级 HTML”模块也增强了 DOM 接口，提供了新的属性和方
+法。由于这两个模块很小，因此我们将把它们与“DOM2 级核心”放在一起，讨论基本 JavaScript 对象
+的变化。可以通过下列代码来确定浏览器是否支持这些 DOM 模块。
+```javascript
+var supportsDOM2Core = document.implementation.hasFeature("Core", "2.0");
+var supportsDOM3Core = document.implementation.hasFeature("Core", "3.0");
+var supportsDOM2HTML = document.implementation.hasFeature("HTML", "2.0");
+var supportsDOM2Views = document.implementation.hasFeature("Views", "2.0");
+var supportsDOM2XML = document.implementation.hasFeature("XML", "2.0");
+```
+
 ### 针对XML命名空间的变化
+有了 XML 命名空间，不同 XML 文档的元素就可以混合在一起，共同构成格式良好的文档，而不
+必担心发生命名冲突。从技术上说， HTML 不支持 XML 命名空间，但 XHTML 支持 XML 命名空间。
+
+命名空间要使用 xmlns 特性来指定。 XHTML 的命名空间是 http://www.w3.org/1999/xhtml，在任何
+格式良好 XHTML 页面中，都应该将其包含在<html>元素中。
+
+1. Node类型的变化
+在 DOM2 级中， Node 类型包含下列特定于命名空间的属性。
+- localName：不带命名空间前缀的节点名称。
+- namespaceURI：命名空间 URI 或者（在未指定的情况下是） null。
+- prefix：命名空间前缀或者（在未指定的情况下是） null。
+
+2. Document类型的变化
+DOM2 级中的 Document 类型也发生了变化，包含了下列与命名空间有关的方法。
+- createElementNS(namespaceURI, tagName)：使用给定的 tagName 创建一个属于命名空
+间 namespaceURI 的新元素。
+- createAttributeNS(namespaceURI, attributeName)：使用给定的 attributeName 创
+建一个属于命名空间 namespaceURI 的新特性。
+- getElementsByTagNameNS(namespaceURI, tagName)：返回属于命名空间 namespaceURI
+的 tagName 元素的 NodeList。
+
+3. Element类型的变化
+“DOM2 级核心”中有关 Element 的变化，主要涉及操作特性。新增的方法如下。
+- getAttributeNS(namespaceURI,localName)：取得属于命名空间 namespaceURI 且名为
+localName 的特性。
+- getAttributeNodeNS(namespaceURI,localName)：取得属于命名空间 namespaceURI 且
+名为 localName 的特性节点。
+- getElementsByTagNameNS(namespaceURI, tagName)：返回属于命名空间 namespaceURI
+的 tagName 元素的 NodeList。
+- hasAttributeNS(namespaceURI,localName)：确定当前元素是否有一个名为 localName
+的特性，而且该特性的命名空间是 namespaceURI。注意，“DOM2 级核心”也增加了一个
+hasAttribute()方法，用于不考虑命名空间的情况。
+- removeAttriubteNS(namespaceURI,localName)：删除属于命名空间 namespaceURI 且名
+为 localName 的特性。
+- setAttributeNS(namespaceURI,qualifiedName,value)：设置属于命名空间 namespaceURI 且名为 qualifiedName 的特性的值为 value。
+- setAttributeNodeNS(attNode)：设置属于命名空间 namespaceURI 的特性节点。
+
+4. NamedNodeMap类型的变化
+NamedNodeMap 类型也新增了下列与命名空间有关的方法。由于特性是通过 NamedNodeMap 表示
+的，因此这些方法多数情况下只针对特性使用。
+- getNamedItemNS(namespaceURI,localName)：取得属于命名空间 namespaceURI 且名为
+localName 的项。
+- removeNamedItemNS(namespaceURI,localName)：移除属于命名空间 namespaceURI 且名
+为 localName 的项。
+- setNamedItemNS(node)：添加 node，这个节点已经事先指定了命名空间信息。
+
 ### 其他方面的变化
+1. DocumentType类型的变化
+DocumentType 类型新增了 3 个属性： publicId、 systemId 和 internalSubset。其中，前两
+个属性表示的是文档类型声明中的两个信息段，这两个信息段在 DOM1 级中是没有办法访问到的。
+
+2. Document类型的变化
+Document 类型的变化中唯一与命名空间无关的方法是 importNode()。这个方法的用途是从一个
+文档中取得一个节点，然后将其导入到另一个文档，使其成为这个文档结构的一部分。需要注意的是，
+每个节点都有一个 ownerDocument 属性，表示所属的文档。如果调用 appendChild()时传入的节点
+属于不同的文档（ownerDocument 属性的值不一样），则会导致错误。但在调用 importNode()时传入
+不同文档的节点则会返回一个新节点，这个新节点的所有权归当前文档所有。
+
+3. Node类型的变化
+Node 类型中唯一与命名空间无关的变化，就是添加了 isSupported()方法。与 DOM1 级为 document.implementation 引入的 hasFeature()方法类似， isSupported()方法用于确定当前节点具有
+什么能力。这个方法也接受相同的两个参数：特性名和特性版本号。如果浏览器实现了相应特性，而且
+能够基于给定节点执行该特性， isSupported()就返回 true。
+
+4. 框架的变化
+框架和内嵌框架分别用 HTMLFrameElement 和 HTMLIFrameElement 表示，它们在 DOM2 级中都有
+了一个新属性，名叫 contentDocument。这个属性包含一个指针，指向表示框架内容的文档对象。在此
+之前，无法直接通过元素取得这个文档对象（只能使用 frames 集合）。
 
 ## 样式
+在 HTML 中定义样式的方式有 3 种：通过<link/>元素包含外部样式表文件、使用<style/>元素
+定义嵌入式样式，以及使用 style 特性定义针对特定元素的样式。“DOM2 级样式”模块围绕这 3 种应用
+样式的机制提供了一套 API。
+
 ### 访问元素的样式
+任何支持 style 特性的 HTML 元素在 JavaScript 中都有一个对应的 style 属性。 这个 style 对象
+是 CSSStyleDeclaration 的实例，包含着通过 HTML 的 style 特性指定的所有样式信息，但不包含
+与外部样式表或嵌入样式表经层叠而来的样式。在 style 特性中指定的任何 CSS 属性都将表现为这个
+style 对象的相应属性。对于使用短划线（分隔不同的词汇，例如 background-image）的 CSS 属性
+名，必须将其转换成驼峰大小写形式，才能通过 JavaScript 来访问。
+
+CSS属性 | JavaScript属性
+--- | ---
+background-image | style.backgroundImage
+color | style.color
+display | style.display
+font-family | style.fontFamily
+
+1. DOM样式属性和方法
+“DOM2 级样式”规范还为 style 对象定义了一些属性和方法。这些属性和方法在提供元素的 style
+特性值的同时，也可以修改样式。下面列出了这些属性和方法。
+- cssText：如前所述，通过它能够访问到 style 特性中的 CSS 代码。
+- length：应用给元素的 CSS 属性的数量。
+- parentRule：表示 CSS 信息的 CSSRule 对象。本节后面将讨论 CSSRule 类型。
+- getPropertyCSSValue(propertyName)：返回包含给定属性值的 CSSValue 对象。
+- getPropertyPriority(propertyName)：如果给定的属性使用了!important 设置，则返回
+"important"；否则，返回空字符串。
+- getPropertyValue(propertyName)：返回给定属性的字符串值。
+- item(index)：返回给定位置的 CSS 属性的名称。
+- removeProperty(propertyName)：从样式中删除给定属性。
+- setProperty(propertyName,value,priority)：将给定属性设置为相应的值，并加上优先
+权标志（"important"或者一个空字符串）。
+
+2. 计算的样式
+虽然 style 对象能够提供支持 style 特性的任何元素的样式信息，但它不包含那些从其他样式表
+层叠而来并影响到当前元素的样式信息。“DOM2 级样式”增强了 document.defaultView，提供了
+getComputedStyle()方法。这个方法接受两个参数：要取得计算样式的元素和一个伪元素字符串（例
+如":after"）。如果不需要伪元素信息，第二个参数可以是 null。 getComputedStyle()方法返回一
+个 CSSStyleDeclaration 对象（与 style 属性的类型相同），其中包含当前元素的所有计算的样式。
+
 ### 操作样式表
+CSSStyleSheet 类型表示的是样式表，包括通过<link>元素包含的样式表和在<style>元素中定义
+的样式表。有读者可能记得，这两个元素本身分别是由 HTMLLinkElement 和 HTMLStyleElement 类型
+表示的。但是， CSSStyleSheet 类型相对更加通用一些，它只表示样式表，而不管这些样式表在 HTML
+中是如何定义的。
+CSSStyleSheet 继承自 StyleSheet，后者可以作为一个基础接口来定义非 CSS 样式表。从
+StyleSheet 接口继承而来的属性如下。
+- disabled：表示样式表是否被禁用的布尔值。这个属性是可读/写的，将这个值设置为 true 可
+以禁用样式表。
+- href：如果样式表是通过<link>包含的，则是样式表的 URL；否则，是 null。
+- media：当前样式表支持的所有媒体类型的集合。与所有 DOM 集合一样，这个集合也有一个
+length 属性和一个 item()方法。也可以使用方括号语法取得集合中特定的项。如果集合是空
+列表，表示样式表适用于所有媒体。在 IE 中， media 是一个反映<link>和<style>元素 media
+特性值的字符串。
+- ownerNode：指向拥有当前样式表的节点的指针，样式表可能是在 HTML 中通过<link>或
+<style/>引入的（在 XML 中可能是通过处理指令引入的）。如果当前样式表是其他样式表通过
+@import 导入的，则这个属性值为 null。 IE 不支持这个属性。
+- parentStyleSheet：在当前样式表是通过@import 导入的情况下，这个属性是一个指向导入
+它的样式表的指针。
+- title： ownerNode 中 title 属性的值。
+- type：表示样式表类型的字符串。对 CSS 样式表而言，这个字符串是"type/css"。
+除 了 disabled 属 性 之 外 ， 其 他 属 性都 是 只 读 的 。 在 支 持 以上 所 有 这 些属 性 的 基 础上 ，
+CSSStyleSheet 类型还支持下列属性和方法：
+- cssRules：样式表中包含的样式规则的集合。 IE 不支持这个属性，但有一个类似的 rules 属性。
+- ownerRule：如果样式表是通过@import 导入的，这个属性就是一个指针，指向表示导入的规
+则；否则，值为 null。 IE 不支持这个属性。
+- deleteRule(index)：删除 cssRules 集合中指定位置的规则。 IE 不支持这个方法，但支持
+一个类似的 removeRule()方法。
+- insertRule(rule,index)：向 cssRules 集合中指定的位置插入 rule 字符串。 IE 不支持这
+个方法，但支持一个类似的 addRule()方法。
+
+1. CSS规则
+CSSRule 对象表示样式表中的每一条规则。实际上， CSSRule 是一个供其他多种类型继承的基类
+型，其中最常见的就是 CSSStyleRule 类型，表示样式信息（其他规则还有@import、 @font-face、
+@page 和@charset，但这些规则很少有必要通过脚本来访问）。 CSSStyleRule 对象包含下列属性。
+- cssText：返回整条规则对应的文本。由于浏览器对样式表的内部处理方式不同，返回的文本
+可能会与样式表中实际的文本不一样； Safari 始终都会将文本转换成全部小写。 IE 不支持这个
+属性。
+- parentRule：如果当前规则是导入的规则，这个属性引用的就是导入规则；否则，这个值为
+null。 IE 不支持这个属性。
+- parentStyleSheet：当前规则所属的样式表。 IE 不支持这个属性。
+- selectorText：返回当前规则的选择符文本。由于浏览器对样式表的内部处理方式不同，返回
+的文本可能会与样式表中实际的文本不一样（例如， Safari 3 之前的版本始终会将文本转换成全
+部小写）。在 Firefox、 Safari、 Chrome 和 IE 中这个属性是只读的。 Opera 允许修改 selectorText。
+- style：一个 CSSStyleDeclaration 对象，可以通过它设置和取得规则中特定的样式值。
+- type：表示规则类型的常量值。对于样式规则，这个值是 1。 IE 不支持这个属性。
+其中三个最常用的属性是 cssText、 selectorText 和 style。 cssText 属性与 style.cssText
+属性类似，但并不相同。前者包含选择符文本和围绕样式信息的花括号，后者只包含样式信息（类似于
+元素的 style.cssText）。此外， cssText 是只读的，而 style.cssText 也可以被重写。
+
+2. 创建规则
+DOM 规定，要向现有样式表中添加新规则，需要使用 insertRule()方法。这个方法接受两个参
+数：规则文本和表示在哪里插入规则的索引。
+
+3. 删除规则
+从样式表中删除规则的方法是 deleteRule()，这个方法接受一个参数：要删除的规则的位置。
+
 ### 元素大小
+1. 偏移量
+首先要介绍的属性涉及偏移量（offset dimension），包括元素在屏幕上占用的所有可见的空间。元素
+的可见大小由其高度、宽度决定，包括所有内边距、滚动条和边框大小（注意，不包括外边距）。通过
+下列 4 个属性可以取得元素的偏移量。
+- offsetHeight：元素在垂直方向上占用的空间大小，以像素计。包括元素的高度、（可见的）
+水平滚动条的高度、上边框高度和下边框高度。
+- offsetWidth：元素在水平方向上占用的空间大小，以像素计。包括元素的宽度、（可见的）垂
+直滚动条的宽度、左边框宽度和右边框宽度。
+- offsetLeft：元素的左外边框至包含元素的左内边框之间的像素距离。
+- offsetTop：元素的上外边框至包含元素的上内边框之间的像素距离。
+其中， offsetLeft 和 offsetTop 属性与包含元素有关，包含元素的引用保存在 offsetParent
+属性中。 offsetParent 属性不一定与 parentNode 的值相等。
+
+2. 客户区大小
+元素的客户区大小（client dimension），指的是元素内容及其内边距所占据的空间大小。有关客户区
+大小的属性有两个： clientWidth 和 clientHeight。其中， clientWidth 属性是元素内容区宽度加
+上左右内边距宽度； clientHeight 属性是元素内容区高度加上上下内边距高度。
+
+3. 滚动大小
+最后要介绍的是滚动大小（scroll dimension），指的是包含滚动内容的元素的大小。有些元素（例如
+<html>元素），即使没有执行任何代码也能自动地添加滚动条；但另外一些元素，则需要通过 CSS 的
+overflow 属性进行设置才能滚动。以下是 4 个与滚动大小相关的属性。
+- scrollHeight：在没有滚动条的情况下，元素内容的总高度。
+- scrollWidth：在没有滚动条的情况下，元素内容的总宽度。
+- scrollLeft：被隐藏在内容区域左侧的像素数。通过设置这个属性可以改变元素的滚动位置。
+- scrollTop：被隐藏在内容区域上方的像素数。通过设置这个属性可以改变元素的滚动位置。
+
+4. 确定元素大小
+为每个元素都提供了一个 getBoundingClientRect()方
+法。这个方法返回会一个矩形对象，包含 4 个属性： left、 top、 right 和 bottom。
 
 ## 遍历
+“DOM2 级遍历和范围”模块定义了两个用于辅助完成顺序遍历 DOM 结构的类型： NodeIterator
+和 TreeWalker。这两个类型能够基于给定的起点对 DOM 结构执行深度优先（depth-first）的遍历操作。
+
 ### NodeIterator
+NodeIterator 类型是两者中比较简单的一个，可以使用 document.createNodeIterator()方
+法创建它的新实例。这个方法接受下列 4 个参数。
+- root：想要作为搜索起点的树中的节点。
+- whatToShow：表示要访问哪些节点的数字代码。
+- filter：是一个 NodeFilter 对象，或者一个表示应该接受还是拒绝某种特定节点的函数。
+- entityReferenceExpansion：布尔值，表示是否要扩展实体引用。这个参数在 HTML 页面
+中没有用，因为其中的实体引用不能扩展。
+
+whatToShow 参数是一个位掩码，通过应用一或多个过滤器（filter）来确定要访问哪些节点。这个
+参数的值以常量形式在 NodeFilter 类型中定义，如下所示。
+- NodeFilter.SHOW_ALL：显示所有类型的节点。
+- NodeFilter.SHOW_ELEMENT：显示元素节点。
+- NodeFilter.SHOW_ATTRIBUTE：显示特性节点。由于 DOM 结构原因，实际上不能使用这个值。
+- NodeFilter.SHOW_TEXT：显示文本节点。
+- NodeFilter.SHOW_CDATA_SECTION：显示 CDATA 节点。对 HTML 页面没有用。
+- NodeFilter.SHOW_ENTITY_REFERENCE：显示实体引用节点。对 HTML 页面没有用。
+- NodeFilter.SHOW_ENTITYE：显示实体节点。对 HTML 页面没有用。
+- NodeFilter.SHOW_PROCESSING_INSTRUCTION：显示处理指令节点。对 HTML 页面没有用。
+- NodeFilter.SHOW_COMMENT：显示注释节点。
+- NodeFilter.SHOW_DOCUMENT：显示文档节点。
+- NodeFilter.SHOW_DOCUMENT_TYPE：显示文档类型节点。
+- NodeFilter.SHOW_DOCUMENT_FRAGMENT：显示文档片段节点。对 HTML 页面没有用。
+- NodeFilter.SHOW_NOTATION：显示符号节点。对 HTML 页面没有用。
+
 ### TreeWalker
+TreeWalker 是 NodeIterator 的一个更高级的版本。除了包括 nextNode()和 previousNode()
+在内的相同的功能之外，这个类型还提供了下列用于在不同方向上遍历 DOM 结构的方法。
+- parentNode()：遍历到当前节点的父节点；
+- firstChild()：遍历到当前节点的第一个子节点；
+- lastChild()：遍历到当前节点的最后一个子节点；
+- nextSibling()：遍历到当前节点的下一个同辈节点；
+- previousSibling()：遍历到当前节点的上一个同辈节点。
+
+创建 TreeWalker 对象要使用 document.createTreeWalker()方法，这个方法接受的 4 个参数
+与 document.createNodeIterator()方法相同：作为遍历起点的根节点、要显示的节点类型、过滤
+器和一个表示是否扩展实体引用的布尔值。
 
 ## 范围
+为了让开发人员更方便地控制页面，“DOM2 级遍历和范围”模块定义了“范围”（range）接口。通
+过范围可以选择文档中的一个区域，而不必考虑节点的界限（选择在后台完成，对用户是不可见的）。
+
 ### DOM中的范围
+DOM2 级在 Document 类型中定义了 createRange()方法。在兼容 DOM 的浏览器中，这个方法
+属于 document 对象。使用 hasFeature()或者直接检测该方法，都可以确定浏览器是否支持范围。
+
+每个范围由一个 Range 类型的实例表示，这个实例拥有很多属性和方法。下列属性提供了当前范
+围在文档中的位置信息。
+- startContainer：包含范围起点的节点（即选区中第一个节点的父节点）。
+- startOffset：范围在 startContainer 中起点的偏移量。如果 startContainer 是文本节
+点、注释节点或 CDATA 节点，那么 startOffset 就是范围起点之前跳过的字符数量。否则，
+startOffset 就是范围中第一个子节点的索引。
+- endContainer：包含范围终点的节点（即选区中最后一个节点的父节点）。
+- endOffset：范围在 endContainer 中终点的偏移量（与 startOffset 遵循相同的取值规则）。
+- commonAncestorContainer： startContainer 和 endContainer 共同的祖先节点在文档树
+中位置最深的那个。
+
+1. 用DOM范围实现简单选择
+要使用范围来选择文档中的一部分，最简的方式就是使用 selectNode()或 selectNodeContents()。
+这两个方法都接受一个参数，即一个 DOM 节点，然后使用该节点中的信息来填充范围。
+
+2. 用DOM范围实现复杂选择
+要创建复杂的范围就得使用 setStart()和 setEnd()方法。这两个方法都接受两个参数：一个参
+照节点和一个偏移量值。对 setStart()来说，参照节点会变成 startContainer，而偏移量值会变成
+startOffset。对于 setEnd()来说，参照节点会变成 endContainer，而偏移量值会变成 endOffset。
+
+3. 操作DOM范围中的内容
+在创建范围时 ，内部会为这个范围创建一个文档片段，范围所属的全部节点都被添加到了这个文档
+片段中。为了创建这个文档片段，范围内容的格式必须正确有效。在前面的例子中，我们创建的选区分
+别开始和结束于两个文本节点的内部，因此不能算是格式良好的 DOM 结构，也就无法通过 DOM 来表
+示。但是，范围知道自身缺少哪些开标签和闭标签，它能够重新构建有效的 DOM 结构以便我们对其进
+行操作。
+
+4. 插入DOM范围中的内容
+利用范围，可以删除或复制内容，还可以像前面介绍的那样操作范围中的内容。使用 insertNode()
+方法可以向范围选区的开始处插入一个节点。
+
+5. 折叠DOM范围
+所谓折叠范围，就是指范围中未选择文档的任何部分。可以用文本框来描述折叠范围的过程。假设
+文本框中有一行文本，你用鼠标选择了其中一个完整的单词。然后，你单击鼠标左键，选区消失，而光
+标则落在了其中两个字母之间。同样，在折叠范围时，其位置会落在文档中的两个部分之间，可能是范
+围选区的开始位置，也可能是结束位置。
+
+6. 比较DOM范围
+在有多个范围的情况下，可以使用 compareBoundaryPoints()方法来确定这些范围是否有公共
+的边界（起点或终点）。这个方法接受两个参数：表示比较方式的常量值和要比较的范围。表示比较方
+式的常量值如下所示。
+- Range.START_TO_START(0)：比较第一个范围和第二个范围的起点；
+- Range.START_TO_END(1)：比较第一个范围的起点和第二个范围的终点；
+- Range.END_TO_END(2)：比较第一个范围和第二个范围的终点；
+- Range.END_TO_START(3)：比较第一个范围的终点和第一个范围的起点。
+compareBoundaryPoints()方法可能的返回值如下：如果第一个范围中的点位于第二个范围中的
+点之前，返回-1；如果两个点相等，返回 0；如果第一个范围中的点位于第二个范围中的点之后，返回
+1。
+
+7. 复制DOM范围
+可以使用 cloneRange()方法复制范围。这个方法会创建调用它的范围的一个副本。
+
+8. 清理DOM范围
+在使用完范围之后，最好是调用 detach()方法，以便从创建范围的文档中分离出该范围。调用
+detach()之后，就可以放心地解除对范围的引用，从而让垃圾回收机制回收其内存了。
+
 ### IE8及更早版本中的范围
 
 ---
 # 事件
+JavaScript 与 HTML 之间的交互是通过事件实现的。事件，就是文档或浏览器窗口中发生的一些
+ 特定的交互瞬间。可以使用侦听器（或处理程序）来预订事件，以便事件发生时执行相应的代
+ 码。这种在传统软件工程中被称为观察员模式的模型，支持页面的行为（JavaScript 代码）与页
+ 面的外观（HTML 和 CSS 代码）之间的松散耦合。
+ 
 ## 事件流
-### 时间冒泡
+当浏览器发展到第四代时（IE4 及 Netscape Communicator 4），浏览器开发团队遇到了一个很有意思
+的问题：页面的哪一部分会拥有某个特定的事件？要明白这个问题问的是什么，可以想象画在一张纸上
+的一组同心圆。如果你把手指放在圆心上，那么你的手指指向的不是一个圆，而是纸上的所有圆。两家
+公司的浏览器开发团队在看待浏览器事件方面还是一致的。如果你单击了某个按钮，他们都认为单击事
+件不仅仅发生在按钮上。换句话说，在单击按钮的同时，你也单击了按钮的容器元素，甚至也单击了整
+个页面。
+事件流描述的是从页面中接收事件的顺序。但有意思的是， IE 和 Netscape 开发团队居然提出了差
+不多是完全相反的事件流的概念。 IE 的事件流是事件冒泡流，而 Netscape Communicator 的事件流是事
+件捕获流。
+
+### 事件冒泡
+IE 的事件流叫做事件冒泡（event bubbling），即事件开始时由最具体的元素（文档中嵌套层次最深
+的那个节点）接收，然后逐级向上传播到较为不具体的节点（文档）。
+
 ### 事件捕获
+Netscape Communicator 团队提出的另一种事件流叫做事件捕获（event capturing）。事件捕获的思想
+是不太具体的节点应该更早接收到事件，而最具体的节点应该最后接收到事件。事件捕获的用意在于在
+事件到达预定目标之前捕获它。
+
 ### DOM事件流
+“DOM2级事件”规定的事件流包括三个阶段：事件捕获阶段、处于目标阶段和事件冒泡阶段。首
+先发生的是事件捕获，为截获事件提供了机会。然后是实际的目标接收到事件。最后一个阶段是冒泡阶
+段，可以在这个阶段对事件做出响应。
 
 ## 事件处理程序
-### HTML事件处理程序
-### DOM0级事件处理程序
-### DOM2级事件处理程序
-### IE事件处理程序
-### 跨浏览器的事件处理程序
+事件就是用户或浏览器自身执行的某种动作。诸如 click、 load 和 mouseover，都是事件的名字。
+而响应某个事件的函数就叫做事件处理程序（或事件侦听器）。事件处理程序的名字以"on"开头，因此
+click 事件的事件处理程序就是 onclick， load 事件的事件处理程序就是 onload。为事件指定处理
+程序的方式有好几种。
 
+### HTML事件处理程序
+某个元素支持的每种事件，都可以使用一个与相应事件处理程序同名的 HTML 特性来指定。这个
+特性的值应该是能够执行的 JavaScript 代码。
+```html
+<input type="button" value="Click Me" onclick="showMessage()" />
+```
+不过，在 HTML 中指定事件处理程序有两个缺点。首先，存在一个时差问题。因为用户可能会在
+HTML 元素一出现在页面上就触发相应的事件，但当时的事件处理程序有可能尚不具备执行条件。
+
+通过 HTML 指定事件处理程序的最后一个缺点是 HTML 与 JavaScript 代码紧密耦合。如果要更换事
+件处理程序，就要改动两个地方： HTML 代码和 JavaScript 代码。而这正是许多开发人员摒弃 HTML 事
+件处理程序，转而使用 JavaScript 指定事件处理程序的原因所在。
+
+### DOM0级事件处理程序
+通过 JavaScript 指定事件处理程序的传统方式，就是将一个函数赋值给一个事件处理程序属性。这
+种为事件处理程序赋值的方法是在第四代 Web 浏览器中出现的，而且至今仍然为所有现代浏览器所支
+持。原因一是简单，二是具有跨浏览器的优势。要使用 JavaScript 指定事件处理程序，首先必须取得一
+个要操作的对象的引用。
+```javascript
+var btn = document.getElementById("myBtn");
+btn.onclick = function(){
+alert(this.id); //"myBtn"
+};
+```
+使用 DOM0 级方法指定的事件处理程序被认为是元素的方法。因此，这时候的事件处理程序是在
+元素的作用域中运行；换句话说，程序中的 this 引用当前元素。
+
+### DOM2级事件处理程序
+“DOM2 级事件” 定义了两个方法，用于处理指定和删除事件处理程序的操作： addEventListener()
+和 removeEventListener()。所有 DOM 节点中都包含这两个方法，并且它们都接受 3 个参数：要处
+理的事件名、作为事件处理程序的函数和一个布尔值。最后这个布尔值参数如果是 true，表示在捕获
+阶段调用事件处理程序；如果是 false，表示在冒泡阶段调用事件处理程序。
+```javascript
+var btn = document.getElementById("myBtn");
+btn.addEventListener("click", function(){
+alert(this.id);
+}, false);
+```
+通过 addEventListener()添加的事件处理程序只能使用 removeEventListener()来移除；移
+除时传入的参数与添加处理程序时使用的参数相同。这也意味着通过 addEventListener()添加的匿
+名函数将无法移除。
+
+### IE事件处理程序
+IE 实现了与 DOM 中类似的两个方法： attachEvent()和 detachEvent()。这两个方法接受相同
+的两个参数：事件处理程序名称与事件处理程序函数。由于 IE8 及更早版本只支持事件冒泡，所以通过
+attachEvent()添加的事件处理程序都会被添加到冒泡阶段。
+
+### 跨浏览器的事件处理程序
+为了以跨浏览器的方式处理事件，不少开发人员会使用能够隔离浏览器差异的 JavaScript 库，还有
+一些开发人员会自己开发最合适的事件处理的方法。自己编写代码其实也不难，只要恰当地使用能力检
+测即可（能力检测在第 9 章介绍过）。要保证处理事件的代码能在大多数浏览器下一致地运行，只需关
+注冒泡阶段。
+
+第一个要创建的方法是 addHandler()，它的职责是视情况分别使用 DOM0 级方法、 DOM2 级方
+法或 IE 方法来添加事件。这个方法属于一个名叫 EventUtil 的对象，本书将使用这个对象来处理浏览
+器间的差异。 addHandler()方法接受 3 个参数：要操作的元素、事件名称和事件处理程序函数。
+与 addHandler()对应的方法是 removeHandler()，它也接受相同的参数。这个方法的职责是移
+除之前添加的事件处理程序——无论该事件处理程序是采取什么方式添加到元素中的，如果其他方法无
+效，默认采用 DOM0 级方法。
+```javascript
+var EventUtil = {
+addHandler: function(element, type, handler){
+if (element.addEventListener){
+element.addEventListener(type, handler, false);
+} else if (element.attachEvent){
+element.attachEvent("on" + type, handler);
+} else {
+element["on" + type] = handler;
+}
+},
+removeHandler: function(element, type, handler){
+if (element.removeEventListener){
+element.removeEventListener(type, handler, false);
+} else if (element.detachEvent){
+element.detachEvent("on" + type, handler);
+} else {
+element["on" + type] = null;
+}
+}
+};
+```
 
 ## 事件对象
-### DOM中的事件对象
-### IE中的事件对象
-### 跨浏览器的事件对象
+在触发 DOM 上的某个事件时，会产生一个事件对象 event，这个对象中包含着所有与事件有关的
+信息。包括导致事件的元素、事件的类型以及其他与特定事件相关的信息。
 
+### DOM中的事件对象
+兼容 DOM 的浏览器会将一个 event 对象传入到事件处理程序中。无论指定事件处理程序时使用什
+么方法（DOM0 级或 DOM2 级），都会传入 event 对象。
+
+属性/方法 | 类型 | 读/写 | 说明
+--- | --- | --- | ---
+bubbles | Boolean  | 只读  |表明事件是否冒泡
+cancelable | Boolean | 只读 | 表明是否可以取消事件的默认行为
+currentTarget | Element | 只读 |  其事件处理程序当前正在处理事件的那个元素
+defaultPrevented | Boolean | 只读 |为true表示已经调用了preventDefault()（DOM3级事件中新增）
+detail | Integer | 只读 | 与事件相关的细节信息
+eventPhase | Integer | 只读 | 调用事件处理程序的阶段： 1表示捕获阶段， 2表示“处于目标”， 3表示冒泡阶段
+preventDefault() | Function | 只读 | 取消事件的默认行为。如果cancelable是true，则可以使用这个方法
+stopImmediatePropagation() | Function | 只读 | 取消事件的进一步捕获或冒泡，同时阻止任何事件处理程序被调用（DOM3级事件中新增）
+stopPropagation() | Function | 只读 | 取消事件的进一步捕获或冒泡。如果bubbles为true，则可以使用这个方法
+target | Element | 只读 | 事件的目标
+trusted | Boolean | 只读 | 为true表示事件是浏览器生成的。为false表示事件是由开发人员通过JavaScript创建的（DOM3级事件中新增）
+type | String | 只读 | 被触发的事件的类型
+view | AbstractView | 只读 | 与事件关联的抽象视图。等同于发生事件的window对象
+
+在事件处理程序内部，对象 this 始终等于 currentTarget 的值，而 target 则只包含事件的实
+际目标。如果直接将事件处理程序指定给了目标元素，则 this、 currentTarget 和 target 包含相同
+的值。
+
+阻止特定事件的默认行为，可以使用 preventDefault()方法。
+
+另外， stopPropagation()方法用于立即停止事件在 DOM 层次中的传播，即取消进一步的事件
+捕获或冒泡。
+
+### IE中的事件对象
+与访问 DOM 中的 event 对象不同，要访问 IE 中的 event 对象有几种不同的方式，取决于指定事
+件处理程序的方法。在使用 DOM0 级方法添加事件处理程序时， event 对象作为 window 对象的一个
+属性存在。
+### 跨浏览器的事件对象
+虽然 DOM 和 IE 中的 event 对象不同，但基于它们之间的相似性依旧可以拿出跨浏览器的方案来。
+IE 中 event 对象的全部信息和方法 DOM 对象中都有，只不过实现方式不一样。不过，这种对应关系
+让实现两种事件模型之间的映射非常容易。
 
 ## 事件类型
-### UI事件
-### 焦点事件
-### 鼠标与滚轮事件
-### 键盘与文本事件
-### 复合事件
-### 变动事件
-### HTML5事件
-### 设备事件
-### 触摸与手势事件
+Web 浏览器中可能发生的事件有很多类型。如前所述，不同的事件类型具有不同的信息，而“DOM3
+级事件”规定了以下几类事件。
+- UI（User Interface，用户界面）事件，当用户与页面上的元素交互时触发；
+- 焦点事件，当元素获得或失去焦点时触发；
+- 鼠标事件，当用户通过鼠标在页面上执行操作时触发；
+- 滚轮事件，当使用鼠标滚轮（或类似设备）时触发；
+- 文本事件，当在文档中输入文本时触发；
+- 键盘事件，当用户通过键盘在页面上执行操作时触发；
+- 合成事件，当为 IME（Input Method Editor，输入法编辑器）输入字符时触发；
+- 变动（mutation）事件，当底层 DOM 结构发生变化时触发。
+- 变动名称事件，当元素或属性名变动时触发。此类事件已经被废弃，没有任何浏览器实现它们，
+因此本章不做介绍。
 
+### UI事件
+UI 事件指的是那些不一定与用户操作有关的事件。这些事件在 DOM 规范出现之前，都是以这种或
+那种形式存在的，而在 DOM 规范中保留是为了向后兼容。现有的 UI 事件如下。
+- DOMActivate：表示元素已经被用户操作（通过鼠标或键盘）激活。这个事件在 DOM3 级事
+件中被废弃，但 Firefox 2+和 Chrome 支持它。考虑到不同浏览器实现的差异，不建议使用这个
+事件。
+- load：当页面完全加载后在 window 上面触发，当所有框架都加载完毕时在框架集上面触发，
+当图像加载完毕时在<img>元素上面触发，或者当嵌入的内容加载完毕时在<object>元素上面
+触发。
+- unload：当页面完全卸载后在 window 上面触发，当所有框架都卸载后在框架集上面触发，或
+者当嵌入的内容卸载完毕后在<object>元素上面触发。
+- abort：在用户停止下载过程时，如果嵌入的内容没有加载完，则在<object>元素上面触发。
+- error：当发生 JavaScript 错误时在 window 上面触发，当无法加载图像时在<img>元素上面触
+发，当无法加载嵌入内容时在<object>元素上面触发，或者当有一或多个框架无法加载时在框
+架集上面触发。第 17 章将继续讨论这个事件。
+- select：当用户选择文本框（<input>或<texterea>）中的一或多个字符时触发。第 14 章将
+继续讨论这个事件。
+- resize：当窗口或框架的大小变化时在 window 或框架上面触发。
+- scroll：当用户滚动带滚动条的元素中的内容时，在该元素上面触发。 <body>元素中包含所加
+载页面的滚动条。
+
+1. load事件
+JavaScript 中最常用的一个事件就是 load。当页面完全加载后（包括所有图像、 JavaScript 文件、
+CSS 文件等外部资源），就会触发 window 上面的 load 事件。有两种定义 onload 事件处理程序的方式。
+```javascript
+// 第一种方式
+EventUtil.addHandler(window, "load", function(event){
+alert("Loaded!");
+});
+```
+```HTML
+// 第二种方式
+<!DOCTYPE html>
+<html>
+<head>
+<title>Load Event Example</title>
+</head>
+<body onload="alert('Loaded!')">
+</body>
+</html>
+```
+
+2. unload事件
+与 load 事件对应的是 unload 事件，这个事件在文档被完全卸载后触发。只要用户从一个页面切
+换到另一个页面，就会发生 unload 事件。而利用这个事件最多的情况是清除引用，以避免内存泄漏。
+与 load 事件类似，也有两种指定 onunload 事件处理程序的方式。
+
+第一种方式是使用 JavaScript。
+```javascript
+EventUtil.addHandler(window, "unload", function(event){
+alert("Unloaded");
+});
+```
+指定事件处理程序的第二种方式，也是为<body>元素添加一个特性（与 load 事件相似）。
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Unload Event Example</title>
+</head>
+<body onunload="alert('Unloaded!')">
+</body>
+</html>
+```
+
+3. resize事件
+当浏览器窗口被调整到一个新的高度或宽度时，就会触发 resize 事件。这个事件在 window（窗
+口）上面触发，因此可以通过 JavaScript 或者<body>元素中的 onresize 特性来指定事件处理程序。
+
+4.scroll事件
+虽然 scroll 事件是在 window 对象上发生的，但它实际表示的则是页面中相应元素的变化。在混
+杂模式下，可以通过<body>元素的 scrollLeft 和 scrollTop 来监控到这一变化；而在标准模式下，
+除 Safari 之外的所有浏览器都会通过<html>元素来反映这一变化（Safari 仍然基于<body>跟踪滚动位
+置）。
+
+### 焦点事件
+焦点事件会在页面元素获得或失去焦点时触发。利用这些事件并与 document.hasFocus()方法及
+document.activeElement 属性配合，可以知晓用户在页面上的行踪。有以下 6 个焦点事件。
+- blur：在元素失去焦点时触发。这个事件不会冒泡；所有浏览器都支持它。
+- DOMFocusIn：在元素获得焦点时触发。这个事件与 HTML 事件 focus 等价，但它冒泡。只有
+Opera 支持这个事件。 DOM3 级事件废弃了 DOMFocusIn，选择了 focusin。
+- DOMFocusOut：在元素失去焦点时触发。这个事件是 HTML 事件 blur 的通用版本。只有 Opera
+支持这个事件。 DOM3 级事件废弃了 DOMFocusOut，选择了 focusout。
+- focus：在元素获得焦点时触发。这个事件不会冒泡；所有浏览器都支持它。
+- focusin：在元素获得焦点时触发。这个事件与 HTML 事件 focus 等价，但它冒泡。支持这个
+事件的浏览器有 IE5.5+、 Safari 5.1+、 Opera 11.5+和 Chrome。
+- focusout：在元素失去焦点时触发。这个事件是 HTML 事件 blur 的通用版本。支持这个事件
+的浏览器有 IE5.5+、 Safari 5.1+、 Opera 11.5+和 Chrome。
+
+这一类事件中最主要的两个是 focus 和 blur，它们都是 JavaScript 早期就得到所有浏览器支持的
+事件。这些事件的最大问题是它们不冒泡。因此， IE 的 focusin 和 focusout 与 Opera 的 DOMFocusIn
+和 DOMFocusOut 才会发生重叠。 IE 的方式最后被 DOM3 级事件采纳为标准方式。
+当焦点从页面中的一个元素移动到另一个元素，会依次触发下列事件：
+(1) focusout 在失去焦点的元素上触发；
+(2) focusin 在获得焦点的元素上触发；
+(3) blur 在失去焦点的元素上触发；
+(4) DOMFocusOut 在失去焦点的元素上触发；
+(5) focus 在获得焦点的元素上触发；
+(6) DOMFocusIn 在获得焦点的元素上触发。
+其中， blur、 DOMFocusOut 和 focusout 的事件目标是失去焦点的元素；而 focus、 DOMFocusIn
+和 focusin 的事件目标是获得焦点的元素。
+
+### 鼠标与滚轮事件
+鼠标事件是 Web 开发中最常用的一类事件，毕竟鼠标还是最主要的定位设备。 DOM3 级事件中定
+义了 9 个鼠标事件，简介如下。
+- click：在用户单击主鼠标按钮（一般是左边的按钮）或者按下回车键时触发。这一点对确保
+易访问性很重要，意味着 onclick 事件处理程序既可以通过键盘也可以通过鼠标执行。
+- dblclick：在用户双击主鼠标按钮（一般是左边的按钮）时触发。从技术上说，这个事件并不
+是 DOM2 级事件规范中规定的，但鉴于它得到了广泛支持，所以 DOM3 级事件将其纳入了标准。
+- mousedown：在用户按下了任意鼠标按钮时触发。不能通过键盘触发这个事件。
+- mouseenter：在鼠标光标从元素外部首次移动到元素范围之内时触发。这个事件不冒泡，而且
+在光标移动到后代元素上不会触发。 DOM2 级事件并没有定义这个事件，但 DOM3 级事件将它
+纳入了规范。 IE、 Firefox 9+和 Opera 支持这个事件。
+- mouseleave：在位于元素上方的鼠标光标移动到元素范围之外时触发。这个事件不冒泡，而且
+在光标移动到后代元素上不会触发。 DOM2 级事件并没有定义这个事件，但 DOM3 级事件将它
+纳入了规范。 IE、 Firefox 9+和 Opera 支持这个事件。
+- mousemove：当鼠标指针在元素内部移动时重复地触发。不能通过键盘触发这个事件。
+- mouseout：在鼠标指针位于一个元素上方，然后用户将其移入另一个元素时触发。又移入的另
+一个元素可能位于前一个元素的外部，也可能是这个元素的子元素。不能通过键盘触发这个事件。
+- mouseover：在鼠标指针位于一个元素外部，然后用户将其首次移入另一个元素边界之内时触
+发。不能通过键盘触发这个事件。
+- mouseup：在用户释放鼠标按钮时触发。不能通过键盘触发这个事件。
+
+只有在同一个元素上相继触发 mousedown 和 mouseup 事件，才会触发 click 事件；如果
+mousedown 或 mouseup 中的一个被取消，就不会触发 click 事件。类似地，只有触发两次 click 事
+件，才会触发一次 dblclick 事件。如果有代码阻止了连续两次触发 click 事件（可能是直接取消 click
+事件，也可能通过取消 mousedown 或 mouseup 间接实现），那么就不会触发 dblclick 事件了。这 4
+个事件触发的顺序始终如下：
+(1) mousedown
+(2) mouseup
+(3) click
+(4) mousedown
+(5) mouseup
+(6) click
+(7) dblclick
+
+1. 客户区坐标位置
+鼠标事件都是在浏览器视口中的特定位置上发生的。这个位置信息保存在事件对象的 clientX 和
+clientY 属性中。所有浏览器都支持这两个属性，它们的值表示事件发生时鼠标指针在视口中的水平
+和垂直坐标。
+
+2. 页面坐标位置
+通过客户区坐标能够知道鼠标是在视口中什么位置发生的，而页面坐标通过事件对象的 pageX 和
+pageY 属性，能告诉你事件是在页面中的什么位置发生的。换句话说，这两个属性表示鼠标光标在页面
+中的位置，因此坐标是从页面本身而非视口的左边和顶边计算的。
+
+3. 屏幕坐标位置
+鼠标事件发生时，不仅会有相对于浏览器窗口的位置，还有一个相对于整个电脑屏幕的位置。而通
+过 screenX 和 screenY 属性就可以确定鼠标事件发生时鼠标指针相对于整个屏幕的坐标信息。
+
+4. 修改键
+虽然鼠标事件主要是使用鼠标来触发的，但在按下鼠标时键盘上的某些键的状态也可以影响到所要
+采取的操作。这些修改键就是 Shift、 Ctrl、 Alt 和 Meta（在 Windows 键盘中是 Windows 键，在苹果机中
+是 Cmd 键），它们经常被用来修改鼠标事件的行为。 DOM 为此规定了 4 个属性，表示这些修改键的状
+态： shiftKey、 ctrlKey、 altKey 和 metaKey。这些属性中包含的都是布尔值，如果相应的键被按
+下了，则值为 true，否则值为 false。当某个鼠标事件发生时，通过检测这几个属性就可以确定用户
+是否同时按下了其中的键。
+
+5. 相关元素
+在发生 mouseover 和 mouserout 事件时，还会涉及更多的元素。这两个事件都会涉及把鼠标指
+针从一个元素的边界之内移动到另一个元素的边界之内。对 mouseover 事件而言，事件的主目标是获
+得光标的元素，而相关元素就是那个失去光标的元素。类似地，对 mouseout 事件而言，事件的主目标
+是失去光标的元素，而相关元素则是获得光标的元素。
+
+6. 鼠标按钮
+只有在主鼠标按钮被单击（或键盘回车键被按下）时才会触发 click 事件，因此检测按钮的信息
+并不是必要的。但对于 mousedown 和 mouseup 事件来说，则在其 event 对象存在一个 button 属性，
+表示按下或释放的按钮。 DOM 的 button 属性可能有如下 3 个值： 0 表示主鼠标按钮， 1 表示中间的鼠
+标按钮（鼠标滚轮按钮）， 2 表示次鼠标按钮。在常规的设置中，主鼠标按钮就是鼠标左键，而次鼠标
+按钮就是鼠标右键。
+IE8 及之前版本也提供了 button 属性，但这个属性的值与 DOM 的 button 属性有很大差异。
+- 0：表示没有按下按钮。
+- 1：表示按下了主鼠标按钮。
+- 2：表示按下了次鼠标按钮。
+- 3：表示同时按下了主、次鼠标按钮。
+- 4：表示按下了中间的鼠标按钮。
+- 5：表示同时按下了主鼠标按钮和中间的鼠标按钮。
+- 6：表示同时按下了次鼠标按钮和中间的鼠标按钮。
+- 7：表示同时按下了三个鼠标按钮。
+
+7. 更多的事件信息
+“DOM2 级事件”规范在 event 对象中还提供了 detail 属性，用于给出有关事件的更多信息。对
+于鼠标事件来说， detail 中包含了一个数值，表示在给定位置上发生了多少次单击。在同一个元素上
+相继地发生一次 mousedown 和一次 mouseup 事件算作一次单击。 detail 属性从 1 开始计数，每次单
+击发生后都会递增。如果鼠标在 mousedown 和 mouseup 之间移动了位置，则 detail 会被重置为 0。
+IE 也通过下列属性为鼠标事件提供了更多信息。
+- altLeft：布尔值，表示是否按下了 Alt 键。如果 altLeft 的值为 true，则 altKey 的值也为 true。
+- ctrlLeft：布尔值，表示是否按下了 Ctrl 键。如果 ctrlLeft 的值为 true，则 ctrlKey 的值
+也为 true。
+- offsetX：光标相对于目标元素边界的 x 坐标。
+- offsetY：光标相对于目标元素边界的 y 坐标。
+- shiftLeft：布尔值，表示是否按下了 Shift 键。如果 shiftLeft 的值为 true，则 shiftKey
+的值也为 true。
+
+8. 鼠标滚轮事件
+IE 6.0 首先实现了 mousewheel 事件。此后， Opera、 Chrome 和 Safari 也都实现了这个事件。当用
+户通过鼠标滚轮与页面交互、在垂直方向上滚动页面时（无论向上还是向下），就会触发 mousewheel
+事件。这个事件可以在任何元素上面触发，最终会冒泡到 document（IE8）或 window（IE9、 Opera、
+Chrome 及 Safari）对象。与 mousewheel 事件对应的 event 对象除包含鼠标事件的所有标准信息外，
+还包含一个特殊的 wheelDelta 属性。当用户向前滚动鼠标滚轮时， wheelDelta 是 120 的倍数；当用
+户向后滚动鼠标滚轮时， wheelDelta 是-120 的倍数。
+
+9. 触摸设备
+iOS 和 Android 设备的实现非常特别，因为这些设备没有鼠标。在面向 iPhone 和 iPod 中的 Safari
+开发时，要记住以下几点。
+- 不支持 dblclick 事件。双击浏览器窗口会放大画面，而且没有办法改变该行为。
+- 轻击可单击元素会触发 mousemove 事件。如果此操作会导致内容变化，将不再有其他事件发生；
+如果屏幕没有因此变化，那么会依次发生 mousedown、 mouseup 和 click 事件。轻击不可单
+击的元素不会触发任何事件。可单击的元素是指那些单击可产生默认操作的元素（如链接），或
+者那些已经被指定了 onclick 事件处理程序的元素。
+- mousemove 事件也会触发 mouseover 和 mouseout 事件。
+- 两个手指放在屏幕上且页面随手指移动而滚动时会触发 mousewheel 和 scroll 事件。
+
+10. 无障碍性问题
+如果你的 Web 应用程序或网站要确保残疾人特别是那些使用屏幕阅读器的人都能访问，那么在使
+用鼠标事件时就要格外小心。前面提到过，可以通过键盘上的回车键来触发 click 事件，但其他鼠标
+事件却无法通过键盘来触发。为此，我们不建议使用 click 之外的其他鼠标事件来展示功能或引发代
+码执行。因为这样会给盲人或视障用户造成极大不便。以下是在使用鼠标事件时应当注意的几个易访问
+性问题。
+- 使用 click 事件执行代码。有人指出通过 onmousedown 执行代码会让人觉得速度更快，对视
+力正常的人来说这是没错的。但是，在屏幕阅读器中，由于无法触发 mousedown 事件，结果就
+会造成代码无法执行。
+- 不要使用 onmouseover 向用户显示新的选项。原因同上，屏幕阅读器无法触发这个事件。如果
+确实非要通过这种方式来显示新选项，可以考虑添加显示相同信息的键盘快捷方式。
+- 不要使用 dblclick 执行重要的操作。键盘无法触发这个事件。
+
+### 键盘与文本事件
+用户在使用键盘时会触发键盘事件。“DOM2 级事件”最初规定了键盘事件，但在最终定稿之前又
+删除了相应的内容。结果，对键盘事件的支持主要遵循的是 DOM0 级。
+“DOM3 级事件”为键盘事件制定了规范， IE9 率先完全实现了该规范。其他浏览器也在着手实现这
+一标准，但仍然有很多遗留的问题。
+有 3 个键盘事件，简述如下。
+- keydown：当用户按下键盘上的任意键时触发，而且如果按住不放的话，会重复触发此事件。
+- keypress：当用户按下键盘上的字符键时触发，而且如果按住不放的话，会重复触发此事件。
+按下 Esc 键也会触发这个事件。Safari 3.1 之前的版本也会在用户按下非字符键时触发 keypress
+事件。
+- keyup：当用户释放键盘上的键时触发。
+
+只有一个文本事件： textInput。这个事件是对 keypress 的补充，用意是在将文本显示给用户之
+前更容易拦截文本。在文本插入文本框之前会触发 textInput 事件。
+在用户按了一下键盘上的字符键时，首先会触发 keydown 事件，然后紧跟着是 keypress 事件，
+最后会触发 keyup 事件。 其中， keydown 和 keypress 都是在文本框发生变化之前被触发的；而 keyup
+事件则是在文本框已经发生变化之后被触发的。如果用户按下了一个字符键不放，就会重复触发
+keydown 和 keypress 事件，直到用户松开该键为止。
+
+1. 键码
+在发生 keydown 和 keyup 事件时， event 对象的 keyCode 属性中会包含一个代码，与键盘上一
+个特定的键对应。对数字字母字符键， keyCode 属性的值与 ASCII 码中对应小写字母或数字的编码相
+同。因此，数字键 7 的 keyCode 值为 55，而字母 A 键的 keyCode 值为 65——与 Shift 键的状态无关。
+DOM 和 IE 的 event 对象都支持 keyCode 属性。
+
+键 | 键码 | 键 | 键码
+--- | --- | --- | ---
+退格（Backspace） |  8 | 数字小键盘1 |  97
+制表（Tab） |  9 | 数字小键盘2 |  98
+回车（Enter） | 13 | 数字小键盘3 |  99
+上档（Shift） |  16 | 数字小键盘4 | 100
+控制（Ctrl） |  17 | 数字小键盘5 |  101
+Alt |  18 | 数字小键盘6 |  102
+暂停/中断（Pause/Break） |  19 | 数字小键盘7 |  103
+大写锁定（Caps Lock） | 20 | 数字小键盘8 | 104
+退出（Esc） | 27 | 数字小键盘9 | 105
+上翻页（Page Up） | 33 | 数字小键盘+ | 107
+下翻页（Page Down） | 34 | 数字小键盘及大键盘上的- | 109
+结尾（End） | 35 | 数字小键盘 . | 110
+开头（Home） | 36 | 数字小键盘 / | 111
+左箭头（Left Arrow） | 37 | F1 | 112
+上箭头（Up Arrow） | 38 | F2 | 113
+右箭头（Right Arrow） | 39 | F3 | 114
+下箭头（Down Arrow） | 40 | F4 | 115
+插入（Ins） | 45 | F5 | 116
+删除（Del） | 46 | F6 | 117
+左Windows键 | 91 | F7 | 118
+右Windows键 | 92 | F8 | 119
+上下文菜单键 | 93 | F9 | 120
+数字小键盘0 | 96 | F10 | 12
+F11 | 122 | 正斜杠 | 191
+F12 | 123 | 沉音符（`） | 192
+数字锁（Num Lock） | 144 | 等于 | 61
+滚动锁（Scroll Lock） | 145 | 左方括号 | 219
+分号（IE/Safari/Chrome中） | 186 | 反斜杠（\） | 220
+分号（Opera/FF中） | 59 | 右方括号 | 221
+小于 | 188 | 单引号 | 222
+大于 | 190
+
+2. 字符编码
+发生 keypress 事件意味着按下的键会影响到屏幕中文本的显示。在所有浏览器中，按下能够插入
+或删除字符的键都会触发 keypress 事件；按下其他键能否触发此事件因浏览器而异。
+
+3. DOM3级变化
+尽管所有浏览器都实现了某种形式的键盘事件， DOM3 级事件还是做出了一些改变。
+其中， key 属性是为了取代 keyCode 而新增的，它的值是一个字符串。在按下某个字符键时， key
+的值就是相应的文本字符（如“k”或“M”）；在按下非字符键时， key 的值是相应键的名（如“Shift”
+或“Down”）。而 char 属性在按下字符键时的行为与 key 相同，但在按下非字符键时值为 null。
+由于存在跨浏览器问题，因此本书不推荐使用 key、 keyIdentifier 或 char。
+
+4. textInput事件
+DOM3 级事件”规范中引入了一个新事件，名叫 textInput。根据规范，当用户在可编辑区域中
+输入字符时，就会触发这个事件。这个用于替代 keypress 的 textInput 事件的行为稍有不同。区别
+之一就是任何可以获得焦点的元素都可以触发 keypress 事件，但只有可编辑区域才能触发 textInput
+事件。区别之二是 textInput 事件只会在用户按下能够输入实际字符的键时才会被触发，而 keypress
+事件则在按下那些能够影响文本显示的键时也会触发（例如退格键）。
+
+另外， event 对象上还有一个属性，叫 inputMethod，表示把文本输入到文本框中的方式。
+- 0，表示浏览器不确定是怎么输入的。
+- 1，表示是使用键盘输入的。
+- 2，表示文本是粘贴进来的。
+- 3，表示文本是拖放进来的。
+- 4，表示文本是使用 IME 输入的。
+- 5，表示文本是通过在表单中选择某一项输入的。
+- 6，表示文本是通过手写输入的（比如使用手写笔）。
+- 7，表示文本是通过语音输入的。
+- 8，表示文本是通过几种方法组合输入的。
+- 9，表示文本是通过脚本输入的。
+
+5. 设备中的键盘事件
+任天堂 Wii 会在用户按下 Wii 遥控器上的按键时触发键盘事件。尽管没有办法访问 Wii 遥控器中的
+所有按键，但还是有一些键可以触发键盘事件。
+
+当用户按下十字键盘（键码为 175～178）、减号（170）、加号（174）、 1（172）或 2（173）键时就
+会触发键盘事件。但没有办法得知用户是否按下了电源开关、 A、 B 或主页键。
+
+### 复合事件
+复合事件（composition event）是 DOM3 级事件中新添加的一类事件，用于处理 IME 的输入序列。
+IME（Input Method Editor，输入法编辑器）可以让用户输入在物理键盘上找不到的字符。例如，使用拉
+丁文键盘的用户通过 IME 照样能输入日文字符。 IME 通常需要同时按住多个键，但最终只输入一个字
+符。复合事件就是针对检测和处理这种输入而设计的。有以下三种复合事件。
+- compositionstart：在 IME 的文本复合系统打开时触发，表示要开始输入了
+- compositionupdate：在向输入字段中插入新字符时触发。
+- compositionend：在 IME 的文本复合系统关闭时触发，表示返回正常键盘输入状态。
+复合事件与文本事件在很多方面都很相似。在触发复合事件时，目标是接收文本的输入字段。但它
+比文本事件的事件对象多一个属性 data，其中包含以下几个值中的一个：
+- 如果在 compositionstart 事件发生时访问，包含正在编辑的文本（例如，已经选中的需要马
+上替换的文本）；
+- 如果在 compositionupdate 事件发生时访问，包含正插入的新字符；
+- 如果在 compositionend 事件发生时访问，包含此次输入会话中插入的所有字符。
+
+### 变动事件
+DOM2 级的变动（mutation）事件能在 DOM 中的某一部分发生变化时给出提示。变动事件是为 XML
+或 HTML DOM 设计的，并不特定于某种语言。 DOM2 级定义了如下变动事件。
+- DOMSubtreeModified：在 DOM 结构中发生任何变化时触发。这个事件在其他任何事件触发
+后都会触发。
+- DOMNodeInserted：在一个节点作为子节点被插入到另一个节点中时触发。
+- DOMNodeRemoved：在节点从其父节点中被移除时触发。
+- DOMNodeInsertedIntoDocument：在一个节点被直接插入文档或通过子树间接插入文档之后
+触发。这个事件在 DOMNodeInserted 之后触发。
+- DOMNodeRemovedFromDocument：在一个节点被直接从文档中移除或通过子树间接从文档中移
+除之前触发。这个事件在 DOMNodeRemoved 之后触发。
+- DOMAttrModified：在特性被修改之后触发。
+- DOMCharacterDataModified：在文本节点的值发生变化时触发。
+使用下列代码可以检测出浏览器是否支持变动事件：
+```html
+var isSupported = document.implementation.hasFeature("MutationEvents", "2.0");
+```
+
+1. 删除节点
+在使用removeChild()或replaceChild()从 DOM中删除节点时，首先会触发DOMNodeRemoved
+事件。这个事件的目标（event.target）是被删除的节点，而 event.relatedNode 属性中包含着对
+目标节点父节点的引用。在这个事件触发时，节点尚未从其父节点删除，因此其 parentNode 属性仍然
+指向父节点（与 event.relatedNode 相同）。这个事件会冒泡，因而可以在 DOM 的任何层次上面处
+理它。
+如果被移除的节点包含子节点，那么在其所有子节点以及这个被移除的节点上会相继触发
+DOMNodeRemovedFromDocument 事件。但这个事件不会冒泡，所以只有直接指定给其中一个子节点的
+事件处理程序才会被调用。这个事件的目标是相应的子节点或者那个被移除的节点，除此之外 event
+对象中不包含其他信息。
+紧随其后触发的是 DOMSubtreeModified 事件。这个事件的目标是被移除节点的父节点；此时的
+event 对象也不会提供与事件相关的其他信息。
+
+2. 插入节点
+在使用 appendChild()、 replaceChild()或 insertBefore()向 DOM 中插入节点时，首先会
+触发 DOMNodeInserted 事件。这个事件的目标是被插入的节点，而 event.relatedNode 属性中包含
+一个对父节点的引用。在这个事件触发时，节点已经被插入到了新的父节点中。这个事件是冒泡的，因
+此可以在 DOM 的各个层次上处理它。
+紧接着，会在新插入的节点上面触发 DOMNodeInsertedIntoDocument 事件。这个事件不冒泡，
+因此必须在插入节点之前为它添加这个事件处理程序。这个事件的目标是被插入的节点，除此之外
+event 对象中不包含其他信息。
+最后一个触发的事件是 DOMSubtreeModified，触发于新插入节点的父节点。
+
+
+### HTML5事件
+1. contextmenu事件
+由于 contextmenu 事件是冒泡的，因此可以为 document 指定一个事件处理程序，用以处理页面
+中发生的所有此类事件。这个事件的目标是发生用户操作的元素。在所有浏览器中都可以取消这个事件：
+在兼容 DOM 的浏览器中，使用 event.preventDefalut()；在 IE 中，将 event.returnValue 的值
+设置为 false。因为 contextmenu 事件属于鼠标事件，所以其事件对象中包含与光标位置有关的所有
+属性。通常使用 contextmenu 事件来显示自定义的上下文菜单，而使用 onclick 事件处理程序来隐
+藏该菜单。
+
+2. beforeunload事件
+之所以有发生在 window 对象上的 beforeunload 事件，是为了让开发人员有可能在页面卸载前
+阻止这一操作。这个事件会在浏览器卸载页面之前触发，可以通过它来取消卸载并继续使用原有页面。
+但是，不能彻底取消这个事件，因为那就相当于让用户无法离开当前页面了。为此，这个事件的意图是
+将控制权交给用户。显示的消息会告知用户页面行将被卸载（正因为如此才会显示这个消息），询问用
+户是否真的要关闭页面，还是希望继续留下来。
+为了显示这个弹出对话框，必须将 event.returnValue 的值设置为要显示给用户的字符串（对
+IE 及 Fiefox 而言），同时作为函数的值返回（对 Safari 和 Chrome 而言）。
+
+3. DOMContentLoaded事件
+window 的 load 事件会在页面中的一切都加载完毕时触发，但这个过程可能会因为要
+加载的外部资源过多而颇费周折。而 DOMContentLoaded 事件则在形成完整的 DOM 树之后就会触发，
+不理会图像、 JavaScript 文件、 CSS 文件或其他资源是否已经下载完毕。与 load 事件不同，
+DOMContentLoaded 支持在页面下载的早期添加事件处理程序，这也就意味着用户能够尽早地与页面
+进行交互。
+
+要处理 DOMContentLoaded 事件，可以为 document 或 window 添加相应的事件处理程序（尽管
+这个事件会冒泡到 window，但它的目标实际上是 document）。
+
+4. readystatechange事件
+IE 为 DOM 文档中的某些部分提供了 readystatechange 事件。这个事件的目的是提供与文档或
+元素的加载状态有关的信息，但这个事件的行为有时候也很难预料。支持 readystatechange 事件的
+每个对象都有一个 readyState 属性，可能包含下列 5 个值中的一个。
+- uninitialized（未初始化）：对象存在但尚未初始化。
+- loading（正在加载）：对象正在加载数据。
+- loaded（加载完毕）：对象加载数据完成。
+- interactive（交互）：可以操作对象了，但还没有完全加载。
+- complete（完成）：对象已经加载完毕。
+
+5. pageshow和pagehide事件
+Firefox 和 Opera 有一个特性，名叫“往返缓存”（back-forward cache，或 bfcache），可以在用户使
+用浏览器的“后退”和“前进”按钮时加快页面的转换速度。这个缓存中不仅保存着页面数据，还保存
+了 DOM 和 JavaScript 的状态；实际上是将整个页面都保存在了内存里。如果页面位于 bfcache 中，那么
+再次打开该页面时就不会触发 load 事件。尽管由于内存中保存了整个页面的状态，不触发 load 事件
+也不应该会导致什么问题，但为了更形象地说明 bfcache 的行为， Firefox 还是提供了一些新事件。
+第一个事件就是 pageshow，这个事件在页面显示时触发，无论该页面是否来自 bfcache。在重新加
+载的页面中， pageshow 会在 load 事件触发后触发；而对于 bfcache 中的页面， pageshow 会在页面状
+态完全恢复的那一刻触发。另外要注意的是，虽然这个事件的目标是 document，但必须将其事件处理
+程序添加到 window。
+
+6. hashchange事件
+HTML5 新增了 hashchange 事件，以便在 URL 的参数列表（及 URL 中“#”号后面的所有字符串）
+发生变化时通知开发人员。之所以新增这个事件，是因为在 Ajax 应用中，开发人员经常要利用 URL 参
+数列表来保存状态或导航信息。
+必须要把 hashchange 事件处理程序添加给 window 对象，然后 URL 参数列表只要变化就会调用
+它。此时的 event 对象应该额外包含两个属性： oldURL 和 newURL。这两个属性分别保存着参数列表
+变化前后的完整 URL。
+
+### 设备事件
+1. orientationchange事件
+苹果公司为移动 Safari 中添加了 orientationchange 事件，以便开发人员能够确定用户何时将设
+备由横向查看模式切换为纵向查看模式。移动 Safari 的 window.orientation 属性中可能包含 3 个值：
+0 表示肖像模式， 90 表示向左旋转的横向模式（“主屏幕”按钮在右侧）， -90 表示向右旋转的横向模
+式（“主屏幕”按钮在左侧）。
+
+2. MozOrientation事件
+Firefox 3.6 为检测设备的方向引入了一个名为 MozOrientation 的新事件。（前缀 Moz 表示这是特
+定于浏览器开发商的事件，不是标准事件。）当设备的加速计检测到设备方向改变时，就会触发这个事
+件。但这个事件与 iOS 中的 orientationchange 事件不同，该事件只能提供一个平面的方向变化。由
+于 MozOrientation 事件是在 window 对象上触发的，所以可以使用以下代码来处理。
+
+3. deviceorientation事件
+本质上，DeviceOrientation Event 规范定义的 deviceorientation 事件与 MozOrientation 事件类
+似。它也是在加速计检测到设备方向变化时在 window 对象上触发，而且具有与 MozOrientation 事件
+相同的支持限制。不过， deviceorientation 事件的意图是告诉开发人员设备在空间中朝向哪儿，而
+不是如何移动。
+触发 deviceorientation 事件时，事件对象中包含着每个轴相对于设备静止状态下发生变化的信
+息。事件对象包含以下 5 个属性。
+- alpha：在围绕 z 轴旋转时（即左右旋转时）， y 轴的度数差；是一个介于 0 到 360 之间的浮点数。
+- beta：在围绕 x 轴旋转时（即前后旋转时）， z 轴的度数差；是一个介于180 到 180 之间的浮点数。
+- gamma：在围绕 y 轴旋转时（即扭转设备时）， z 轴的度数差；是一个介于90 到 90 之间的浮点数。
+- absolute：布尔值，表示设备是否返回一个绝对值。
+- compassCalibrated：布尔值，表示设备的指南针是否校准过。
+
+4. devicemotion事件
+DeviceOrientation Event 规范还定义了一个 devicemotion 事件。
+触发 devicemotion 事件时，事件对象包含以下属性。
+- acceleration：一个包含 x、 y 和 z 属性的对象，在不考虑重力的情况下，告诉你在每个方向
+上的加速度。
+- accelerationIncludingGravity：一个包含 x、 y 和 z 属性的对象，在考虑 z 轴自然重力加
+速度的情况下，告诉你在每个方向上的加速度。
+- interval：以毫秒表示的时间值，必须在另一个 devicemotion 事件触发前传入。这个值在每
+个事件中应该是一个常量。
+- rotationRate：一个包含表示方向的 alpha、 beta 和 gamma 属性的对象。
+
+### 触摸与手势事件
+1. 触摸事件
+包含 iOS 2.0 软件的 iPhone 3G 发布时，也包含了一个新版本的 Safari 浏览器。这款新的移动 Safari
+提供了一些与触摸（touch）操作相关的新事件。后来， Android 上的浏览器也实现了相同的事件。触摸
+事件会在用户手指放在屏幕上面时、在屏幕上滑动时或从屏幕上移开时触发。具体来说，有以下几个触
+摸事件。
+- touchstart：当手指触摸屏幕时触发；即使已经有一个手指放在了屏幕上也会触发。
+- touchmove：当手指在屏幕上滑动时连续地触发。在这个事件发生期间，调用 preventDefault()
+可以阻止滚动。
+- touchend：当手指从屏幕上移开时触发。
+- touchcancel：当系统停止跟踪触摸时触发。关于此事件的确切触发时间，文档中没有明确说明。
+上面这几个事件都会冒泡，也都可以取消。虽然这些触摸事件没有在 DOM 规范中定义，但它们却
+是以兼容 DOM 的方式实现的。因此，每个触摸事件的 event 对象都提供了在鼠标事件中常见的属性：
+bubbles、cancelable、view、clientX、clientY、screenX、screenY、detail、altKey、shiftKey、
+ctrlKey 和 metaKey。
+除了常见的 DOM 属性外，触摸事件还包含下列三个用于跟踪触摸的属性。
+- touches：表示当前跟踪的触摸操作的 Touch 对象的数组。
+- targetTouchs：特定于事件目标的 Touch 对象的数组。
+- changeTouches：表示自上次触摸以来发生了什么改变的 Touch 对象的数组。
+每个 Touch 对象包含下列属性。
+- clientX：触摸目标在视口中的 x 坐标。
+- clientY：触摸目标在视口中的 y 坐标。
+- identifier：标识触摸的唯一 ID。
+- pageX：触摸目标在页面中的 x 坐标。
+- pageY：触摸目标在页面中的 y 坐标。
+- screenX：触摸目标在屏幕中的 x 坐标。
+- screenY：触摸目标在屏幕中的 y 坐标。
+- target：触摸的 DOM 节点目标。
+
+2. 手势事件
+iOS 2.0 中的 Safari 还引入了一组手势事件。当两个手指触摸屏幕时就会产生手势，手势通常会改变
+显示项的大小，或者旋转显示项。有三个手势事件，分别介绍如下。
+- gesturestart：当一个手指已经按在屏幕上而另一个手指又触摸屏幕时触发。
+- gesturechange：当触摸屏幕的任何一个手指的位置发生变化时触发。
+- gestureend：当任何一个手指从屏幕上面移开时触发。
+
+只有两个手指都触摸到事件的接收容器时才会触发这些事件。在一个元素上设置事件处理程序，意
+味着两个手指必须同时位于该元素的范围之内，才能触发手势事件（这个元素就是目标）。由于这些事
+件冒泡，所以将事件处理程序放在文档上也可以处理所有手势事件。此时，事件的目标就是两个手指都
+位于其范围内的那个元素。
+
+触摸事件和手势事件之间存在某种关系。当一个手指放在屏幕上时，会触发 touchstart 事件。如
+果另一个手指又放在了屏幕上，则会先触发 gesturestart 事件，随后触发基于该手指的 touchstart
+事件。如果一个或两个手指在屏幕上滑动，将会触发 gesturechange 事件。但只要有一个手指移开，
+就会触发 gestureend 事件，紧接着又会触发基于该手指的 touchend 事件。
+
+与触摸事件一样，每个手势事件的 event 对象都包含着标准的鼠标事件属性： bubbles、
+cancelable、 view、 clientX、 clientY、 screenX、 screenY、 detail、 altKey、 shiftKey、
+ctrlKey 和 metaKey。此外，还包含两个额外的属性： rotation 和 scale。其中， rotation 属性表
+示手指变化引起的旋转角度，负值表示逆时针旋转，正值表示顺时针旋转（该值从 0 开始）。而 scale
+属性表示两个手指间距离的变化情况（例如向内收缩会缩短距离）；这个值从 1 开始，并随距离拉大而
+增长，随距离缩短而减小。
 
 ## 内存和性能
+
 ### 事件委托
+对“事件处理程序过多”问题的解决方案就是事件委托。事件委托利用了事件冒泡，只指定一个事
+件处理程序，就可以管理某一类型的所有事件。
+
+如果可行的话，也可以考虑为 document 对象添加一个事件处理程序，用以处理页面上发生的某种
+特定类型的事件。这样做与采取传统的做法相比具有如下优点。
+- document 对象很快就可以访问，而且可以在页面生命周期的任何时点上为它添加事件处理程序
+（无需等待 DOMContentLoaded 或 load 事件）。换句话说，只要可单击的元素呈现在页面上，
+就可以立即具备适当的功能。
+- 在页面中设置事件处理程序所需的时间更少。只添加一个事件处理程序所需的 DOM 引用更少，
+所花的时间也更少。
+- 整个页面占用的内存空间更少，能够提升整体性能。
+最适合采用事件委托技术的事件包括 click、mousedown、mouseup、keydown、keyup 和 keypress。
+虽然 mouseover 和 mouseout 事件也冒泡，但要适当处理它们并不容易，而且经常需要计算元素的位置。
+（因为当鼠标从一个元素移到其子节点时，或者当鼠标移出该元素时，都会触发 mouseout 事件。）
+
 ### 移除事件处理程序
+每当将事件处理程序指定给元素时，运行中的浏览器代码与支持页面交互的 JavaScript 代码之间就
+会建立一个连接。这种连接越多，页面执行起来就越慢。如前所述，可以采用事件委托技术，限制建立
+的连接数量。另外，在不需要的时候移除事件处理程序，也是解决这个问题的一种方案。内存中留有那
+些过时不用的“空事件处理程序”（dangling event handler），也是造成 Web 应用程序内存与性能问题的
+主要原因。
+
+在两种情况下，可能会造成上述问题。第一种情况就是从文档中移除带有事件处理程序的元素时。
+这可能是通过纯粹的 DOM 操作，例如使用 removeChild()和 replaceChild()方法，但更多地是发
+生在使用 innerHTML 替换页面中某一部分的时候。如果带有事件处理程序的元素被 innerHTML 删除
+了，那么原来添加到元素中的事件处理程序极有可能无法被当作垃圾回收。
 
 
 ## 模拟事件
 ### DOM中的事件模拟
+可以在 document 对象上使用 createEvent()方法创建 event 对象。这个方法接收一个参数，即
+表示要创建的事件类型的字符串。在 DOM2 级中，所有这些字符串都使用英文复数形式，而在 DOM3
+级中都变成了单数。这个字符串可以是下列几字符串之一。
+- UIEvents：一般化的 UI 事件。 鼠标事件和键盘事件都继承自 UI 事件。 DOM3 级中是 UIEvent。
+- MouseEvents：一般化的鼠标事件。 DOM3 级中是 MouseEvent。
+- MutationEvents：一般化的 DOM 变动事件。 DOM3 级中是 MutationEvent。
+- HTMLEvents：一般化的 HTML 事件。没有对应的 DOM3 级事件（HTML 事件被分散到其他类
+别中）。
+
+1. 模拟鼠标事件
+创建新的鼠标事件对象并为其指定必要的信息，就可以模拟鼠标事件。创建鼠标事件对象的方法是
+为 createEvent()传入字符串"MouseEvents"。返回的对象有一个名为 initMouseEvent()方法，
+用于指定与该鼠标事件有关的信息。这个方法接收 15 个参数，分别与鼠标事件中每个典型的属性一一
+对应；这些参数的含义如下。
+- type（字符串）：表示要触发的事件类型，例如"click"。
+- bubbles（布尔值）：表示事件是否应该冒泡。为精确地模拟鼠标事件，应该把这个参数设置为
+true。
+- cancelable（布尔值）：表示事件是否可以取消。为精确地模拟鼠标事件，应该把这个参数设
+置为 true。
+- view（AbstractView）：与事件关联的视图。这个参数几乎总是要设置为 document.defaultView。
+- detail（整数）： 与事件有关的详细信息。这个值一般只有事件处理程序使用，但通常都设置为 0。
+- screenX（整数）：事件相对于屏幕的 X 坐标。
+- screenY（整数）：事件相对于屏幕的 Y 坐标。
+- clientX（整数）：事件相对于视口的 X 坐标。
+- clientY（整数）：事件想对于视口的 Y 坐标。
+- ctrlKey（布尔值）：表示是否按下了 Ctrl 键。默认值为 false。
+- altKey（布尔值）：表示是否按下了 Alt 键。默认值为 false。
+- shiftKey（布尔值）：表示是否按下了 Shift 键。默认值为 false。
+- metaKey（布尔值）：表示是否按下了 Meta 键。默认值为 false。
+- button（整数）：表示按下了哪一个鼠标键。默认值为 0。
+- relatedTarget（对象）： 表示与事件相关的对象。这个参数只在模拟 mouseover 或 mouseout
+时使用。
+
+2. 模拟键盘事件
+前面曾经提到过，“DOM2 级事件”中没有就键盘事件作出规定，因此模拟键盘事件并没有现成的
+思路可循。“DOM2 级事件”的草案中本来包含了键盘事件，但在定稿之前又被删除了； Firefox 根据其
+草案实现了键盘事件。需要提请大家注意的是，“DOM3 级事件”中的键盘事件与曾包含在“DOM2 级
+事件”草案中的键盘事件有很大区别。
+DOM3 级规定，调用 createEvent()并传入"KeyboardEvent"就可以创建一个键盘事件。返回的
+事件对象会包含一个 initKeyEvent()方法，这个方法接收下列参数。
+- type（字符串）：表示要触发的事件类型，如"keydown"。
+- bubbles（布尔值）：表示事件是否应该冒泡。为精确模拟鼠标事件，应该设置为 true。
+- cancelable（布尔值）：表示事件是否可以取消。为精确模拟鼠标事件，应该设置为 true。
+- view （AbstractView ）：与事件关联的视图。这个参数几乎总是要设置为 document.
+defaultView。
+- key（布尔值）：表示按下的键的键码。
+- location（整数）：表示按下了哪里的键。 0 表示默认的主键盘， 1 表示左， 2 表示右， 3 表示
+数字键盘， 4 表示移动设备（即虚拟键盘）， 5 表示手柄。
+- modifiers（字符串）：空格分隔的修改键列表，如"Shift"。
+- repeat（整数）：在一行中按了这个键多少次。
+
+在 Firefox 中，调用 createEvent()并传入"KeyEvents"就可以创建一个键盘事件。返回的事件
+对象会包含一个 initKeyEvent()方法，这个方法接受下列 10 个参数。
+- type（字符串）：表示要触发的事件类型，如"keydown"。
+- bubbles（布尔值）：表示事件是否应该冒泡。为精确模拟鼠标事件，应该设置为 true。
+- cancelable（布尔值）：表示事件是否可以取消。为精确模拟鼠标事件，应该设置为 true。
+- view（AbstractView）：与事件关联的视图。这个参数几乎总是要设置为 document.defaultView。
+- ctrlKey（布尔值）：表示是否按下了 Ctrl 键。默认值为 false。
+- altKey（布尔值）：表示是否按下了 Alt 键。默认值为 false。
+- shiftKey（布尔值）：表示是否按下了 Shift 键。默认值为 false。
+- metaKey（布尔值）：表示是否按下了 Meta 键。默认值为 false。
+- keyCode（整数）：被按下或释放的键的键码。这个参数对 keydown 和 keyup 事件有用，默认
+值为 0。
+- charCode（整数）：通过按键生成的字符的 ASCII 编码。这个参数对 keypress 事件有用，默
+认值为 0。
+
+3. 模拟其他事件
+虽然鼠标事件和键盘事件是在浏览器中最经常模拟的事件，但有时候同样需要模拟变动事件和
+HTML 事 件 。 要 模 拟 变 动 事 件 ， 可 以 使 用 createEvent("MutationEvents") 创 建 一 个 包 含
+initMutationEvent() 方 法 的 变 动 事 件 对 象 。 这 个 方 法 接 受 的 参 数 包 括 ： type 、 bubbles 、
+cancelable、 relatedNode、 preValue、 newValue、 attrName 和 attrChange。
+
+4. 自定义DOM事件
+DOM3 级还定义了“自定义事件”。自定义事件不是由 DOM 原生触发的，它的目的是让开发人员
+创建自己的事件。要创建新的自定义事件，可以调用 createEvent("CustomEvent")。返回的对象有
+一个名为 initCustomEvent()的方法，接收如下 4 个参数。
+- type（字符串）：触发的事件类型，例如"keydown"。
+- bubbles（布尔值）：表示事件是否应该冒泡。
+- cancelable（布尔值）：表示事件是否可以取消。
+- detail（对象）：任意值，保存在 event 对象的 detail 属性中。
+
 ### IE中的事件模拟
+调用 document.createEventObject()方法可以在 IE 中创建 event 对象。但与 DOM 方式不同
+的是，这个方法不接受参数，结果会返回一个通用的 event 对象。然后，你必须手工为这个对象添加
+所有必要的信息（没有方法来辅助完成这一步骤）。最后一步就是在目标上调用 fireEvent()方法，这
+个方法接受两个参数：事件处理程序的名称和 event 对象。在调用 fireEvent()方法时，会自动为
+event 对象添加 srcElement 和 type 属性；其他属性则都是必须通过手工添加的。换句话说，模拟任
+何 IE 支持的事件都采用相同的模式。
 
 ---
 # 表单脚本
+JavaScript 最初的一个应用，就是分担服务器处理表单的责任，打破处处依赖服务器的局面。尽
+管目前的 Web 和 JavaScript 已经有了长足的发展，但 Web 表单的变化并不明显。由于 Web 表单
+没有为许多常见任务提供现成的解决手段，很多开发人员不仅会在验证表单时使用 JavaScirpt，而且还
+增强了一些标准表单控件的默认行为。
+ 
 ## 表单的基础知识
+在 HTML 中，表单是由<form>元素来表示的，而在 JavaScript 中，表单对应的则是 HTMLFormElement 类型。 HTMLFormElement 继承了 HTMLElement，因而与其他 HTML 元素具有相同的默认属
+性。不过， HTMLFormElement 也有它自己下列独有的属性和方法。
+- acceptCharset：服务器能够处理的字符集；等价于 HTML 中的 accept-charset 特性。
+- action：接受请求的 URL；等价于 HTML 中的 action 特性。
+- elements：表单中所有控件的集合（HTMLCollection）。
+- enctype：请求的编码类型；等价于 HTML 中的 enctype 特性。
+- length：表单中控件的数量。
+- method：要发送的 HTTP 请求类型，通常是"get"或"post"；等价于 HTML 的 method 特性。
+- name：表单的名称；等价于 HTML 的 name 特性。
+- reset()：将所有表单域重置为默认值。
+- submit()：提交表单。
+- target：用于发送请求和接收响应的窗口名称；等价于 HTML 的 target 特性。
+
 ### 提交表单
+用户单击提交按钮或图像按钮时，就会提交表单。使用<input>或<button>都可以定义提交按钮，
+只要将其 type 特性的值设置为"submit"即可，而图像按钮则是通过将<input>的 type 特性值设置为
+"image"来定义的。因此，只要我们单击以下代码生成的按钮，就可以提交表单。
+
 ### 重置表单
+在用户单击重置按钮时，表单会被重置。使用 type 特性值为"reset"的<input>或<button>都
+可以创建重置按钮。
+```html
+<!-- 通用重置按钮 -->
+<input type="reset" value="Reset Form">
+<!-- 自定义重置按钮 -->
+<button type="reset">Reset Form</button>
+```
 ### 表单字段
+可以像访问页面中的其他元素一样，使用原生 DOM 方法访问表单元素。此外，每个表单都有
+elements 属性，该属性是表单中所有表单元素（字段）的集合。这个 elements 集合是一个有序列表，
+其中包含着表单中的所有字段，例如<input>、 <textarea>、 <button>和<fieldset>。每个表单字
+段在 elements 集合中的顺序，与它们出现在标记中的顺序相同，可以按照位置和 name 特性来访问它
+们。
+
+1. 共有的表单字段属性
+除了<fieldset>元素之外，所有表单字段都拥有相同的一组属性。由于<input>类型可以表示多
+种表单字段，因此有些属性只适用于某些字段，但还有一些属性是所有字段所共有的。表单字段共有的
+属性如下。
+- disabled：布尔值，表示当前字段是否被禁用。
+- form：指向当前字段所属表单的指针；只读。
+- name：当前字段的名称。
+- readOnly：布尔值，表示当前字段是否只读。
+- tabIndex：表示当前字段的切换（tab）序号。
+- type：当前字段的类型，如"checkbox"、 "radio"，等等。
+- value：当前字段将被提交给服务器的值。对文件字段来说，这个属性是只读的，包含着文件
+在计算机中的路径。
+
+2. 共有的表单字段方法
+每个表单字段都有两个方法： focus()和 blur()。其中， focus()方法用于将浏览器的焦点设置
+到表单字段，即激活表单字段，使其可以响应键盘事件。
+
+3. 共有的表单字段事件
+除了支持鼠标、键盘、更改和 HTML 事件之外，所有表单字段都支持下列 3 个事件。
+- blur：当前字段失去焦点时触发。
+- change：对于<input>和<textarea>元素，在它们失去焦点且 value 值改变时触发；对于
+<select>元素，在其选项改变时触发。
+- focus：当前字段获得焦点时触发。
+
+当用户改变了当前字段的焦点，或者我们调用了 blur()或 focus()方法时，都可以触发 blur 和
+focus 事件。这两个事件在所有表单字段中都是相同的。但是， change 事件在不同表单控件中触发的
+次数会有所不同。对于<input>和<textarea>元素，当它们从获得焦点到失去焦点且 value 值改变时，
+才会触发 change 事件。对于<select>元素，只要用户选择了不同的选项，就会触发 change 事件；
+换句话说，不失去焦点也会触发 change 事件。
 
 
 ## 文本框脚本
+在 HTML 中，有两种方式来表现文本框：一种是使用<input>元素的单行文本框，另一种是使用
+<textarea>的多行文本框。这两个控件非常相似，而且多数时候的行为也差不多。不过，它们之间仍
+然存在一些重要的区别。
+要表现文本框，必须将<input>元素的 type 特性设置为"text"。而通过设置 size 特性，可以指
+定文本框中能够显示的字符数。通过 value 特性，可以设置文本框的初始值，而 maxlength 特性则用
+于指定文本框可以接受的最大字符数。如果要创建一个文本框，让它能够显示 25 个字符，但输入不能
+超过 50 个字符。
+```html
+<input type="text" size="25" maxlength="50" value="initial value">
+<textarea rows="25" cols="5">initial value</textarea>
+```
+
 ### 选择文本
+上述两种文本框都支持 select()方法，这个方法用于选择文本框中的所有文本。在调用 select()
+方法时，大多数浏览器（Opera 除外）都会将焦点设置到文本框中。这个方法不接受参数，可以在任何
+时候被调用。
+```javascript
+var textbox = document.forms[0].elements["textbox1"];
+textbox.select();
+```
+在文本框获得焦点时选择其所有文本，这是一种非常常见的做法，特别是在文本框包含默认值的时
+候。因为这样做可以让用户不必一个一个地删除文本。
+
+1. 选择（select）事件
+与 select()方法对应的，是一个 select 事件。在选择了文本框中的文本时，就会触发 select
+事件。不过，到底什么时候触发 select 事件，还会因浏览器而异。在 IE9+、 Opera、 Firefox、 Chrome
+和 Safari 中，只有用户选择了文本（而且要释放鼠标），才会触发 select 事件。而在 IE8 及更早版本中，
+只要用户选择了一个字母（不必释放鼠标），就会触发 select 事件。另外，在调用 select()方法时也
+会触发 select 事件。
+
+2. 取得选择的文本
+虽然通过 select 事件我们可以知道用户什么时候选择了文本，但仍然不知道用户选择了什么文本。
+HTML5 通过一些扩展方案解决了这个问题，以便更顺利地取得选择的文本。该规范采取的办法是添加
+两个属性： selectionStart 和 selectionEnd。这两个属性中保存的是基于 0 的数值，表示所选择
+文本的范围（即文本选区开头和结尾的偏移量）。因此，要取得用户在文本框中选择的文本，可以使用
+如下代码。
+```javascript
+function getSelectedText(textbox){
+return textbox.value.substring(textbox.selectionStart, textbox.selectionEnd);
+}
+```
+
+3. 选择部分文本
+HTML5 也 为 选 择 文 本 框 中 的 部 分 文 本 提 供 了 解 决 方 案 ， 即 最 早 由 Firefox 引 入 的
+setSelectionRange()方法。现在除select()方法之外，所有文本框都有一个setSelectionRange()
+方法。这个方法接收两个参数：要选择的第一个字符的索引和要选择的最后一个字符之后的字符的索引
+（类似于 substring()方法的两个参数）。
+
 ### 过滤输入
+我们经常会要求用户在文本框中输入特定的数据，或者输入特定格式的数据。例如，必须包含某些
+字符，或者必须匹配某种模式。由于文本框在默认情况下没有提供多少验证数据的手段，因此必须使用
+JavaScript 来完成此类过滤输入的操作。而综合运用事件和 DOM 手段，就可以将普通的文本框转换成能
+够理解用户输入数据的功能型控件。
+
+1. 屏蔽字符
+有时候，我们需要用户输入的文本中包含或不包含某些字符。例如，电话号码中不能包含非数值字
+符。如前所述，响应向文本框中插入字符操作的是 keypress 事件。因此，可以通过阻止这个事件的默
+认行为来屏蔽此类字符。在极端的情况下，可以通过下列代码屏蔽所有按键操作。
+```javascript
+EventUtil.addHandler(textbox, "keypress", function(event){
+event = EventUtil.getEvent(event);
+EventUtil.preventDefault(event);
+});
+```
+虽然理论上只应该在用户按下字符键时才触发 keypress 事件，但有些浏览器也会对其他键触发此
+事件。 Firefox 和 Safari（3.1 版本以前）会对向上键、向下键、退格键和删除键触发 keypress 事件；
+Safari 3.1 及更新版本则不会对这些键触发 keypress 事件。这意味着，仅考虑到屏蔽不是数值的字符还
+不够，还要避免屏蔽这些极为常用和必要的键。所幸的是，要检测这些键并不困难。在 Firefox 中，所
+有由非字符键触发的 keypress 事件对应的字符编码为 0，而在 Safari 3 以前的版本中，对应的字符编
+码全部为 8。为了让代码更通用，只要不屏蔽那些字符编码小于 10 的键即可。
+除此之外，还有一个问题需要处理：复制、粘贴及其他操作还要用到 Ctrl 键。在除 IE 之外的所有
+浏览器中，前面的代码也会屏蔽 Ctrl+C、 Ctrl+V，以及其他使用 Ctrl 的组合键。因此，最后还要添加一
+个检测条件，以确保用户没有按下 Ctrl 键。
+```javascript
+EventUtil.addHandler(textbox, "keypress", function(event){
+event = EventUtil.getEvent(event);
+var target = EventUtil.getTarget(event);
+var charCode = EventUtil.getCharCode(event);
+if (!/\d/.test(String.fromCharCode(charCode)) && charCode > 9 &&
+!event.ctrlKey){
+EventUtil.preventDefault(event);
+}
+});
+```
+2. 操作剪贴板
+- beforecopy：在发生复制操作前触发。
+- copy：在发生复制操作时触发。
+- beforecut：在发生剪切操作前触发。
+- cut：在发生剪切操作时触发。
+- beforepaste：在发生粘贴操作前触发。
+- paste：在发生粘贴操作时触发。
+
+由于没有针对剪贴板操作的标准，这些事件及相关对象会因浏览器而异。在 Safari、Chrome 和 Firefox
+中， beforecopy、 beforecut 和 beforepaste 事件只会在显示针对文本框的上下文菜单（预期将发
+生剪贴板事件）的情况下触发。但是， IE 则会在触发 copy、 cut 和 paste 事件之前先行触发这些事件。
+至于 copy、 cut 和 paste 事件，只要是在上下文菜单中选择了相应选项，或者使用了相应的键盘组合
+键，所有浏览器都会触发它们。
+在实际的事件发生之前，通过 beforecopy、 beforecut 和 beforepaste 事件可以在向剪贴板发
+送数据，或者从剪贴板取得数据之前修改数据。不过，取消这些事件并不会取消对剪贴板的操作——只
+有取消 copy、 cut 和 paste 事件，才能阻止相应操作发生。
+要访问剪贴板中的数据，可以使用 clipboardData 对象：在 IE 中，这个对象是 window 对象的
+属性；而在 Firefox 4+、 Safari 和 Chrome 中，这个对象是相应 event 对象的属性。但是，在 Firefox、
+Safari 和 Chorme 中，只有在处理剪贴板事件期间 clipboardData 对象才有效，这是为了防止对剪贴板
+的未授权访问；在 IE 中，则可以随时访问 clipboardData 对象。为了确保跨浏览器兼容性，最好只
+在发生剪贴板事件期间使用这个对象。
+这个 clipboardData 对象有三个方法：getData()、setData()和 clearData()。其中，getData()
+用于从剪贴板中取得数据，它接受一个参数，即要取得的数据的格式。在 IE 中，有两种数据格式： "text"
+和"URL"。在 Firefox、 Safari 和 Chrome 中，这个参数是一种 MIME 类型；不过，可以用"text"代表
+"text/plain"。
+类似地， setData()方法的第一个参数也是数据类型，第二个参数是要放在剪贴板中的文本。对于
+第一个参数， IE 照样支持"text"和"URL"，而 Safari 和 Chrome 仍然只支持 MIME 类型。但是，与
+getData()方法不同的是， Safari 和 Chrome 的 setData()方法不能识别"text"类型。这两个浏览器在
+成功将文本放到剪贴板中后，都会返回 true；否则，返回 false。
+
 ### 自动切换焦点
+使用 JavaScript 可以从多个方面增强表单字段的易用性。其中，最常见的一种方式就是在用户填写
+完当前字段时，自动将焦点切换到下一个字段。通常，在自动切换焦点之前，必须知道用户已经输入了
+既定长度的数据（例如电话号码）。
+```html
+<input type="text" name="tel1" id="txtTel1" maxlength="3">
+<input type="text" name="tel2" id="txtTel2" maxlength="3">
+<input type="text" name="tel3" id="txtTel3" maxlength="4">
+```
+```javascript
+(function(){
+function tabForward(event){
+event = EventUtil.getEvent(event);
+var target = EventUtil.getTarget(event);
+if (target.value.length == target.maxLength){
+var form = target.form;
+for (var i=0, len=form.elements.length; i < len; i++) {
+if (form.elements[i] == target) {
+if (form.elements[i+1]){
+form.elements[i+1].focus();
+}
+return;
+}
+}
+}
+}
+var textbox1 = document.getElementById("txtTel1");
+var textbox2 = document.getElementById("txtTel2");
+var textbox3 = document.getElementById("txtTel3");
+EventUtil.addHandler(textbox1, "keyup", tabForward);
+EventUtil.addHandler(textbox2, "keyup", tabForward);
+EventUtil.addHandler(textbox3, "keyup", tabForward);
+})();
+```
+
 ### HTML5约束验证API
+1. 必填字段
+第一种情况是在表单字段中指定了 required 属性。
+```html
+<input type="text" name="username" required>
+```
+任何标注有 required 的字段，在提交表单时都不能空着。这个属性适用于<input>、 <textarea>
+和<select>字段（Opera 11 及之前版本还不支持<select>的 required 属性）。在 JavaScript 中，通过
+对应的 required 属性，可以检查某个表单字段是否为必填字段。
+
+2. 其他输入类型
+HTML5 为<input>元素的 type 属性又增加了几个值。这些新的类型不仅能反映数据类型的信息，
+而且还能提供一些默认的验证功能。其中， "email"和"url"是两个得到支持最多的类型，各浏览器也
+都为它们增加了定制的验证机制。
+
+3. 数值范围
+除了"email"和"url"， HTML5 还定义了另外几个输入元素。这几个元素都要求填写某种基于数
+字的值： "number"、 "range"、 "datetime"、 "datetime-local"、 "date"、 "month"、 "week"，
+还有"time"。浏览器对这几个类型的支持情况并不好，因此如果真想选用的话，要特别小心。目前，
+浏览器开发商主要关注更好的跨平台兼容性以及更多的逻辑功能。因此，本节介绍的内容某种程度上有
+些超前，不一定马上就能在实际开发中使用。
+
+对所有这些数值类型的输入元素，可以指定 min 属性（最小的可能值）、 max 属性（最大的可能值）
+和 step 属性（从 min 到 max 的两个刻度间的差值）
+
+4. 输入模式
+HTML5 为文本字段新增了 pattern 属性。这个属性的值是一个正则表达式，用于匹配文本框中的
+值。
+
+5. 检测有效性
+使用 checkValidity()方法可以检测表单中的某个字段是否有效。所有表单字段都有个方法，如
+果字段的值有效，这个方法返回 true，否则返回 false。字段的值是否有效的判断依据是本节前面介
+绍过的那些约束。换句话说，必填字段中如果没有值就是无效的，而字段中的值与 pattern 属性不匹
+配也是无效的。
+与 checkValidity()方法简单地告诉你字段是否有效相比， validity 属性则会告诉你为什么字
+段有效或无效。这个对象中包含一系列属性，每个属性会返回一个布尔值。
+- customError ：如果设置了 setCustomValidity()，则为 true，否则返回 false。
+- patternMismatch：如果值与指定的 pattern 属性不匹配，返回 true。
+- rangeOverflow：如果值比 max 值大，返回 true。
+- rangeUnderflow：如果值比 min 值小，返回 true。
+- stepMisMatch：如果 min 和 max 之间的步长值不合理，返回 true。
+- tooLong：如果值的长度超过了 maxlength 属性指定的长度，返回 true。有的浏览器（如 Firefox 4）
+会自动约束字符数量，因此这个值可能永远都返回 false。
+- typeMismatch：如果值不是"mail"或"url"要求的格式，返回 true。
+- valid：如果这里的其他属性都是 false，返回 true。 checkValidity()也要求相同的值。
+- valueMissing：如果标注为 required 的字段中没有值，返回 true。
+
+6. 禁用验证
+通过设置 novalidate 属性，可以告诉表单不进行验证。
 
 
 ## 选择框脚本
-### 选择选项
-### 添加选项
-### 移除选项
-### 移动和重排选项
+选择框是通过<select>和<option>元素创建的。为了方便与这个控件交互，除了所有表单字段共
+有的属性和方法外， HTMLSelectElement 类型还提供了下列属性和方法。
+- add(newOption, relOption)：向控件中插入新<option>元素，其位置在相关项（relOption）
+之前。
+- multiple：布尔值，表示是否允许多项选择；等价于 HTML 中的 multiple 特性。
+- options：控件中所有<option>元素的 HTMLCollection。
+- remove(index)：移除给定位置的选项。
+- selectedIndex：基于 0 的选中项的索引，如果没有选中项，则值为-1。对于支持多选的控件，
+只保存选中项中第一项的索引。
+- size：选择框中可见的行数；等价于 HTML 中的 size 特性。
 
+选择框的 type 属性不是"select-one"，就是"select-multiple"，这取决于 HTML 代码中有
+没有 multiple 特性。选择框的 value 属性由当前选中项决定，相应规则如下。
+- 如果没有选中的项，则选择框的 value 属性保存空字符串。
+- 如果有一个选中项，而且该项的 value 特性已经在 HTML 中指定，则选择框的 value 属性等
+于选中项的 value 特性。即使 value 特性的值是空字符串，也同样遵循此条规则。
+- 如果有一个选中项，但该项的 value 特性在 HTML 中未指定，则选择框的 value 属性等于该
+项的文本。
+- 如果有多个选中项，则选择框的 value 属性将依据前两条规则取得第一个选中项的值。
+
+在 DOM 中，每个<option>元素都有一个 HTMLOptionElement 对象表示。为便于访问数据，
+HTMLOptionElement 对象添加了下列属性：
+- index：当前选项在 options 集合中的索引。
+- label：当前选项的标签；等价于 HTML 中的 label 特性。
+- selected：布尔值，表示当前选项是否被选中。将这个属性设置为 true 可以选中当前选项。
+- text：选项的文本。
+- value：选项的值（等价于 HTML 中的 value 特性）。
+
+### 选择选项
+对于只允许选择一项的选择框，访问选中项的最简单方式，就是使用选择框的 selectedIndex 属
+性，
+```javascript
+var selectedOption = selectbox.options[selectbox.selectedIndex];
+```
+另一种选择选项的方式，就是取得对某一项的引用，然后将其 selected 属性设置为 true。
+```javascript
+selectbox.options[0].selected = true;
+```
+
+### 添加选项
+可以使用 JavaScript 动态创建选项，并将它们添加到选择框中。添加选项的方式有很多，第一种方
+式就是使用如下所示的 DOM 方法。
+```javascript
+var newOption = document.createElement("option");
+newOption.appendChild(document.createTextNode("Option text"));
+newOption.setAttribute("value", "Option value");
+selectbox.appendChild(newOption);
+```
+
+第二种方式是使用 Option 构造函数来创建新选项，这个构造函数是 DOM 出现之前就有的，一
+直遗留到现在。 Option 构造函数接受两个参数：文本（text）和值（value）；第二个参数可选。
+虽然这个构造函数会创建一个 Object 的实例，但兼容 DOM 的浏览器会返回一个<option>元素。
+换句话说，在这种情况下，我们仍然可以使用 appendChild()将新选项添加到选择框中。
+```javascript
+var newOption = new Option("Option text", "Option value");
+selectbox.appendChild(newOption); //在 IE8 及之前版本中有问题
+```
+
+第三种添加新选项的方式是使用选择框的 add()方法。 DOM 规定这个方法接受两个参数：要添加
+的新选项和将位于新选项之后的选项。如果想在列表的最后添加一个选项，应该将第二个参数设置为
+null。在 IE 对 add()方法的实现中，第二个参数是可选的，而且如果指定，该参数必须是新选项之后
+选项的索引。兼容 DOM 的浏览器要求必须指定第二个参数，因此要想编写跨浏览器的代码，就不能只
+传入一个参数。这时候，为第二个参数传入 undefined，就可以在所有浏览器中都将新选项插入到列
+表最后了。
+```javascript
+var newOption = new Option("Option text", "Option value");
+selectbox.add(newOption, undefined); //最佳方案
+```
+### 移除选项
+与添加选项类似，移除选项的方式也有很多种。首先，可以使用 DOM 的 removeChild()方法，
+为其传入要移除的选项。
+```javascript
+selectbox.removeChild(selectbox.options[0]); //移除第一个选项
+```
+
+其次，可以使用选择框的 remove()方法。这个方法接受一个参数，即要移除选项的索引。
+```javascript
+selectbox.remove(0); //移除第一个选项
+```
+
+最后一种方式，就是将相应选项设置为 null。这种方式也是 DOM 出现之前浏览器的遗留机制。
+```javascript
+selectbox.options[0] = null; //移除第一个选项
+```
+
+### 移动和重排选项
+在 DOM 标准出现之前，将一个选择框中的选项移动到另一个选择框中是非常麻烦的。整个过程要
+涉及从第一个选择框中移除选项，然后以相同的文本和值创建新选项，最后再将新选项添加到第二个选
+择框中。而使用 DOM 的 appendChild()方法，就可以将第一个选择框中的选项直接移动到第二个选
+择框中。我们知道，如果为 appendChild()方法传入一个文档中已有的元素，那么就会先从该元素的
+父节点中移除它，再把它添加到指定的位置。
+
+重排选项次序的过程也十分类似，最好的方式仍然是使用 DOM 方法。要将选择框中的某一项移动
+到特定位置，最合适的 DOM 方法就是 insertBefore()； appendChild()方法只适用于将选项添加
+到选择框的最后。
 
 ## 表单序列化
-
+随着 Ajax 的出现，表单序列化已经成为一种常见需求（第 21 章将讨论 Ajax）。在 JavaScript 中，可
+以利用表单字段的 type 属性，连同 name 和 value 属性一起实现对表单的序列化。在编写代码之前，
+有必须先搞清楚在表单提交期间，浏览器是怎样将数据发送给服务器的。
+- 对表单字段的名称和值进行 URL 编码，使用和号（&）分隔。
+- 不发送禁用的表单字段。
+- 只发送勾选的复选框和单选按钮。
+- 不发送 type 为"reset"和"button"的按钮。
+- 多选选择框中的每个选中的值单独一个条目。
+- 在单击提交按钮提交表单的情况下，也会发送提交按钮；否则，不发送提交按钮。也包括 type
+为"image"的<input>元素。
+- <select>元素的值，就是选中的<option>元素的 value 特性的值。如果<option>元素没有
+value 特性，则是<option>元素的文本值。
 
 
 ## 富文本编辑
+富文本编辑，又称为 WYSIWYG（What You See Is What You Get，所见即所得）。在网页中编辑富
+文本内容，是人们对 Web 应用程序最大的期待之一。虽然也没有规范，但在 IE 最早引入的这一功能基
+础上，已经出现了事实标准。而且， Opera、 Safari、 Chrome 和 Firefox 都已经支持这一功能。这一技术
+的本质，就是在页面中嵌入一个包含空 HTML 页面的 iframe。通过设置 designMode 属性，这个空白
+的 HTML 页面可以被编辑，而编辑对象则是该页面<body>元素的 HTML 代码。 designMode 属性有两
+个可能的值： "off"（默认值）和"on"。在设置为"on"时，整个文档都会变得可以编辑（显示插入符
+号），然后就可以像使用字处理软件一样，通过键盘将文本内容加粗、变成斜体，等等。
+
 ### 使用contenteditable属性
+另一种编辑富文本内容的方式是使用名为 contenteditable 的特殊属性，这个属性也是由 IE 最
+早实现的。可以把 contenteditable 属性应用给页面中的任何元素，然后用户立即就可以编辑该元素。
+这种方法之所以受到欢迎，是因为它不需要 iframe、空白页和 JavaScript，只要为元素设置
+contenteditable 属性即可。
+
 ### 操作富文本
+与富文本编辑器交互的主要方式，就是使用 document.execCommand()。这个方法可以对文档执
+行预定义的命令，而且可以应用大多数格式。可以为 document.execCommand()方法传递 3 个参数：
+要执行的命令名称、表示浏览器是否应该为当前命令提供用户界面的一个布尔值和执行命令必须的一个
+值（如果不需要值，则传递 null）。为了确保跨浏览器的兼容性，第二个参数应该始终设置为 false，
+因为 Firefox 会在该参数为 true 时抛出错误。
+
+命令 | 值（第三个参数） | 说明
+--- | --- | ---
+backcolor | 颜色字符串 | 设置文档的背景颜色
+bold | null | 将选择的文本转换为粗体
+copy | null | 将选择的文本复制到剪贴板
+createlink | URL字符串 | 将选择的文本转换成一个链接，指向指定的URL
+cut | null | 将选择的文本剪切到剪贴板
+delete | null | 删除选择的文本
+fontname | 字体名称 | 将选择的文本修改为指定字体
+fontsize | 1～7 | 将选择的文本修改为指定字体大小
+forecolor | 颜色字符串 | 将选择的文本修改为指定的颜色
+formatblock | 要包围当前文本块的HTML标签；如<h1> | 使用指定的HTML标签来格式化选择的文本块
+indent | null | 缩进文本
+inserthorizontalrule | null | 在插入字符处插入一个<hr>元素
+insertimage | 图像的URL | 在插入字符处插入一个图像
+insertorderedlist | null | 在插入字符处插入一个<ol>元素
+insertunorderedlist | null | 在插入字符处插入一个<ul>元素
+insertparagraph | null | 在插入字符处插入一个<p>元素
+italic | null | 将选择的文本转换成斜体
+justifycenter | null | 将插入光标所在文本块居中对齐
+justifyleft | null | 将插入光标所在文本块左对齐
+outdent | null | 凸排文本（减少缩进）
+paste | null | 将剪贴板中的文本粘贴到选择的文本
+removeformat | null | 移除插入光标所在文本块的块级格式。这是撤销formatblock命令的操作
+selectall | null | 选择文档中的所有文本
+underline | null | 为选择的文本添加下划线
+unlink | null | 移除文本的链接。这是撤销createlink命令的操作
+
+其中，与剪贴板有关的命令在不同浏览器中的差异极大。 Opera 根本没有实现任何剪贴板命令，而
+Firefox 在默认情况下会禁用它们（必须修改用户的首选项来启用它们）。 Safari 和 Chrome 实现了 cut 和
+copy，但没有实现 paste。不过，即使不能通过 document.execCommand()来执行这些命令，但却可
+以通过相应的快捷键来实现同样的操作。
+
 ### 富文本选区
+在富文本编辑器中，使用框架（iframe）的 getSelection()方法，可以确定实际选择的文本。
+这个方法是 window 对象和 document 对象的属性，调用它会返回一个表示当前选择文本的 Selection
+对象。每个 Selection 对象都有下列属性。
+- anchorNode：选区起点所在的节点。
+- anchorOffset：在到达选区起点位置之前跳过的 anchorNode 中的字符数量。
+- focusNode：选区终点所在的节点。
+- focusOffset： focusNode 中包含在选区之内的字符数量。
+- isCollapsed：布尔值，表示选区的起点和终点是否重合。
+- rangeCount：选区中包含的 DOM 范围的数量。
+Selection 对象的这些属性并没有包含多少有用的信息。好在，该对象的下列方法提供了更多信
+息，并且支持对选区的操作。
+- addRange(range)：将指定的 DOM 范围添加到选区中。
+- collapse(node, offset)：将选区折叠到指定节点中的相应的文本偏移位置。
+- collapseToEnd()：将选区折叠到终点位置。
+- collapseToStart()：将选区折叠到起点位置。
+- containsNode(node)：确定指定的节点是否包含在选区中。
+- deleteFromDocument()：从文档中删除选区中的文本，与document.execCommand("delete",
+false, null)命令的结果相同。
+- extend(node, offset)：通过将 focusNode 和 focusOffset 移动到指定的值来扩展选区。
+- getRangeAt(index)：返回索引对应的选区中的 DOM 范围。
+- removeAllRanges()：从选区中移除所有 DOM 范围。实际上，这样会移除选区，因为选区中
+至少要有一个范围。
+- reomveRange(range)：从选区中移除指定的 DOM 范围。
+- selectAllChildren(node)：清除选区并选择指定节点的所有子节点。
+- toString()：返回选区所包含的文本内容。
+
 ### 表单与富文本
+由于富文本编辑是使用 iframe 而非表单控件实现的，因此从技术上说，富文本编辑器并不属于表
+单。换句话说，富文本编辑器中的 HTML 不会被自动提交给服务器，而需要我们手工来提取并提交
+HTML。为此，通常可以添加一个隐藏的表单字段，让它的值等于从 iframe 中提取出的 HTML。具体
+来说，就是在提交表单之前，从 iframe 中提取出 HTML，并将其插入到隐藏的字段中。
 
 
 ---
 # 使用Canvas绘图
 ## 基本用法
+要使用<canvas>元素，必须先设置其 width 和 height 属性，指定可以绘图的区域大小。出现在
+开始和结束标签中的内容是后备信息，如果浏览器不支持<canvas>元素，就会显示这些信息。
 
+与其他元素一样， <canvas>元素对应的 DOM 元素对象也有 width 和 height 属性，可以随意修
+改。而且，也能通过 CSS 为该元素添加样式，如果不添加任何样式或者不绘制任何图形，在页面中是看
+不到该元素的。
+要在这块画布（canvas）上绘图，需要取得绘图上下文。而取得绘图上下文对象的引用，需要调用
+getContext()方法并传入上下文的名字。传入"2d"，就可以取得 2D 上下文对象。
+
+在使用<canvas>元素之前，首先要检测 getContext()方法是否存在，这一步非常重要。有些浏
+览器会为 HTML 规范之外的元素创建默认的 HTML 元素对象。在这种情况下，即使 drawing 变量中
+保存着一个有效的元素引用，也检测不到 getContext()方法。
 
 ## 2D上下文
+使用 2D 绘图上下文提供的方法，可以绘制简单的 2D 图形，比如矩形、弧线和路径。 2D 上下文的
+坐标开始于<canvas>元素的左上角，原点坐标是(0,0)。所有坐标值都基于这个原点计算， x 值越大表示
+越靠右， y 值越大表示越靠下。默认情况下， width 和 height 表示水平和垂直两个方向上可用的像素
+数目。
+
 ### 填充和描边
+2D 上下文的两种基本绘图操作是填充和描边。填充，就是用指定的样式（颜色、渐变或图像）填
+充图形；描边，就是只在图形的边缘画线。大多数 2D 上下文操作都会细分为填充和描边两个操作，而
+操作的结果取决于两个属性： fillStyle 和 strokeStyle。
+这两个属性的值可以是字符串、渐变对象或模式对象，而且它们的默认值都是"#000000"。如果为
+它们指定表示颜色的字符串值，可以使用 CSS 中指定颜色值的任何格式，包括颜色名、十六进制码、
+rgb、 rgba、 hsl 或 hsla。
+
 ### 绘制矩形
+矩形是唯一一种可以直接在 2D 上下文中绘制的形状。与矩形有关的方法包括 fillRect()、
+strokeRect()和 clearRect()。这三个方法都能接收 4 个参数：矩形的 x 坐标、矩形的 y 坐标、矩形
+宽度和矩形高度。这些参数的单位都是像素。
+首先， fillRect()方法在画布上绘制的矩形会填充指定的颜色。填充的颜色通过 fillStyle 属
+性指定。
+```
+var drawing = document.getElementById("drawing");
+//确定浏览器支持<canvas>元素
+if (drawing.getContext){
+var context = drawing.getContext("2d");
+/*
+* 根据 Mozilla 的文档
+* http://developer.mozilla.org/en/docs/Canvas_tutorial:Basic_usage
+*/
+//绘制红色矩形
+context.fillStyle = "#ff0000";
+context.fillRect(10, 10, 50, 50);
+//绘制半透明的蓝色矩形
+context.fillStyle = "rgba(0,0,255,0.5)";
+context.fillRect(30, 30, 50, 50);
+}
+```
+
 ### 绘制路径
 ### 绘制文本
 ### 变换
@@ -3185,7 +5180,7 @@ EntityReference。
 
 ## 调试技术
 ### 将消息记录到控制台
-### 将消息记录到当前野蛮
+### 将消息记录到当前页面
 ### 抛出错误
 
 ## 常见的IE错误
