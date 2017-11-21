@@ -5122,70 +5122,911 @@ context.fillRect(30, 30, 50, 50);
 ```
 
 ### 绘制路径
+2D 绘制上下文支持很多在画布上绘制路径的方法。通过路径可以创造出复
+杂的形状和线条。要绘制路径，首先必须调用 beginPath()方法，表示要开始
+绘制新路径。然后，再通过调用下列方法来实际地绘制路径。
+- arc(x, y, radius, startAngle, endAngle, counterclockwise)：以(x,y)为圆心绘
+制一条弧线，弧线半径为 radius，起始和结束角度（用弧度表示）分别为 startAngle 和
+endAngle。最后一个参数表示 startAngle 和 endAngle 是否按逆时针方向计算，值为 false
+表示按顺时针方向计算。
+- arcTo(x1, y1, x2, y2, radius)：从上一点开始绘制一条弧线，到(x2,y2)为止，并且以
+给定的半径 radius 穿过(x1,y1)。
+- bezierCurveTo(c1x, c1y, c2x, c2y, x, y)：从上一点开始绘制一条曲线，到(x,y)为
+止，并且以(c1x,c1y)和(c2x,c2y)为控制点。
+- lineTo(x, y)：从上一点开始绘制一条直线，到(x,y)为止。
+- moveTo(x, y)：将绘图游标移动到(x,y)，不画线。
+- quadraticCurveTo(cx, cy, x, y)：从上一点开始绘制一条二次曲线，到(x,y)为止，并
+且以(cx,cy)作为控制点。
+- rect(x, y, width, height)：从点(x,y)开始绘制一个矩形，宽度和高度分别由 width 和
+height 指定。这个方法绘制的是矩形路径，而不是 strokeRect()和 fillRect()所绘制的独
+立的形状。
+创建了路径后，接下来有几种可能的选择。如果想绘制一条连接到路径起点的线条，可以调用
+closePath()。如果路径已经完成，你想用 fillStyle 填充它，可以调用 fill()方法。另外，还可
+以调用 stroke()方法对路径描边，描边使用的是 strokeStyle。最后还可以调用 clip()，这个方法
+可以在路径上创建一个剪切区域。
+
 ### 绘制文本
+文本与图形总是如影随形。为此， 2D 绘图上下文也提供了绘制文本的方法。绘制文本主要有两个
+方法： fillText()和 strokeText()。这两个方法都可以接收 4 个参数：要绘制的文本字符串、 x 坐
+标、 y 坐标和可选的最大像素宽度。而且，这两个方法都以下列 3 个属性为基础。
+- font：表示文本样式、大小及字体，用 CSS 中指定字体的格式来指定，例如"10px Arial"。
+- textAlign：表示文本对齐方式。可能的值有"start"、"end"、"left"、"right"和"center"。
+建议使用"start"和"end"，不要使用"left"和"right"，因为前两者的意思更稳妥，能同时
+适合从左到右和从右到左显示（阅读）的语言。
+- textBaseline：表示文本的基线。可能的值有"top"、"hanging"、"middle"、"alphabetic"、
+"ideographic"和"bottom"。
+这几个属性都有默认值，因此没有必要每次使用它们都重新设置一遍值。 fillText()方法使用
+fillStyle 属性绘制文本，而 strokeText()方法使用 strokeStyle 属性为文本描边。相对来说，还
+是使用 fillText()的时候更多，因为该方法模仿了在网页中正常显示文本。
+
 ### 变换
+通过上下文的变换，可以把处理后的图像绘制到画布上。 2D 绘制上下文支持各种基本的绘制变换。
+创建绘制上下文时，会以默认值初始化变换矩阵，在默认的变换矩阵下，所有处理都按描述直接绘制。
+为绘制上下文应用变换，会导致使用不同的变换矩阵应用处理，从而产生不同的结果。
+可以通过如下方法来修改变换矩阵。
+- rotate(angle)：围绕原点旋转图像 angle 弧度。
+- scale(scaleX, scaleY)：缩放图像，在 x 方向乘以 scaleX，在 y 方向乘以 scaleY。 scaleX
+和 scaleY 的默认值都是 1.0。
+- translate(x, y)：将坐标原点移动到(x,y)。执行这个变换之后， 坐标(0,0)会变成之前由(x,y)
+表示的点。
+- transform(m1_1, m1_2, m2_1, m2_2, dx, dy)：直接修改变换矩阵，方式是乘以如下
+矩阵。
+m1_1 m1_2 dx
+m2_1 m2_2 dy
+0 0 1
+- setTransform(m1_1, m1_2, m2_1, m2_2, dx, dy)：将变换矩阵重置为默认状态，然后
+再调用 transform()。
+
 ### 绘制图像
+2D 绘图上下文内置了对图像的支持。如果你想把一幅图像绘制到画布上，可以使用 drawImage()
+方法。根据期望的最终结果不同，调用这个方法时，可以使用三种不同的参数组合。最简单的调用方式
+是传入一个 HTML <img>元素，以及绘制该图像的起点的 x 和 y 坐标。
+
+除了上述两种方式，还可以选择把图像中的某个区域绘制到上下文中。 drawImage()方法的这种调
+用方式总共需要传入 9 个参数：要绘制的图像、源图像的 x 坐标、源图像的 y 坐标、源图像的宽度、源
+图像的高度、目标图像的 x 坐标、目标图像的 y 坐标、目标图像的宽度、目标图像的高度。这样调用
+drawImage()方法可以获得最多的控制。
+```javascript
+context.drawImage(image, 0, 10, 50, 50, 0, 100, 40, 60);
+```
+
 ### 阴影
+2D 上下文会根据以下几个属性的值，自动为形状或路径绘制出阴影。
+- shadowColor：用 CSS 颜色格式表示的阴影颜色，默认为黑色。
+- shadowOffsetX：形状或路径 x 轴方向的阴影偏移量，默认为 0。
+- shadowOffsetY：形状或路径 y 轴方向的阴影偏移量，默认为 0。
+- shadowBlur：模糊的像素数，默认 0，即不模糊。
+这些属性都可以通过 context 对象来修改。只要在绘制前为它们设置适当的值，就能自动产生阴
+影。
+
 ### 渐变
+渐变由 CanvasGradient 实例表示，很容易通过 2D 上下文来创建和修改。要创建一个新的线性渐
+变，可以调用 createLinearGradient()方法。这个方法接收 4 个参数：起点的 x 坐标、起点的 y 坐
+标、终点的 x 坐标、终点的 y 坐标。调用这个方法后，它就会创建一个指定大小的渐变，并返回
+CanvasGradient 对象的实例。
+创建了渐变对象后，下一步就是使用 addColorStop()方法来指定色标。这个方法接收两个参数：
+色标位置和 CSS 颜色值。色标位置是一个 0（开始的颜色）到 1（结束的颜色）之间的数字。
+
 ### 模式
+模 式 其 实 就 是 重 复 的 图 像 ， 可 以 用 来 填 充 或 描 边 图 形 。 要 创 建 一 个 新 模 式 ， 可 以 调 用
+createPattern()方法并传入两个参数：一个 HTML <img>元素和一个表示如何重复图像的字符串。
+其中，第二个参数的值与 CSS 的 background-repeat 属性值相同，包括"repeat"、 "repeat-x"、
+"repeat-y"和"no-repeat"。
+
 ### 使用图像数据
+2D 上下文的一个明显的长处就是，可以通过 getImageData()取得原始图像数据。这个方法接收
+4 个参数：要取得其数据的画面区域的 x 和 y 坐标以及该区域的像素宽度和高度。
+
 ### 合成
+还有两个会应用到 2D 上下文中所有绘制操作的属性： globalAlpha 和 globalCompositionOperation。其中， globalAlpha 是一个介于 0 和 1 之间的值（包括 0 和 1），用于指定所有绘制的透
+明度。默认值为 0。如果所有后续操作都要基于相同的透明度，就可以先把 globalAlpha 设置为适当
+值，然后绘制，最后再把它设置回默认值 0。
+```javascript
+//绘制红色矩形
+context.fillStyle = "#ff0000";
+context.fillRect(10, 10, 50, 50);
+//修改全局透明度
+context.globalAlpha = 0.5;
+//绘制蓝色矩形
+context.fillStyle = "rgba(0,0,255,1)";
+context.fillRect(30, 30, 50, 50);
+//重置全局透明度
+context.globalAlpha = 0;
+```
+在这个例子中，我们把蓝色矩形绘制到了红色矩形上面。因为在绘制蓝色矩形前， globalAlpha
+已经被设置为 0.5，所以蓝色矩形会呈现半透明效果，透过它可以看到下面的红色矩形。
+第二个属性 globalCompositionOperation 表示后绘制的图形怎样与先绘制的图形结合。这个
+属性的值是字符串，可能的值如下。
+- source-over（默认值）：后绘制的图形位于先绘制的图形上方。
+- source-in：后绘制的图形与先绘制的图形重叠的部分可见，两者其他部分完全透明。
+- source-out：后绘制的图形与先绘制的图形不重叠的部分可见，先绘制的图形完全透明。
+- source-atop：后绘制的图形与先绘制的图形重叠的部分可见，先绘制图形不受影响。
+- destination-over： 后绘制的图形位于先绘制的图形下方，只有之前透明像素下的部分才可见。
+- destination-in：后绘制的图形位于先绘制的图形下方，两者不重叠的部分完全透明。
+- destination-out：后绘制的图形擦除与先绘制的图形重叠的部分。
+- destination-atop：后绘制的图形位于先绘制的图形下方，在两者不重叠的地方，先绘制的
+图形会变透明。
+- lighter：后绘制的图形与先绘制的图形重叠部分的值相加，使该部分变亮。
+- copy：后绘制的图形完全替代与之重叠的先绘制图形。
+- xor：后绘制的图形与先绘制的图形重叠的部分执行“异或”操作。
 
 ## WebGL
+WebGL 是针对 Canvas 的 3D 上下文。与其他 Web 技术不同， WebGL 并不是 W3C 制定的标准，而
+是由 Khronos Group 制定的。其官方网站是这样介绍的：“Khronos Group 是一个非盈利的由会员资助的
+协会，专注于为并行计算以及各种平台和设备上的图形及动态媒体制定无版税的开放标准。” Khronos
+Group 也设计了其他图形处理 API，比如 OpenGL ES 2.0。浏览器中使用的 WebGL 就是基于 OpenGL ES
+2.0 制定的。
+OpenGL 等 3D 图形语言是非常复杂的，本书不可能介绍其中每一个概念。熟悉 OpenGL ES 2.0 的读
+者可能会觉得 WebGL 更好理解一些，因为好多概念是相通的。
+
 ### 类型化数组
+WebGL 涉及的复杂计算需要提前知道数值的精度，而标准的 JavaScript 数值无法满足需要。为此，
+WebGL 引入了一个概念，叫类型化数组（typed arrays）。类型化数组也是数组，只不过其元素被设置为
+特定类型的值。
+类型化数组的核心就是一个名为 ArrayBuffer 的类型。每个 ArrayBuffer 对象表示的只是内存
+中指定的字节数，但不会指定这些字节用于保存什么类型的数据。通过 ArrayBuffer 所能做的，就是
+为了将来使用而分配一定数量的字节。
+
+1. 视图
+使用 ArrayBuffer（数组缓冲器类型）的一种特别的方式就是用它来创建数组缓冲器视图。其中，
+最常见的视图是 DataView，通过它可以选择 ArrayBuffer 中一小段字节。为此，可以在创建 DataView
+实例的时候传入一个 ArrayBuffer、一个可选的字节偏移量（从该字节开始选择）和一个可选的要选
+择的字节数。
+
+2. 类型化视图
+类型化视图一般也被称为类型化数组，因为它们除了元素必须是某种特定的数据类型外，与常规的
+数组无异。类型化视图也分几种，而且它们都继承了 DataView。
+- Int8Array：表示 8 位二补整数。
+- Uint8Array：表示 8 位无符号整数。
+- Int16Array：表示 16 位二补整数。
+- Uint16Array：表示 16 位无符号整数。
+- Int32Array：表示 32 位二补整数。
+- Uint32Array：表示 32 位无符号整数。
+- Float32Array：表示 32 位 IEEE 浮点值。
+- Float64Array：表示 64 位 IEEE 浮点值。
+每种视图类型都以不同的方式表示数据，而同一数据视选择的类型不同有可能占用一或多字节。例
+如， 20B 的 ArrayBuffer 可以保存 20 个 Int8Array 或 Uint8Array，或者 10 个 Int16Array 或
+Uint16Array，或者 5 个 Int32Array、 Uint32Array 或 Float32Array，或者 2 个 Float64Array。
+
 ### WebGL上下文
+目前，在支持的浏览器中， WebGL 的名字叫"experimental-webgl"，这是因为 WebGL 规范仍
+然未制定完成。制定完成后，这个上下文的名字就会变成简单的"webgl"。如果浏览器不支持 WebGL，
+那么取得该上下文时会返回 null。在使用 WebGL 上下文时，务必先检测一下返回值。
+```javascript
+var drawing = document.getElementById("drawing");
+//确定浏览器支持<canvas>元素
+if (drawing.getContext){
+var gl = drawing.getContext("experimental-webgl");
+if (gl){
+//使用 WebGL
+}
+}
+```
+通过给 getContext()传递第二个参数，可以为 WebGL 上下文设置一些选项。这个参数本身是
+个对象，可以包含下列属性。
+- alpha：值为 true，表示为上下文创建一个 Alpha 通道缓冲区；默认值为 true。
+- depth：值为 true，表示可以使用 16 位深缓冲区；默认值为 true。
+- stencil：值为 true，表示可以使用 8 位模板缓冲区；默认值为 false。
+- antialias：值为 true，表示将使用默认机制执行抗锯齿操作；默认值为 true。
+- premultipliedAlpha：值为 true，表示绘图缓冲区有预乘 Alpha 值；默认值为 true。
+- preserveDrawingBuffer：值为 true，表示在绘图完成后保留绘图缓冲区；默认值为 false。
+建议确实有必要的情况下再开启这个值，因为可能影响性能。
+
+1. 常量
+如果你熟悉 OpenGL，那肯定会对各种操作中使用非常多的常量印象深刻。这些常量在 OpenGL 中
+都 带 前 缀 GL_ 。 在 WebGL 中 ， 保 存 在 上 下 文 对 象 中 的 这 些 常 量 都 没 有 GL_ 前 缀 。 比 如 说 ，
+GL_COLOR_BUFFER_BIT 常量在 WebGL 上下文中就是 gl.COLOR_BUFFER_BIT。 WebGL 以这种方式支
+持大多数 OpenGL 常量（有一部分常量是不支持的）。
+
+2. 方法命名
+OpenGL（以及 WebGL）中的很多方法都试图通过名字传达有关数据类型的信息。如果某方法可以
+接收不同类型及不同数量的参数，看方法名的后缀就可以知道。方法名的后缀会包含参数个数（1 到 4）
+和接收的数据类型（f 表示浮点数， i 表示整数）。例如， gl.uniform4f()意味着要接收 4 个浮点数，
+而 gl.uniform3i()则表示要接收 3 个整数。
+也有很多方法接收数组参数而非一个个单独的参数。这样的方法其名字中会包含字母 v（即 vector，
+矢量）。因此， gl.uniform3iv()可以接收一个包含 3 个值的整数数组。请大家记住以上命名约定，这
+样对理解后面关于 WebGL 的讨论很有帮助
+
+3. 准备绘图
+在实际操作 WebGL 上下文之前，一般都要使用某种实色清除<canvas>，为绘图做好准备。为此，
+首先必须使用 clearColor()方法来指定要使用的颜色值，该方法接收 4 个参数：红、绿、蓝和透明度。
+每个参数必须是一个 0 到 1 之间的数值，表示每种分量在最终颜色中的强度。来看下面的例子。
+
+4. 视口与坐标
+开始绘图之前，通常要先定义 WebGL 的视口（viewport）。默认情况下，视口可以使用整个<canvas>
+区域。要改变视口大小，可以调用 viewport()方法并传入 4 个参数：（视口相对于<canvas>元素的）
+x 坐标、 y 坐标、宽度和高度。
+
+5. 缓冲区
+顶点信息保存在 JavaScript 的类型化数组中，使用之前必须转换到 WebGL 的缓冲区。要创建缓冲区，
+可以调用 gl.createBuffer()，然后使用 gl.bindBuffer()绑定到 WebGL 上下文。这两步做完之
+后，就可以用数据来填充缓冲区了。
+调用 gl.bindBuffer()可以将 buffer 设置为上下文的当前缓冲区。此后，所有缓冲区操作都
+直接在 buffer 中执行。因此，调用 gl.bufferData()时不需要明确传入 buffer 也没有问题。最后
+一行代码使用 Float32Array 中的数据初始化了 buffer（一般都是用 Float32Array 来保存顶点信
+息）。如果想使用 drawElements()输出缓冲区的内容，也可以传入 gl.ELEMENT_ARRAY_BUFFER。
+gl.bufferData()的最后一个参数用于指定使用缓冲区的方式，取值范围是如下几个常量。
+- gl.STATIC_DRAW：数据只加载一次，在多次绘图中使用。
+- gl.STREAM_DRAW：数据只加载一次，在几次绘图中使用。
+- gl.DYNAMIC_DRAW：数据动态改变，在多次绘图中使用。
+
+6. 错误
+JavaScript 与 WebGL 之间的一个最大的区别在于， WebGL 操作一般不会抛出错误。为了知道是否
+有错误发生，必须在调用某个可能出错的方法后，手工调用 gl.getError()方法。这个方法返回一个
+表示错误类型的常量。可能的错误常量如下。
+- gl.NO_ERROR：上一次操作没有发生错误（值为 0）。
+- gl.INVALID_ENUM：应该给方法传入 WebGL 常量，但却传错了参数。
+- gl.INVALID_VALUE：在需要无符号数的地方传入了负值。
+- gl.INVALID_OPERATION：在当前状态下不能完成操作。
+- gl.OUT_OF_MEMORY：没有足够的内存完成操作。
+- gl.CONTEXT_LOST_WEBGL：由于外部事件（如设备断电）干扰丢失了当前 WebGL 上下文。
+
+7. 着色器
+着色器（shader）是 OpenGL 中的另一个概念。 WebGL 中有两种着色器：顶点着色器和片段（或像
+素）着色器。顶点着色器用于将 3D 顶点转换为需要渲染的 2D 点。片段着色器用于准确计算要绘制的
+每个像素的颜色。 WebGL 着色器的独特之处也是其难点在于，它们并不是用 JavaScript 写的。这些着色
+器是使用 GLSL（OpenGL Shading Language， OpenGL 着色语言）写的， GLSL 是一种与 C 和 JavaScript
+完全不同的语言。
+
+8. 编写着色器
+GLSL 是一种类 C 语言，专门用于编写 OpenGL 着色器。因为 WebGL 是 OpenGL ES 2.0 的实现，所
+以 OpenGL 中使用的着色器可以直接在 WebGL 中使用。这样就方便了将桌面图形应用移植到浏览器中。
+每个着色器都有一个 main()方法，该方法在绘图期间会重复执行。为着色器传递数据的方式有两
+种： Attribute 和 Uniform。通过 Attribute 可以向顶点着色器中传入顶点信息，通过 Uniform 可以向任何
+着色器传入常量值。 Attribute 和 Uniform 在 main()方法外部定义，分别使用关键字 attribute 和
+uniform。在这两个值类型关键字之后，是数据类型和变量名。
+
+9. 编写着色器程序
+浏览器不能理解 GLSL 程序，因此必须准备好字符串形式的 GLSL 程序，以便编译并链接到着色器
+程序。为便于使用，通常是把着色器包含在页面的<script>标签内，并为该标签指定一个自定义的 type
+属性。由于无法识别 type 属性值，浏览器不会解析<script>标签中的内容，但这不影响你读写其中
+的代码。
+
+10. 为着色器传入值
+前面定义的着色器都必须接收一个值才能工作。为了给着色器传入这个值，必须先找到要接收这个
+值的变量。对于 Uniform 变量，可以使用 gl.getUniformLocation()，这个方法返回一个对象，表示
+Uniform 变量在内存中的位置。然后可以基于变量的位置来赋值。
+
+11. 调试着色器和程序
+与 WebGL 中的其他操作一样，着色器操作也可能会失败，而且也是静默失败。如果你想知道着色
+器或程序执行中是否发生了错误，必须亲自询问 WebGL 上下文。
+
+12. 绘图
+WebGL 只能绘制三种形状：点、线和三角。其他所有形状都是由这三种基本形状合成之后，再绘
+制到三维空间中的。执行绘图操作要调用 gl.drawArrays()或 gl.drawElements()方法，前者用于
+数组缓冲区，后者用于元素数组缓冲区。
+gl.drawArrays()或 gl.drawElements()的第一个参数都是一个常量，表示要绘制的形状。可
+取值的常量范围包括以下这些。
+- gl.POINTS：将每个顶点当成一个点来绘制。
+- gl.LINES：将数组当成一系列顶点，在这些顶点间画线。每个顶点既是起点也是终点，因此数
+组中必须包含偶数个顶点才能完成绘制。
+- gl.LINE_LOOP：将数组当成一系列顶点，在这些顶点间画线。线条从第一个顶点到第二个顶点，
+再从第二个顶点到第三个顶点，依此类推，直至最后一个顶点。然后再从最后一个顶点到第一
+个顶点画一条线。结果就是一个形状的轮廓。
+- gl.LINE_STRIP：除了不画最后一个顶点与第一个顶点之间的线之外，其他与 gl.LINE_LOOP
+相同。
+- gl.TRIANGLES：将数组当成一系列顶点，在这些顶点间绘制三角形。除非明确指定，每个三角
+形都单独绘制，不与其他三角形共享顶点。
+- gl.TRIANGLES_STRIP：除了将前三个顶点之后的顶点当作第三个顶点与前两个顶点共同构成
+一个新三角形外，其他都与 gl.TRIANGLES 相同。例如，如果数组中包含 A、 B、 C、 D 四个顶
+点，则第一个三角形连接 ABC，而第二个三角形连接 BCD。
+- gl. TRIANGLES_FAN：除了将前三个顶点之后的顶点当作第三个顶点与前一个顶点及第一个顶
+点共同构成一个新三角形外，其他都与 gl.TRIANGLES 相同。例如，如果数组中包含 A、 B、 C、
+D 四个顶点，则第一个三角形连接 ABC，而第二个三角形连接 ACD。
+
+13. 纹理
+WebGL 的纹理可以使用 DOM 中的图像。要创建一个新纹理，可以调用 gl.createTexture()，
+然后再将一幅图像绑定到该纹理。如果图像尚未加载到内存中，可能需要创建一个 Image 对象的实例，
+以便动态加载图像。图像加载完成之前，纹理不会初始化，因此，必须在 load 事件触发后才能设置纹
+理。
+
+14. 读取像素
+与 2D 上下文 类似，通过 WebGL 上下文也能读取像素值。读取像素值的方法 readPixels()与
+OpenGL 中的同名方法只有一点不同，即最后一个参数必须是类型化数组。像素信息是从帧缓冲区读取
+的，然后保存在类型化数组中。 readPixels()方法的参数有： x、 y、宽度、高度、图像格式、数据类
+型和类型化数组。前 4 个参数指定读取哪个区域中的像素。图像格式参数几乎总是 gl.RGBA。数据类型
+参数用于指定保存在类型化数组中的数据的类型，但有以下限制。
+- 如果类型是 gl.UNSIGNED_BYTE，则类型化数组必须是 Uint8Array。
+- 如果类型是 gl.UNSIGNED_SHORT_5_6_5、gl.UNSIGNED_SHORT_4_4_4_4 或 gl.UNSIGNED_
+SHORT_5_5_5_1，则类型化数组必须是 Uint16Array。
+
 ### 支持
+Firefox 4+和 Chrome 都实现了 WebGL API。 Safari 5.1 也实现了 WebGL，但默认是禁用的。 WebGL
+比较特别的地方在于，某个浏览器的某个版本实现了它，并不一定意味着就真能使用它。某个浏览器支
+持 WebGL，至少意味着两件事：首先，浏览器本身必须实现了 WebGL API；其次，计算机必须升级显
+示驱动程序。运行 Windows XP 等操作系统的一些老机器，其驱动程序一般都不是最新的。因此，这些
+计算机中的浏览器都会禁用 WebGL。从稳妥的角度考虑，在使用 WebGL 之前，最好检测其是否得到了
+支持，而不是只检测特定的浏览器版本。
+大家别忘了， WebGL 还是一个正在制定和发展中的规范。不管是函数名、函数签名，还是数据类
+型，都有可能改变。可以说， WebGL 目前只适合实验性地学习，不适合真正开发和应用。
 
 ---
 # HTML脚本编程
+
 ## 跨文档消息传递
+跨文档消息传送（cross-document messaging），有时候简称为 XDM，指的是在来自不同域的页面间
+传递消息。
+
+XDM 的核心是 postMessage()方法。在 HTML5 规范中，除了 XDM 部分之外的其他部分也会提
+到这个方法名，但都是为了同一个目的：向另一个地方传递数据。对于 XDM 而言， “另一个地方”指的
+是包含在当前页面中的<iframe>元素，或者由当前页面弹出的窗口。
+postMessage()方法接收两个参数：一条消息和一个表示消息接收方来自哪个域的字符串。第二
+个参数对保障安全通信非常重要，可以防止浏览器把消息发送到不安全的地方。
 
 
 ## 原生拖放
 ### 拖放事件
+通过拖放事件，可以控制拖放相关的各个方面。其中最关键的地方在于确定哪里发生了拖放事件，
+有些事件是在被拖动的元素上触发的，而有些事件是在放置目标上触发的。拖动某元素时，将依次触发
+下列事件：
+(1) dragstart
+(2) drag
+(3) dragend
+按下鼠标键并开始移动鼠标时，会在被拖放的元素上触发 dragstart 事件。此时光标变成“不能放”
+符号（圆环中有一条反斜线），表示不能把元素放到自己上面。拖动开始时，可以通过 ondragstart
+事件处理程序来运行 JavaScript 代码。
+触发 dragstart 事件后，随即会触发 drag 事件，而且在元素被拖动期间会持续触发该事件。这
+个事件与 mousemove 事件相似，在鼠标移动过程中， mousemove 事件也会持续发生。 当拖动停止时（无
+论是把元素放到了有效的放置目标，还是放到了无效的放置目标上），会触发 dragend 事件。
+上述三个事件的目标都是被拖动的元素。默认情况下，浏览器不会在拖动期间改变被拖动元素的外
+观，但你可以自己修改。不过，大多数浏览器会为正被拖动的元素创建一个半透明的副本，这个副本始
+终跟随着光标移动。
+当某个元素被拖动到一个有效的放置目标上时，下列事件会依次发生：
+(1) dragenter
+(2) dragover
+(3) dragleave 或 drop
+只要有元素被拖动到放置目标上，就会触发 dragenter 事件（类似于 mouseover 事件）。紧随其
+后的是 dragover 事件，而且在被拖动的元素还在放置目标的范围内移动时，就会持续触发该事件。如
+果元素被拖出了放置目标， dragover 事件不再发生，但会触发 dragleave 事件（类似于 mouseout
+事件）。如果元素被放到了放置目标中，则会触发 drop 事件而不是 dragleave 事件。上述三个事件的
+目标都是作为放置目标的元素。
+
 ### 自定义放置目标
+在拖动元素经过某些无效放置目标时，可以看到一种特殊的光标（圆环中有一条反斜线），表示不
+能放置。虽然所有元素都支持放置目标事件，但这些元素默认是不允许放置的。如果拖动元素经过不允
+许放置的元素，无论用户如何操作，都不会发生 drop 事件。不过，你可以把任何元素变成有效的放置
+目标，方法是重写 dragenter 和 dragover 事件的默认行为。
+
 ### dataTransfer对象
+只有简单的拖放而没有数据变化是没有什么用的。为了在拖放操作时实现数据交换， IE 5 引入了
+dataTransfer 对象，它是事件对象的一个属性，用于从被拖动元素向放置目标传递字符串格式的数据。
+因为它是事件对象的属性，所以只能在拖放事件的事件处理程序中访问 dataTransfer 对象。在事件
+处理程序中，可以使用这个对象的属性和方法来完善拖放功能。目前， HTML5 规范草案也收入了
+dataTransfer 对象。
+dataTransfer 对象有两个主要方法： getData()和 setData()。不难想象， getData()可以取
+得由 setData()保存的值。 setData()方法的第一个参数，也是 getData()方法唯一的一个参数，是
+一个字符串，表示保存的数据类型，取值为"text"或"URL"，
+
 ### dropEffect与effectAllowed
+利用 dataTransfer 对象，可不光是能够传输数据，还能通过它来确定被拖动的元素以及作为放
+置目标的元素能够接收什么操作。为此，需要访问 dataTransfer 对象的两个属性： dropEffect 和
+effectAllowed。
+其中，通过 dropEffect 属性可以知道被拖动的元素能够执行哪种放置行为。这个属性有下列 4
+个可能的值。
+- "none"：不能把拖动的元素放在这里。这是除文本框之外所有元素的默认值。
+- "move"：应该把拖动的元素移动到放置目标。
+- "copy"：应该把拖动的元素复制到放置目标。
+- "link"：表示放置目标会打开拖动的元素（但拖动的元素必须是一个链接，有 URL）。
+在把元素拖动到放置目标上时，以上每一个值都会导致光标显示为不同的符号。然而，要怎样实现
+光标所指示的动作完全取决于你。换句话说，如果你不介入，没有什么会自动地移动、复制，也不会打
+开链接。总之，浏览器只能帮你改变光标的样式，而其他的都要靠你自己来实现。要使用 dropEffect
+属性，必须在 ondragenter 事件处理程序中针对放置目标来设置它。
+dropEffect 属性只有搭配 effectAllowed 属性才有用。 effectAllowed 属性表示允许拖动元
+素的哪种 dropEffect， effectAllowed 属性可能的值如下。
+- "uninitialized"：没有给被拖动的元素设置任何放置行为。
+- "none"：被拖动的元素不能有任何行为。
+- "copy"：只允许值为"copy"的 dropEffect。
+- "link"：只允许值为"link"的 dropEffect。
+- "move"：只允许值为"move"的 dropEffect。
+- "copyLink"：允许值为"copy"和"link"的 dropEffect。
+- "copyMove"：允许值为"copy"和"move"的 dropEffect。
+- "linkMove"：允许值为"link"和"move"的 dropEffect。
+- "all"：允许任意 dropEffect。
+必须在 ondragstart 事件处理程序中设置 effectAllowed 属性。
+
+假设你想允许用户把文本框中的文本拖放到一个<div>元素中。首先，必须将 dropEffect 和
+effectAllowed 设置为"move"。但是，由于<div>元素的放置事件的默认行为是什么也不做，所以文
+本不可能自动移动。重写这个默认行为，就能从文本框中移走文本。然后你就可以自己编写代码将文本
+插入到<div>中，这样整个拖放操作就完成了。如果你将 dropEffect 和 effectAllowed 的值设置为
+"copy"，那就不会自动移走文本框中的文本。
+
 ### 可拖动
+默认情况下，图像、链接和文本是可以拖动的，也就是说，不用额外编写代码，用户就可以拖动它
+们。文本只有在被选中的情况下才能拖动，而图像和链接在任何时候都可以拖动。
+让其他元素可以拖动也是可能的。 HTML5 为所有 HTML 元素规定了一个 draggable 属性，表
+示元素是否可以拖动。图像和链接的 draggable 属性自动被设置成了 true，而其他元素这个属性
+的默认值都是 false。要想让其他元素可拖动，或者让图像或链接不能拖动，都可以设置这个属性。
+
 ### 其他成员
+HTML5 规范规定 dataTransfer 对象还应该包含下列方法和属性。
+- addElement(element)：为拖动操作添加一个元素。添加这个元素只影响数据（即增加作为拖
+动源而响应回调的对象），不会影响拖动操作时页面元素的外观。在写作本书时，只有 Firefox 3.5+
+实现了这个方法。
+- clearData(format)：清除以特定格式保存的数据。实现这个方法的浏览器有 IE、Fireforx 3.5+、
+Chrome 和 Safari 4+。
+- setDragImage(element, x, y)：指定一幅图像，当拖动发生时，显示在光标下方。这个方
+法接收的三个参数分别是要显示的 HTML 元素和光标在图像中的 x、 y 坐标。其中， HTML 元素
+可以是一幅图像，也可以是其他元素。是图像则显示图像，是其他元素则显示渲染后的元素。
+实现这个方法的浏览器有 Firefox 3.5+、 Safari 4+和 Chrome。
+- types：当前保存的数据类型。这是一个类似数组的集合，以"text"这样的字符串形式保存着
+数据类型。实现这个属性的浏览器有 IE10+、 Firefox 3.5+和 Chrome。
 
 ## 媒体元素
+随着音频和视频在 Web 上的迅速流行，大多数提供富媒体内容的站点为了保证跨浏览器兼容性，
+不得不选择使用 Flash。 HTML5 新增了两个与媒体相关的标签，让开发人员不必依赖任何插件就能在网
+页中嵌入跨浏览器的音频和视频内容。这两个标签就是<audio>和<video>。
+这两个标签除了能让开发人员方便地嵌入媒体文件之外，都提供了用于实现常用功能的 JavaScript
+API，允许为媒体创建自定义的控件。这两个元素的用法如下。
+```html
+<!-- 嵌入视频 -->
+<video src="conference.mpg" id="myVideo">Video player not available.</video>
+<!-- 嵌入音频 -->
+<audio src="song.mp3" id="myAudio">Audio player not available.</audio>
+```
+使用这两个元素时，至少要在标签中包含 src 属性，指向要加载的媒体文件。还可以设置 width
+和 height 属性以指定视频播放器的大小，而为 poster 属性指定图像的 URI 可以在加载视频内容期间
+显示一幅图像。另外，如果标签中有 controls 属性，则意味着浏览器应该显示 UI 控件，以便用户直
+接操作媒体。位于开始和结束标签之间的任何内容都将作为后备内容，在浏览器不支持这两个媒体元素
+的情况下显示。
+因为并非所有浏览器都支持所有媒体格式，所以可以指定多个不同的媒体来源。为此，不用在标签
+中指定 src 属性，而是要像下面这样使用一或多个<source>元素。
+
 ### 属性
+<video>和<audio>元素都提供了完善的 JavaScript 接口。下表列出了这两个元素共有的属性，通
+过这些属性可以知道媒体的当前状态。
+
+属 性 | 数据类型 | 说 明
+--- | --- | ---
+autoplay | 布尔值 | 取得或设置autoplay标志
+buffered | 时间范围 | 表示已下载的缓冲的时间范围的对象
+bufferedBytes | 字节范围 | 表示已下载的缓冲的字节范围的对象
+bufferingRate | 整数 | 下载过程中每秒钟平均接收到的位数
+bufferingThrottled | 布尔值 | 表示浏览器是否对缓冲进行了节流
+controls | 布尔值 | 取得或设置controls属性，用于显示或隐藏浏览器内置的控件
+currentLoop | 整数 | 媒体文件已经循环的次数
+currentSrc | 字符串 | 当前播放的媒体文件的URL
+currentTime | 浮点数 | 已经播放的秒数
+defaultPlaybackRate | 浮点数 | 取得或设置默认的播放速度。默认值为1.0秒
+duration | 浮点数 | 媒体的总播放时间（秒数）
+ended | 布尔值 | 表示媒体文件是否播放完成
+loop | 布尔值 | 取得或设置媒体文件在播放完成后是否再从头开始播放
+muted | 布尔值 | 取得或设置媒体文件是否静音
+networkState | 整数 | 表示当前媒体的网络连接状态： 0表示空， 1表示正在加载， 2表示正在加载元数据， 3表示已经加载了第一帧， 4表示加载完成
+paused | 布尔值 | 表示播放器是否暂停
+playbackRate | 浮点数 | 取得或设置当前的播放速度。用户可以改变这个值，让媒体播放速度变快或变慢，这与defaultPlaybackRate只能由开发人员修改的defaultPlaybackRate不同
+played | 时间范围 | 到目前为止已经播放的时间范围
+readyState | 整数 | 表示媒体是否已经就绪（可以播放了）。 0表示数据不可用， 1表示可以显示当前帧， 2表示可以开始播放， 3表示媒体可以从头到尾播放
+seekable | 时间范围 | 可以搜索的时间范围
+seeking | 布尔值 | 表示播放器是否正移动到媒体文件中的新位置
+src | 字符串 | 媒体文件的来源。任何时候都可以重写这个属性
+start | 浮点数 | 取得或设置媒体文件中开始播放的位置，以秒表示
+totalBytes | 整数 | 当前资源所需的总字节数
+videoHeight | 整数 | 返回视频（不一定是元素）的高度。只适用于<video>
+videoWidth | 整数 | 返回视频（不一定是元素）的宽度。只适用于<video>
+volume | 浮点数 | 取得或设置当前音量，值为0.0到1.0
+
 ### 事件
+除了大量属性之外，这两个媒体元素还可以触发很多事件。这些事件监控着不同的属性的变化，这
+些变化可能是媒体播放的结果，也可能是用户操作播放器的结果。下表列出了媒体元素相关的事件。
+
+事 件 | 触发时机
+--- | ---
+abort | 下载中断
+canplay | 可以播放时； readyState值为2
+canplaythrough | 播放可继续，而且应该不会中断； readyState值为3
+canshowcurrentframe | 当前帧已经下载完成； readyState值为1
+dataunavailable | 因为没有数据而不能播放； readyState值为0
+durationchange | duration属性的值改变
+emptied | 网络连接关闭
+empty | 发生错误阻止了媒体下载
+ended | 媒体已播放到末尾，播放停止
+error | 下载期间发生网络错误
+load | 所有媒体已加载完成。这个事件可能会被废弃，建议使用canplaythrough
+loadeddata | 媒体的第一帧已加载完成
+loadedmetadata | 媒体的元数据已加载完成
+loadstart | 下载已开始
+pause | 播放已暂停
+play | 媒体已接收到指令开始播放
+playing | 媒体已实际开始播放
+progress | 正在下载
+ratechange | 播放媒体的速度改变
+seeked | 搜索结束
+seeking | 正移动到新位置
+stalled | 浏览器尝试下载，但未接收到数据
+timeupdate | currentTime被以不合理或意外的方式更新
+volumechange | volume属性值或muted属性值已改变
+waiting | 播放暂停，等待下载更多数据
+
 ### 自定义媒体播放器
+使用<audio>和<video>元素的 play()和 pause()方法，可以手工控制媒体文件的播放。组合使
+用属性、事件和这两个方法，很容易创建一个自定义的媒体播放器，如下面的例子所示。
+```html
+<div class="mediaplayer">
+<div class="video">
+<video id="player" src="movie.mov" poster="mymovie.jpg"
+width="300" height="200">
+Video player not available.
+</video>
+</div>
+<div class="controls">
+<input type="button" value="Play" id="video-btn">
+<span id="curtime">0</span>/<span id="duration">0</span>
+</div>
+</div>
+```
+```javascript
+//取得元素的引用
+var player = document.getElementById("player"),
+btn = document.getElementById("video-btn"),
+curtime = document.getElementById("curtime"),
+duration = document.getElementById("duration");
+//更新播放时间
+duration.innerHTML = player.duration;
+//为按钮添加事件处理程序
+EventUtil.addHandler(btn, "click", function(event){
+if (player.paused){
+player.play();
+btn.value = "Pause";
+} else {
+player.pause();
+btn.value = "Play";
+}
+});
+//定时更新当前时间
+setInterval(function(){
+curtime.innerHTML = player.currentTime;
+}, 250);
+```
+
 ### 检测编解码器的支持情况
+如前所述，并非所有浏览器都支持<video>和<audio>的所有编解码器，而这基本上就意味着你必
+须提供多个媒体来源。不过，也有一个 JavaScript API 能够检测浏览器是否支持某种格式和编解码器。
+这两个媒体元素都有一个 canPlayType()方法，该方法接收一种格式/编解码器字符串，返回
+"probably"、 "maybe"或""（ 空字符串）。空字符串是假值，因此可以像下面这样在 if 语句中使用
+canPlayType()：
+```javascript
+if (audio.canPlayType("audio/mpeg")){
+//进一步处理
+}
+```
+如果给 canPlayType()传入了一种 MIME 类型，则返回值很可能是"maybe"或空字符串。这是因
+为媒体文件本身只不过是音频或视频的一个容器，而真正决定文件能否播放的还是编码的格式。在同时
+传入 MIME 类型和编解码器的情况下，可能性就会增加，返回的字符串会变成"probably"。
+
+音 频 | 字 符 串 | 支持的浏览器
+--- | --- | ---
+AAC | audio/mp4; codecs="mp4a.40.2" | IE9+、 Safari 4+、 iOS版Safari
+MP3 | audio/mpeg | IE9+、 Chrome
+Vorbis | audio/ogg; codecs="vorbis" | Firefox 3.5+、 Chrome、 Opera 10.5+
+WAV | audio/wav; codecs="1" | Firefox 3.5+、 Opera 10.5+、 Chrome
+当然，也可以使用 canPlayType()来检测视频格式。下表列出了已知的已得到支持的音频格式和
+编解码器。
+
+视 频 | 字 符 串 | 支持的浏览器
+--- | --- | ---
+H.264 | video/mp4; codecs="avc1.42E01E, mp4a.40.2" | IE9+、 Safari 4+、 iOS版Safari、 Android版WebKit
+Theora | video/ogg; codecs="theora" | Firefox 3.5+、 Opera 10.5、 Chrome
+WebM | video/webm; codecs="vp8, vorbis" | Firefox 4+、 Opera 10.6、 Chrome
+
 ### Audio类型
-
+<audio>元素还有一个原生的 JavaScript 构造函数 Audio，可以在任何时候播放音频。从同为 DOM
+元素的角度看， Audio 与 Image 很相似，但 Audio 不用像 Image 那样必须插入到文档中。只要创建一
+个新实例，并传入音频源文件即可。
+```javascript
+var audio = new Audio("sound.mp3");
+EventUtil.addHandler(audio, "canplaythrough", function(event){
+audio.play();
+})
+```
 ## 历史状态管理
-
+历史状态管理是现代 Web 应用开发中的一个难点。在现代 Web 应用中，用户的每次操作不一定会
+打开一个全新的页面，因此“后退”和“前进”按钮也就失去了作用，导致用户很难在不同状态间切换。
+要解决这个问题，首选使用 hashchange 事件（第 13 章曾讨论过）。 HTML5 通过更新 history 对象为
+管理历史状态提供了方便。
+通过 hashchange 事件，可以知道 URL 的参数什么时候发生了变化，即什么时候该有所反应。而
+通 过 状 态 管 理 API ， 能 够 在 不 加 载 新 页 面 的 情 况 下 改 变 浏 览 器 的 URL 。 为 此 ， 需 要 使 用
+history.pushState()方法，该方法可以接收三个参数：状态对象、新状态的标题和可选的相对 URL。
+```javascript
+history.pushState({name:"Nicholas"}, "Nicholas' page", "nicholas.html");
+```
+执行 pushState()方法后，新的状态信息就会被加入历史状态栈，而浏览器地址栏也会变成新的
+相对 URL。但是，浏览器并不会真的向服务器发送请求，即使状态改变之后查询 location.href 也会
+返回与地址栏中相同的地址。另外，第二个参数目前还没有浏览器实现，因此完全可以只传入一个空字
+符串，或者一个短标题也可以。而第一个参数则应该尽可能提供初始化页面状态所需的各种信息。
+因为 pushState()会创建新的历史状态，所以你会发现“后退”按钮也能使用了。按下“后退”
+按钮，会触发 window 对象的 popstate 事件①。 popstate 事件的事件对象有一个 state 属性，这个
+属性就包含着当初以第一个参数传递给 pushState()的状态对象。
+```javascript
+EventUtil.addHandler(window, "popstate", function(event){
+var state = event.state;
+if (state){ //第一个页面加载时 state 为空
+processState(state);
+}
+});
+```
 
 ---
 # 错误处理与调试
 ## 浏览器报告的错误
+IE、 Firefox、 Safari、 Chrome 和 Opera 等主流浏览器，都具有某种向用户报告 JavaScript 错误的机
+制。默认情况下，所有浏览器都会隐藏此类信息，毕竟除了开发人员之外，很少有人关心这些内容。
+因此，在基于浏览器编写 JavaScript 脚本时，别忘了启用浏览器的 JavaScript 报告功能，以便及时收到
+错误通知。
+
 ### IE
+IE 是唯一一个在浏览器的界面窗体（chrome）中显示 JavaScript 错误信息的浏览器。在发生 JavaScript
+错误时，浏览器左下角会出现一个黄色的图标，图标旁边则显示着"Error on page"（页面中有错误）。
+假如不是存心去看的话，你很可能不会注意这个图标。双击这个图标，就会看到一个包含错误消息的对
+话框，其中还包含诸如行号、字符数、错误代码及文件名（其实就是你在查看的页面的 URL）等相关信
+息。
+这些信息对于一般用户还算说得过去，但对 Web 开发来说就远远不够了。可以通过设置让错误对
+话框一发生错误就显示出来。为此，要打开“Tools”（工具）菜单中的“Internet Options”（Internet 选项）
+对话框，切换到“Advanced”（高级）选项卡，选中“Display a notification about every script error”（显
+示每个脚本错误的通知）复选框（参见图 17-2）。单击“OK”（确定）按钮保存设置。
+
 ### Firefox
+默认情况下， Firefox 在 JavaScript 发生错误时不会通过浏览器界面给出提示。但它会在后台将错误
+记录到错误控制台中。单击“Tools”（工具）菜单中的“Error Console”（错误控制台）可以显示错误控
+制台。你会发现，错误控制台中实际上还包含与 JavaScript、 CSS 和 HTML 相关的警告和
+信息，可以通过筛选找到错误。
+在发生 JavaScript 错误时， Firefox 会将其记录为一个错误，包括错误消息、引发错误的 URL 和错误
+所在的行号等信息。单击文件名即可以只读方式打开发生错误的脚本，发生错误的代码行会突出显示。
+目前，最流行的 Firefox 插件 Firebug，已经成为开发人员必备的 JavaScript 纠错工具。这个可以从
+www.getfirebug.com 下载到的插件，会在 Firefox 状态栏的右下角区域添加一个图标。默认情况下，右下
+角区域显示的是一个绿色对勾图标。在有 JavaScript 错误发生时，图标会变成红叉，同时旁边显示错误
+的数量。单击这个红叉会打开 Firebug 控制台，其中显示有错误消息、错误所在的代码行（不包含上下
+文）、错误所在的 URL 以及行号。
+
 ### Safari
+Windows 和 Mac OS 平台的 Safari 在默认情况下都会隐藏全部 JavaScript 错误。为了访问到这些信
+息，必须启用“Develop”（开发）菜单。为此，需要单击“Edit”（编辑）菜单中的“Preferences”（偏
+好设置），然后在“Advanced”（高级）选项卡中，选中“Show develop menu in menubar”（在菜单栏中
+显示“开发”菜单）。启用此项设置之后，就会在 Safari 的菜单栏中看到一个“Develop”菜单。
+
 ### Opera
+Opera 在默认情况下也会隐藏 JavaScript 错误，所有错误都会被记录到错误控制台中。要打开错误
+控制台，需要单击“Tools”（工具）菜单，在“Advanced”（高级）子菜单项下面再单击“Error Console”
+（错误控制台）。与 Firefox 一样， Opera 的错误控制台中也包含了除 JavaScript 错误之外的很多来源（如
+HTML、 CSS、 XML、 XSLT 等）的错误和警告信息。要分类查看不同来源的消息，可以使用左下角的
+下拉选择框。
+
 ### Chrome
+与 Safari 和 Opera 一样， Chrome 在默认情况下也会隐藏 JavaScript 错误。所有错误都将被记录到
+Web Inspector 控制台中。要查看错误消息，必须打开 Web Inspector。为此，要单击位于地址栏右侧的
+“Control this page”（控制当前页）按钮， 选择“Developer”（开发人员）、“JavaScript console”（JavaScript
+控制台）。
 
 ## 错误处理
-### try-catch语句
-### 抛出错误
-### 错误（error）事件
-### 处理错误的策略
-### 常见的错误类型
-### 区分致命错误和非致命错误
-### 把错误记录到服务器
+错误处理在程序设计中的重要性是勿庸置疑的。任何有影响力的 Web 应用程序都需要一套完善的
+错误处理机制，当然，大多数佼佼者确实做到了这一点，但通常只有服务器端应用程序才能做到如此。
+实际上，服务器端团队往往会在错误处理机制上投入较大的精力，通常要考虑按照类型、频率，或者其
+他重要的标准对错误进行分类。这样一来，开发人员就能够理解用户在使用简单数据库查询或者报告生
+成脚本时，应用程序可能会出现的问题。
+虽然客户端应用程序的错误处理也同样重要，但真正受到重视，还是最近几年的事。实际上，我们
+要面对这样一个不争的事实：使用 Web 的绝大多数人都不是技术高手，其中甚至有很多人根本就不明
+白浏览器到底是什么，更不用说让他们说喜欢哪一个了。本章前面讨论过，每个浏览器在发生 JavaScript
+错误时的行为都或多或少有一些差异。有的会显示小图标，有的则什么动静也没有，浏览器对 JavaScript
+错误的这些默认行为对最终用户而言，毫无规律可循。最理想的情况下，用户遇到错误搞不清为什么，
+他们会再试着重做一次；最糟糕的情况下，用户会恼羞成怒，一去不复返了。良好的错误处理机制可以
+让用户及时得到提醒，知道到底发生了什么事，因而不会惊惶失措。为此，作为开发人员，我们必须理
+解在处理 JavaScript 错误的时候，都有哪些手段和工具可以利用。
 
+### try-catch语句
+ECMA-262 第 3 版引入了 try-catch 语句，作为 JavaScript 中处理异常的一种标准方式。基本的语
+法如下所示，显而易见，这与 Java 中的 try-catch 语句是完全相同的。
+```javascript
+try{
+// 可能会导致错误的代码
+} catch(error){
+// 在错误发生时怎么处理
+}
+```
+也就是说，我们应该把所有可能会抛出错误的代码都放在 try 语句块中，而把那些用于错误处理的
+代码放在 catch 块中。
+```javascript
+try {
+window.someNonexistentFunction();
+} catch (error){
+alert("An error happened!");
+}
+```
+如果 try 块中的任何代码发生了错误，就会立即退出代码执行过程，然后接着执行 catch 块。此
+时， catch 块会接收到一个包含错误信息的对象。与在其他语言中不同的是，即使你不想使用这个错误
+对象，也要给它起个名字。这个对象中包含的实际信息会因浏览器而异，但共同的是有一个保存着错误
+消息的 message 属性。 ECMA-262 还规定了一个保存错误类型的 name 属性；当前所有浏览器都支持这
+个属性（Opera 9 之前的版本不支持这个属性）。因此，在发生错误时，就可以像下面这样实事求是地显
+示浏览器给出的消息。
+
+1. finally子句
+虽然在 try-catch 语句中是可选的，但 finally 子句一经使用，其代码无论如何都会执行。换句
+话说， try 语句块中的代码全部正常执行， finally 子句会执行；如果因为出错而执行了 catch 语句
+块， finally 子句照样还会执行。只要代码中包含 finally 子句，则无论 try 或 catch 语句块中包
+含什么代码——甚至 return 语句，都不会阻止 finally 子句的执行。来看下面这个函数。
+
+2. 错误类型
+执行代码期间可能会发生的错误有多种类型。每种错误都有对应的错误类型，而当错误发生时，就
+会抛出相应类型的错误对象。 ECMA-262 定义了下列 7 种错误类型：
+- Error
+- EvalError
+- RangeError
+- ReferenceError
+- SyntaxError
+- TypeError
+- URIError
+其中， Error 是基类型，其他错误类型都继承自该类型。因此，所有错误类型共享了一组相同的属
+性（错误对象中的方法全是默认的对象方法）。 Error 类型的错误很少见，如果有也是浏览器抛出的；
+这个基类型的主要目的是供开发人员抛出自定义错误。
+EvalError 类型的错误会在使用 eval()函数而发生异常时被抛出。 ECMA-262 中对这个错误有如
+下描述：“如果以非直接调用的方式使用 eval 属性的值（换句话说，没有明确地将其名称作为一个
+Identifier，即用作 CallExpression 中的 MemberExpression），或者为 eval 属性赋值。”简单
+地说，如果没有把 eval()当成函数调用，就会抛出错误。
+
+3. 合理使用try-catch
+当 try-catch 语句中发生错误时，浏览器会认为错误已经被处理了，因而不会通过本章前面讨论
+的机制记录或报告错误。对于那些不要求用户懂技术，也不需要用户理解错误的 Web 应用程序，这应
+该说是个理想的结果。不过， try-catch 能够让我们实现自己的错误处理机制。
+使用 try-catch 最适合处理那些我们无法控制的错误。假设你在使用一个大型 JavaScript 库中的
+函数，该函数可能会有意无意地抛出一些错误。由于我们不能修改这个库的源代码，所以大可将对该函
+数的调用放在 try-catch 语句当中，万一有什么错误发生，也好恰当地处理它们。
+在明明白白地知道自己的代码会发生错误时，再使用 try-catch 语句就不太合适了。例如，如果
+传递给函数的参数是字符串而非数值，就会造成函数出错，那么就应该先检查参数的类型，然后再决定
+如何去做。在这种情况下，不应用使用 try-catch 语句。
+
+### 抛出错误
+与 try-catch 语句相配的还有一个 throw 操作符，用于随时抛出自定义错误。抛出错误时，必须
+要给 throw 操作符指定一个值，这个值是什么类型，没有要求。
+
+1. 抛出错误的时机
+要针对函数为什么会执行失败给出更多信息，抛出自定义错误是一种很方便的方式。应该在出现某
+种特定的已知错误条件，导致函数无法正常执行时抛出错误。换句话说，浏览器会在某种特定的条件下
+执行函数时抛出错误。
+
+2. 抛出错误与使用try-catch
+关于何时该抛出错误，而何时该使用 try-catch 来捕获它们，是一个老生常谈的问题。一般来说，
+应用程序架构的较低层次中经常会抛出错误，但这个层次并不会影响当前执行的代码，因而错误通常得
+不到真正的处理。如果你打算编写一个要在很多应用程序中使用的 JavaScript 库，甚至只编写一个可能
+会在应用程序内部多个地方使用的辅助函数，我都强烈建议你在抛出错误时提供详尽的信息。然后，即
+可在应用程序中捕获并适当地处理这些错误。
+说到抛出错误与捕获错误，我们认为只应该捕获那些你确切地知道该如何处理的错误。捕获错误的
+目的在于避免浏览器以默认方式处理它们；而抛出错误的目的在于提供错误发生具体原因的消息。
+
+### 错误（error）事件
+任何没有通过 try-catch 处理的错误都会触发 window 对象的 error 事件。这个事件是 Web 浏览
+器最早支持的事件之一， IE、 Firefox 和 Chrome 为保持向后兼容，并没有对这个事件作任何修改（Opera
+和 Safari 不支持 error 事件）。在任何 Web 浏览器中， onerror 事件处理程序都不会创建 event 对象，
+但它可以接收三个参数：错误消息、错误所在的 URL 和行号。多数情况下，只有错误消息有用，因为
+URL 只是给出了文档的位置，而行号所指的代码行既可能出自嵌入的 JavaScript 代码，也可能出自外部
+的文件。要指定 onerror 事件处理程序，必须使用如下所示的 DOM0 级技术，它没有遵循“DOM2 级
+事件”的标准格式。
+
+### 处理错误的策略
+过去，所谓 Web 应用程序的错误处理策略仅限于服务器端。在谈到错误与错误处理时，通常要考
+虑很多方面，涉及一些工具，例如记录和监控系统。这些工具的用途在于分析错误模式，追查错误原因，
+同时帮助确定错误会影响到多少用户。
+在 Web 应用程序的 JavaScript 这一端，错误处理策略也同样重要。由于任何 JavaScript 错误都可能
+导致网页无法使用，因此搞清楚何时以及为什么发生错误至关重要。绝大多数 Web 应用程序的用户都
+不懂技术，遇到错误时很容易心烦意乱。有时候，他们可能会刷新页面以期解决问题，而有时候则会放
+弃努力。作为开发人员，必须要知道代码何时可能出错，会出什么错，同时还要有一个跟踪此类问题的
+系统。
+
+### 常见的错误类型
+错误处理的核心，是首先要知道代码里会发生什么错误。由于 JavaScript 是松散类型的，而且也不
+会验证函数的参数，因此错误只会在代码运行期间出现。一般来说，需要关注三种错误：
+- 类型转换错误
+- 数据类型错误
+- 通信错误
+以上错误分别会在特定的模式下或者没有对值进行足够的检查的情况下发生。
+
+1. 类型转换错误
+类型转换错误发生在使用某个操作符，或者使用其他可能会自动转换值的数据类型的语言结构时。
+在使用相等（==）和不相等（!=）操作符，或者在 if、 for 及 while 等流控制语句中使用非布尔值时，
+最常发生类型转换错误。
+由于在非动态语言中，
+开发人员都使用相同的符号执行直观的比较， 因此在 JavaScript 中往往也会以相同方式错误地使用它们。
+多数情况下，我们建议使用全等（===）和不全等（!==）操作符，以避免类型转换。
+
+2. 数据类型错误
+JavaScript 是松散类型的，也就是说，在使用变量和函数参数之前，不会对它们进行比较以确保它
+们的数据类型正确。为了保证不会发生数据类型错误，只能依靠开发人员编写适当的数据类型检测代码。
+在将预料之外的值传递给函数的情况下，最容易发生数据类型错误。
+
+3. 通信错误
+着 Ajax 编程的兴起（第 21 章讨论 Ajax）， Web 应用程序在其生命周期内动态加载信息或功能，
+已经成为一件司空见惯的事。不过， JavaScript 与服务器之间的任何一次通信，都有可能会产生错误。
+第一种通信错误与格式不正确的 URL 或发送的数据有关。最常见的问题是在将数据发送给服务器
+之前，没有使用 encodeURIComponent()对数据进行编码。
+ 另外，在服务器响应的数据不正确时，也会发生通信错误。
+ 
+### 区分致命错误和非致命错误
+任何错误处理策略中最重要的一个部分，就是确定错误是否致命。对于非致命错误，可以根据下列
+一或多个条件来确定：
+- 不影响用户的主要任务；
+- 只影响页面的一部分；
+- 可以恢复；
+- 重复相同操作可以消除错误。
+本质上，非致命错误并不是需要关注的问题。例如， Yahoo! Mail（http://mail.yahoo.com）有一项功
+能，允许用户在其界面上发送手机短信。如果由于某种原因，发不了手机短信了，那也不算是致命错误，
+因为并不是应用程序的主要功能有问题。用户使用 Yahoo! Mail 主要是为了查收和撰写电子邮件。只在
+这个主要功能正常，就没有理由打断用户。没有必要因为发生了非致命错误而对用户给出提示——可以
+把页面中受到影响的区域替换掉，比如替换成说明相应功能无法使用的消息。但是，如果因此打断用户，
+那确实没有必要。
+致命错误，可以通过以下一或多个条件来确定：
+- 应用程序根本无法继续运行；
+- 错误明显影响到了用户的主要操作；
+- 会导致其他连带错误。
+
+### 把错误记录到服务器
+开发 Web 应用程序过程中的一种常见的做法，就是集中保存错误日志，以便查找重要错误的原因。
+在复杂的 Web 应用程序
+中，我们同样推荐你把 JavaScript 错误也回写到服务器。换句话说，也要将这些错误写入到保存服务器
+端错误的地方，只不过要标明它们来自前端。把前后端的错误集中起来，能够极大地方便对数据的分析。
+要建立这样一种 JavaScript 错误记录系统，首先需要在服务器上创建一个页面（或者一个服务器入
+口点），用于处理错误数据。这个页面的作用无非就是从查询字符串中取得数据，然后再将数据写入错
+误日志中。
 
 ## 调试技术
 ### 将消息记录到控制台
+IE8、 Firefox、 Opera、 Chrome 和 Safari 都有 JavaScript 控制台，可以用来查看 JavaScript 错误。而
+且，在这些浏览器中，都可以通过代码向控制台输出消息。对 Firefox 而言，需要安装 Firebug
+（www.getfirebug.com），因为 Firefox 要使用 Firebug 的控制台。对 IE8、 Firefox、 Chrome 和 Safari 来说，
+则可以通过 console 对象向 JavaScript 控制台中写入消息，这个对象具有下列方法。
+- error(message)：将错误消息记录到控制台
+- info(message)：将信息性消息记录到控制台
+- log(message)：将一般消息记录到控制台
+- warn(message)：将警告消息记录到控制台
+在 IE8、 Firebug、 Chrome 和 Safari 中，用来记录消息的方法不同，控制台中显示的错误消息也不
+一样。错误消息带有红色图标，而警告消息带有黄色图标。
+还有一种方案是使用 LiveConnect，也就是在 JavaScript 中运行 Java 代码。 Firefox、 Safari 和 Opera
+都支持 LiveConnect，因此可以操作 Java 控制台。
+
 ### 将消息记录到当前页面
+另一种输出调试消息的方式，就是在页面中开辟一小块区域，用以显示消息。这个区域通常是一个
+元素，而该元素可以总是出现在页面中，但仅用于调试目的；也可以是一个根据需要动态创建的元素。
+```javascript
+function log(message){
+var console = document.getElementById("debuginfo");
+if (console === null){
+console = document.createElement("div");
+console.id = "debuginfo";
+console.style.background = "#dedede";
+console.style.border = "1px solid silver";
+console.style.padding = "5px";
+console.style.width = "400px";
+console.style.position = "absolute";
+console.style.right = "0px";
+console.style.top = "0px";
+document.body.appendChild(console);
+}
+console.innerHTML += "<p>" + message + "</p>";
+}
+```
 ### 抛出错误
+如前所述，抛出错误也是一种调试代码的好办法。如果错误消息很具体，基本上就可以把它当作确
+定错误来源的依据。但这种错误消息必须能够明确给出导致错误的原因，才能省去其他调试操作。
+
+
 
 ## 常见的IE错误
+多年以来， IE 一直都是最难于调试 JavaScript 错误的浏览器。 IE 给出的错误消息一般很短又语焉不
+详，而且上下文信息也很少，有时甚至一点都没有。但作为用户最多的浏览器，如何看懂 IE 给出的错
+误也是最受关注的。下面几小节将分别探讨一些在 IE 中难于调试的 JavaScript 错误。
+
 ### 操作终止
+在 IE8 之前的版本中，存在一个相对于其他浏览器而言，最令人迷惑、讨厌，也最难于调试的错误：
+操作终止（operation aborted）。在修改尚未加载完成的页面时，就会发生操作终止错误。发生错误时，
+会出现一个模态对话框，告诉你“操作终止。”单击确定（OK）按钮，则卸载整个页面，继而显示一张
+空白屏幕；此时要进行调试非常困难。
+
 ### 无效字符
+根据语法， JavaScript 文件必须只包含特定的字符。在 JavaScript 文件中存在无效字符时， IE 会抛出
+无效字符（invalid character）错误。所谓无效字符，就是 JavaScript 语法中未定义的字符。例如，有一
+个很像减号但却由 Unicode 值 8211 表示的字符（\u2013），就不能用作常规的减号（ASCII 编码为 45），
+因为 JavaScript 语法中没有定义该字符。这个字符通常是在 Word 文档中自动插入的。如果你的代码是
+从 Word 文档中复制到文本编辑器中，然后又在 IE 中运行的，那么就可能会遇到无效字符错误。其他浏
+览器对无效字符做出的反应与 IE 类似， Firefox 会抛出非法字符（illegal character）错误， Safari 会报告
+发生了语法错误，而 Opera 则会报告发生了 ReferenceError（引用错误），因为它会将无效字符解释
+为未定义的标识符。
+
 ### 未找到成员
 ### 位置运行时错误
 ### 语法错误
