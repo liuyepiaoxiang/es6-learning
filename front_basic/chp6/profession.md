@@ -6028,109 +6028,743 @@ console.innerHTML += "<p>" + message + "</p>";
 为未定义的标识符。
 
 ### 未找到成员
-### 位置运行时错误
-### 语法错误
-### 系统无法找到指定资源
+ IE 中的所有 DOM 对象都是以 COM 对象，而非原生 JavaScript 对象的形式实现的。这
+会导致一些与垃圾收集相关的非常奇怪的行为。 IE 中的未找到成员（Member not found）错误，就是由
+于垃圾收集例程配合错误所直接导致的。
+具体来说，如果在对象被销毁之后，又给该对象赋值，就会导致未找到成员错误。而导致这个错误
+的，一定是 COM 对象。发生这个错误的最常见情形是使用 event 对象的时候。 IE 中的 event 对象是
+window 的属性，该对象在事件发生时创建，在最后一个事件处理程序执行完毕后销毁。假设你在一个
+闭包中使用了 event 对象，而该闭包不会立即执行，那么在将来调用它并给 event 的属性赋值时，就
+会导致未找到成员错误。
 
+### 位置运行时错误
+当使用 innerHTML 或 outerHTML 以下列方式指定 HTML 时，就会发生未知运行时错误（Unknown
+runtime error）：一是把块元素插入到行内元素时，二是访问表格任意部分（<table>、 <tbody>等）的
+任意属性时。例如，从技术角度说， <span>标签不能包含<div>之类的块级元素，因此下面的代码就会
+导致未知运行时错误：
+```javascript
+span.innerHTML = "<div>Hi</div>"; //这里， span 包含了<div>元素
+```
+
+### 语法错误
+通常，只要 IE 一报告发生了语法错误（syntax error），都可以很快找到错误的原因。这时候，原因
+可能是代码中少了一个分号，或者花括号前后不对应。然而，还有一种原因不十分明显的情况需要格外
+注意。
+如果你引用了外部的 JavaScript 文件，而该文件最终并没有返回 JavaScript 代码， IE 也会抛出语法
+错误。例如， <script>元素的 src 特性指向了一个 HTML 文件，就会导致语法错误。报告语法错误的
+位置时，通常都会说该错误位于脚本第一行的第一个字符处。 Opera 和 Safari 也会报告语法错误，但它
+们会给出导致问题的外部文件的信息； IE 就不会给出这个信息，因此就需要我们自己重复检查一遍引用
+的外部 JavaScript 文件。但 Firefox 会忽略那些被当作 JavaScript 内容嵌入到文档中的非 JavaScript 文件中的
+解析错误。
+在服务器端组件动态生成 JavaScript 的情况下，比较容易出现这种错误。很多服务器端语言都会在
+发生运行时错误时，向输出中插入 HTML 代码，而这种包含 HTML 的输出很容易就会违反 JavaScript
+语法。如果在追查语法错误时遇到了麻烦，我们建议你再仔细检查一遍引用的外部文件，确保这些文件
+中没有包含服务器因错误而插入到其中的 HTML。
+
+### 系统无法找到指定资源
+系统无法找到指定资源（The system cannot locate the resource specified）这种说法，恐怕要算是 IE
+给出的最有价值的错误消息了。在使用 JavaScript 请求某个资源 URL，而该 URL 的长度超过了 IE 对 URL
+最长不能超过 2083 个字符的限制时，就会发生这个错误。 IE 不仅限制 JavaScript 中使用的 URL 的长度，
+而且也限制用户在浏览器自身中使用的 URL 长度（其他浏览器对 URL 的限制没有这么严格）。IE 对 URL
+路径还有一个不能超过 2048 个字符的限制。
 
 ---
 # JavaScript与XML
 ## 浏览器对XML DOM的支持
 ### DOM2级核心
-### DOMParser类型
-### XMLSerializer类型
-### IE8及之前版本中的XML
-### 跨浏览器处理XML
+在通过 JavaScript 处理 XML 时，通常只使用参数 root，因为这个参数指定的是 XML DOM 文档元
+素的标签名。而 namespaceUri 参数则很少用到，原因是在 JavaScrip 中管理命名空间比较困难。最后，
+doctype 参数用得就更少了。
 
+### DOMParser类型
+为了将 XML 解析为 DOM 文档， Firefox 引入了 DOMParser 类型；后来， IE9、 Safari、 Chrome 和
+Opera 也支持了这个类型。在解析 XML 之前，首先必须创建一个 DOMParser 的实例，然后再调用
+parseFromString()方法。这个方法接受两个参数：要解析的 XML 字符串和内容类型（内容类型始
+终都应该是"text/xml"）。
+
+### XMLSerializer类型
+在引入 DOMParser 的同时， Firefox 还引入了 XMLSerializer 类型，提供了相反的功能：将 DOM
+文档序列化为 XML 字符串。后来， IE9+、 Opera、 Chrome 和 Safari 都支持了 XMLSerializer。
+
+### IE8及之前版本中的XML
+事实上， IE 是第一个原生支持 XML 的浏览器，而这一支持是通过 ActiveX 对象实现的。为了便于
+桌面应用程序开发人员处理 XML，微软创建了 MSXML 库；但微软并没有针对 JavaScript 创建不同的对
+象，而只是让 Web 开发人员能够通过浏览器访问相同的对象。
+第 8 章曾经介绍过 ActiveXObject 类型，通过这个类型可以在 JavaScript 中创建 ActiveX 对象的
+实例。同样，要创建一个 XML 文档的实例，也要使用 ActiveXObject 构造函数并为其传入一个表示
+XML 文档版本的字符串。有 6 种不同的 XML 文档版本可以供选择。
+- Microsoft.XmlDom：最初随同 IE 发布；不建议使用。
+- MSXML2.DOMDocument：为方便脚本处理而更新的版本，建议仅在特殊情况下作为后备版本
+使用。
+- MSXML2.DOMDocument.3.0：为了在 JavaScript 中使用，这是最低的建议版本。
+- MSXML2.DOMDocument.4.0：在通过脚本处理时并不可靠，使用这个版本可能导致安全警告。
+- MSXML2.DOMDocument.5.0：在通过脚本处理时并不可靠，使用这个版本同样可能导致安全
+警告。
+- MSXML2.DOMDocument.6.0：通过脚本能够可靠处理的最新版本。
+在这 6 个版本中，微软只推荐使用 MSXML2.DOMDocument.6.0 或 MSXML2.DOMDocument.3.0；
+前者是最新最可靠的版本，而后者则是大多数 Windows 操作系统都支持的版本。可以作为后备版本的
+MSXML2.DOMDocument，仅在针对 IE5.5 之前的浏览器开发时才有必要使用。
+
+1. 序列化XML
+IE 将序列化 XML 的能力内置在了 DOM 文档中。每个 DOM 节点都有一个 xml 属性，其中保存着
+表示该节点的 XML 字符串。
+
+2. 加载XML文件
+IE 中的 XML 文档对象也可以加载来自服务器的文件。与 DOM3 级中的功能类似，要加载的 XML
+文档必须与页面中运行的 JavaScript 代码来自同一台服务器。同样与 DOM3 级规范类似，加载文档的方
+式也可以分为同步和异步两种。要指定加载文档的方式，可以设置 async 属性， true 表示异步， false
+表示同步（默认值为 true）。
+
+### 跨浏览器处理XML
+很少有开发人员能够有福气专门针对一款浏览器做开发。因此，编写能够跨浏览器处理 XML 的函
+数就成为了常见的需求。对解析 XML 而言，下面这个函数可以在所有四种主要浏览器中使用。
+```javascript
+function parseXml(xml){
+var xmldom = null;
+if (typeof DOMParser != "undefined"){
+xmldom = (new DOMParser()).parseFromString(xml, "text/xml");
+var errors = xmldom.getElementsByTagName("parsererror");
+if (errors.length){
+throw new Error("XML parsing error:" + errors[0].textContent);
+}
+} else if (typeof ActiveXObject != "undefined"){
+xmldom = createDocument();
+xmldom.loadXML(xml);
+if (xmldom.parseError != 0){
+throw new Error("XML parsing error: " + xmldom.parseError.reason);
+}
+} else {
+throw new Error("No XML parser available.");
+}
+return xmldom;
+}
+```
 
 ## 浏览器对XPath的支持
-### DOM3级XPath
-### IE中的XPath
-### 跨浏览器使用XPath
+XPath 是设计用来在 DOM 文档中查找节点的一种手段，因而对 XML 处理也很重要。但是， DOM3
+级以前的标准并没有就 XPath 的 API 作出规定； XPath 是在 DOM3 级 XPath 模块中首次跻身推荐标准行
+列的。很多浏览器都实现了这个推荐标准，但 IE 则以自己的方式实现了 XPath。
 
+### DOM3级XPath
+DOM3级 XPath规范定义了在 DOM中对 XPath表达式求值的接口。要确定某浏览器是否支持 DOM3
+级 XPath，可以使用以下 JavaScript 代码：
+```javascript
+var supportsXPath = document.implementation.hasFeature("XPath", "3.0");
+```
+在 DOM3 级 XPath 规范定义的类型中，最重要的两个类型是 XPathEvaluator 和 XPathResult。
+XPathEvaluator 用于在特定的上下文中对 XPath 表达式求值。这个类型有下列 3 个方法。
+- createExpression(expression, nsresolver)：将 XPath 表达式及相应的命名空间信息转
+换成一个 XPathExpression，这是查询的编译版。在多次使用同一个查询时很有用。
+- createNSResolver(node)：根据 node 的命名空间信息创建一个新的 XPathNSResolver 对
+象。在基于使用命名空间的 XML 文档求值时，需要使用 XPathNSResolver 对象。
+- evaluate(expression, context, nsresolver, type, result)：在给定的上下文中，
+基于特定的命名空间信息来对 XPath 表达式求值。剩下的参数指定如何返回结果。
+
+1. 单节点结果
+指定常量 XPathResult.FIRST_ORDERED_NODE_TYPE 会返回第一个匹配的节点，可以通过结果
+的 singleNodeValue 属性来访问该节点。
+
+2. 简单类型结果
+通过 XPath 也可以取得简单的非节点数据类型，这时候就要使用 XPathResult 的布尔值、数值和
+字符串类型了。这几个结果类型分别会通过 booleanValue、 numberValue 和 stringValue 属性返
+回一个值。对于布尔值类型，如果至少有一个节点与 XPath 表达式匹配，则求值结果返回 true，否则
+返回 false。
+
+3. 默认类型结果
+所有 XPath 表达式都会自动映射到特定的结果类型。像前面那样设置特定的结果类型，可以限制表
+达式的输出。而使用 XPathResult.ANY_TYPE 常量可以自动确定返回结果的类型。一般来说，自动选
+择的结果类型可能是布尔值、数值、字符串值或一个次序不一致的节点迭代器。
+
+4. 命名空间支持
+对于利用了命名空间的 XML 文档， XPathEvaluator 必须知道命名空间信息，然后才能正确地进
+行求值。处理命名空间的方法也不止一种。
+
+### IE中的XPath
+IE 对 XPath 的支持是内置在基于 ActiveX 的 XML DOM 文档对象中的，没有使用 DOMParser 返回
+的 DOM 对象。因此，为了在 IE9 及之前的版本中使用 XPath，必须使用基于 ActiveX 的实现。这个接
+口在每个节点上额外定义了两个的方法： selectSingleNode()和 selectNodes()。其中，
+selectSingleNode()方法接受一个 XPath 模式，在找到匹配节点时返回第一个匹配的节点，如果没有
+找到匹配的节点就返回 null。
+
+### 跨浏览器使用XPath
+鉴于 IE 对 XPath 功能的支持有限，因此跨浏览器 XPath 只能保证达到 IE 支持的功能。换句话说，
+也就是要在其他使用 DOM3 级 XPath 对象的浏览器中，重新创建 selectSingleNode()和
+selectNodes()方法。第一个函数是 selectSingleNode()，它接收三个参数：上下文节点、 XPath
+表达式和可选的命名空间对象。
 
 ## 浏览器对XSLT的支持
 ### IE中的XSLT
+1. 简单的XSLT转换
+使用 XSLT 样式表转换 XML 文档的最简单方式，就是将它们分别加到一个 DOM 文档中，然后再
+使用 transformNode()方法。这个方法存在于文档的所有节点中，它接受一个参数，即包含 XSLT 样
+式表的文档。调用 transformNode()方法会返回一个包含转换信息的字符串。
+
+2. 复杂的XSLT转换
+虽然 transformNode()方法提供了基本的 XSLT 转换能力，但还有使用这种语言的更复杂的方式。
+为此，必须要使用 XSL 模板和 XSL 处理器。第一步是要把 XSLT 样式表加载到一个线程安全的 XML
+文档中。而这可以通过使用 ActiveX 对象 MSXML2.FreeThreadedDOMDocument 来做到。这个 ActiveX
+对象与 IE 中常规的 DOM 支持相同的接口。此外，创建这个对象时应该尽可能使用最新的版本。
+
 ### XSLTProcessor类型
+Mozilla 通过在 Firefox 中创建新的类型，实现了 JavaScript 对 XSLT 的支持。开发人员可以通过
+XSLTProcessor 类型使用 XSLT 转换 XML 文档，其方式与在 IE 中使用 XSL 处理器类似。因为这个类
+型是率先出现的，所以 Chrome、 Safari 和 Opera 都借鉴了相同的实现，最终使 XSLTProcessor 成为了
+通过 JavaScript 进行 XSLT 转换的事实标准。
+
+1. 使用参数
+XSLTProcessor 也支持使用 setParameter()来设置 XSLT 的参数，这个方法接收三个参数：命名空间
+URI、参数的内部名称和要设置的值。通常，命名空间 URI 都是 null，而内部名称就是参数的名称。另外，
+必须在调用 transformToDocument()或 transformToFragment()之前调用这个方法。
+
+2. 重置处理器
+每个 XSLTProcessor 的实例都可以重用，以便使用不同的 XSLT 样式表执行不同的转换。重置处
+理器时要调用 reset()方法，这个方法会从处理器中移除所有参数和样式表。
+
 ### 跨浏览器使用XSLT
+IE 对 XSLT 转换的支持与 XSLTProcessor 的区别实在太大，因此要想重新实现二者所有这方面的
+功能并不现实。因此，跨浏览器兼容性最好的 XSLT 转换技术，只能是返回结果字符串。为此在 IE 中只
+需在上下文节点上调用 transformNode()即可，而在其他浏览器中则需要序列化 transformToDocument()操作的结果。
 
 
 ---
 # E4X
 ## E4X的类型
+作为对 ECMAScript 的扩展， E4X 定义了如下几个新的全局类型。
+- XML： XML 结构中的任何一个独立的部分。
+- XMLList： XML 对象的集合。
+- Namespace：命名空间前缀与命名空间 URI 之间的映射。
+- QName：由内部名称和命名空间 URI 组成的一个限定名。
+E4X 定义的这个 4 个类型可以表现 XML 文档中的所有部分，其内部机制是将每一种类型（特别是
+XML 和 XMLList）都映射为多个 DOM 类型。
 ### XML类型
+XML 类型是 E4X 中定义的一个重要的新类型，可以用它来表现 XML 结构中任何独立的部分。 XML
+的实例可以表现元素、特性、注释、处理指令或文本节点。 XML 类型继承自 Object 类型，因此它也继
+承了所有对象默认的所有属性和方法。
 ### XMLList类型
+XMLList 类型表现 XML 对象的有序集合。 XMLList 的 DOM 对等类型是 NodeList，但与 Node 和
+NodeList 之间的区别相比， XML 和 XMLList 之间的区别是有意设计得比较小的。要显式地创建一个
+XMLList 对象，可以像下面这样使用 XMLList 构造函数：
+```javascript
+var list = new XMLList();
+```
 ### Namespace类型
+E4X 中使用 Namespace 对象来表现命名空间。通常， Namespace 对象是用来映射命名空间前缀和
+命名空间 URI 的，不过有时候并不需要前缀。
 ### QName类型
-
+QName 类型表现的是 XML 对象的限定名，即命名空间与内部名称的组合。向 QName 构造函数中传
+入名称或 Namespace 对象和名称，可以手工创建新的 QName 对象。
 
 ## 一般用法
+在将 XML 对象、元素、特性和文本集合到一个层次化对象之后，就可以使用点号加特性或标签名的
+方式来访问其中不同的层次和结构。每个子元素都是父元素的一个属性，而属性名与元素的内部名称相
+同。
 ### 访问特性
+访问特性也可以使用点语法，不过其语法稍有扩充。为了区分特性名与子元素的标签名，必须在名
+称前面加上一个@字符。这是从 XPath 中借鉴的语法； XPath 也是使用@来区分特性和标签的名称。
 ### 其他节点类型
+E4X 定义了表现 XML 文档中所有部分的类型，包括注释和处理指令。在默认情况上， E4X 不会解
+析注释或处理指令，因此这些部分不会出现在最终的对象层次中。如果想让解析器解析这些部分，可以
+像下面这样设置 XML 构造函数的下列两个属性。
 ### 查询
+实际上， E4X 提供的查询语法在很多方面都与 XPath 类似。取得元素或特性值的简单操作是最基本
+的查询。在查询之前，不会创建表现 XML 文档结构中不同部分的 XML 对象。从底层来看，XML 和 XMLList
+的所有属性事实上都是查询的结果。也就是说，引用不表现 XML 结构中某一部分的属性仍然会返回
+XMLList；只不过这个 XMLList 中什么也不会包含。
 ### 构建和操作XML
+将 XML 数据转换成 XML 对象的方式有很多种。前面曾经讨论过，可以将 XML 字符串传递到 XML
+构造函数中，也可以使用 XML 字面量。相对而言， XML 字面量方式更方便一些，因为可以在字面量中嵌
+入 JavaScript 变量，语法是使用花括号（{}）。
 ### 解析和序列化
+E4X 将解析和序列化数据的控制放在了 XML 构造函数的一些设置当中。与 XML 解析相关的设置有
+如下三个。
+- ignoreComments：表示解析器应该忽略标记中的注释。默认设置为 true。
+- ignoreProcessingInstructions：表示解析器应该忽略标记中的处理指令。默认设置为 true。
+- ignoreWhitespace：表示解析器应该忽略元素间的空格，而不是创建表现这些空格的文本节
+点。默认设置为 true。
+这三个设置会影响对传入到 XML 构造函数中的字符串以及 XML 字面量的解析。
+另外，与 XML 数据序列化相关的设置有如下两个。
+- prettyIndent：表示在序列化 XML 时，每次缩进的空格数量。默认值为 2。
+- prettyPrinting：表示应该以方便人类认读的方式输出 XML，即每个元素重起一行，而且子
+元素都要缩进。默认设置为 true。
 ### 命名空间
-
+E4X 提供了方便使用命名空间的特性。前面曾经讨论过，使用 namspace()方法可以取得与特定前
+缀对应的 Namespace 对象。而通过使用 setNamespace()并传入 Namespace 对象，也可以为给定元
+素设置命名空间。
 
 ## 其他变化
-
-
+为了与 ECMAScript 做到无缝集成， E4X 也对语言基础进行了一些修改。其中之一就是引入了
+for-each-in 循环，以便迭代遍历每一个属性并返回属性的值。
+E4X 还添加了一个全局函数，名叫 isXMLName()。这个函数接受一个字符串，并在这个字符串是
+元素或特性的有效内部名称的情况下返回 true。在使用未知字符串构建 XML 数据结构时，这个函数可
+以为开发人员提供方便。
 
 ## 全面启用E4X
-
+鉴于 E4X 在很多方面给标准 JavaScript 带来了不同，因此 Firefox 在默认情况下只启用 E4X 中与其
+他代码能够相安无事的那些特性。要想完整地启用 E4X，需要将<script>标签的 type 特性设置为
+"text/javascript;e4x=1"。
 
 
 
 ---
 # JSON
 ## 语法
+JSON 的语法可以表示以下三种类型的值。
+- 简单值：使用与 JavaScript 相同的语法，可以在 JSON 中表示字符串、数值、布尔值和 null。
+但 JSON 不支持 JavaScript 中的特殊值 undefined。
+- 对象：对象作为一种复杂数据类型，表示的是一组无序的键值对儿。而每个键值对儿中的值可
+以是简单值，也可以是复杂数据类型的值。
+- 数组：数组也是一种复杂数据类型，表示一组有序的值的列表，可以通过数值索引来访问其中
+的值。数组的值也可以是任意类型——简单值、对象或数组。
+JSON 不支持变量、函数或对象实例，它就是一种表示结构化数据的格式，虽然与 JavaScript 中表示
+数据的某些语法相同，但它并不局限于 JavaScript 的范畴。
 ### 简单值
+最简单的 JSON 数据形式就是简单值。
+JavaScript 字符串与 JSON 字符串的最大区别在于， JSON 字符串必须使用双引号（单引号会导致语
+法错误）。
+布尔值和 null 也是有效的 JSON 形式。但是，在实际应用中， JSON 更多地用来表示更复杂的数据
+结构，而简单值只是整个数据结构中的一部分。
 ### 对象
+JSON 中的对象与 JavaScript 字面量稍微有一些不同。
+这虽然是开发人员在 JavaScript 中创建对象字面量的标准方式，但 JSON 中的对象要求给属性加引
+号。
+与 JavaScript 的对象字面量相比， JSON 对象有两个地方不一样。首先，没有声明变量（JSON 中没
+有变量的概念）。其次，没有末尾的分号（因为这不是 JavaScript 语句，所以不需要分号）。再说一遍，
+对象的属性必须加双引号，这在 JSON 中是必需的。
 ### 数组
-
-
+JSON 中的第二种复杂数据类型是数组。 JSON 数组采用的就是 JavaScript 中的数组字面量形式。
 
 ## 解析与序列化
+JSON 之所以流行，拥有与 JavaScript 类似的语法并不是全部原因。更重要的一个原因是，可以把
+JSON 数据结构解析为有用的 JavaScript 对象。与 XML 数据结构要解析成 DOM 文档而且从中提取数据
+极为麻烦相比， JSON 可以解析为 JavaScript 对象的优势极其明显。
 ### JSON对象
+早期的 JSON 解析器基本上就是使用 JavaScript 的 eval()函数。由于 JSON 是 JavaScript 语法的子
+集，因此 eval()函数可以解析、解释并返回 JavaScript 对象和数组。 ECMAScript 5 对解析 JSON 的行
+为进行规范，定义了全局对象 JSON。支持这个对象的浏览器有 IE 8+、 Firefox 3.5+、 Safari 4+、 Chrome
+和 Opera 10.5+。对于较早版本的浏览器，可以使用一个 shim：https://github.com/douglascrockford/JSON-js。
+在旧版本的浏览器中，使用 eval()对 JSON 数据结构求值存在风险，因为可能会执行一些恶意代码。
+对于不能原生支持 JSON 解析的浏览器，使用这个 shim 是最佳选择。
+JSON 对象有两个方法： stringify()和 parse()。在最简单的情况下，这两个方法分别用于把
+JavaScript 对象序列化为 JSON 字符串和把 JSON 字符串解析为原生 JavaScript 值。
 ### 序列化选项
+实际上， JSON.stringify()除了要序列化的 JavaScript 对象外，还可以接收另外两个参数，这两
+个参数用于指定以不同的方式序列化 JavaScript 对象。第一个参数是个过滤器，可以是一个数组，也可
+以是一个函数；第二个参数是一个选项，表示是否在 JSON 字符串中保留缩进。单独或组合使用这两个
+参数，可以更全面深入地控制 JSON 的序列化。
+1. 过滤结果
+如果过滤器参数是数组，那么 JSON.stringify()的结果中将只包含数组中列出的属性。
+```javascript
+var book = {
+"title": "Professional JavaScript",
+"authors": [
+"Nicholas C. Zakas"
+],
+edition: 3,
+year: 2011
+};
+var jsonText = JSON.stringify(book, ["title", "edition"]);
+```
+JSON.stringify()的第二个参数是一个数组，其中包含两个字符串： "title"和"edition"。这
+两个属性与将要序列化的对象中的属性是对应的，因此在返回的结果字符串中，就只会包含这两个属性：
+```javascript
+{"title": "Professional JavaScript","edition": 3}
+```
+
+2. 字符串缩进
+JSON.stringify()方法的第三个参数用于控制结果中的缩进和空白符。如果这个参数是一个数
+值，那它表示的是每个级别缩进的空格数。
+ JSON.stringify()也在结果字符串中插入了换行符以提高可读性。只要
+传入有效的控制缩进的参数值，结果字符串就会包含换行符。（只缩进而不换行意义不大。）最大缩进空
+格数为 10，所有大于 10 的值都会自动转换为 10。
+如果缩进参数是一个字符串而非数值，则这个字符串将在 JSON 字符串中被用作缩进字符（不再使
+用空格）。在使用字符串的情况下，可以将缩进字符设置为制表符，或者两个短划线之类的任意字符。
+
+3. toJSON()方法
+有时候， JSON.stringify()还是不能满足对某些对象进行自定义序列化的需求。在这些情况下，
+可以给对象定义 toJSON()方法，返回其自身的 JSON 数据格式。原生 Date 对象有一个 toJSON()方法，
+能够将 JavaScript的 Date 对象自动转换成 ISO 8601日期字符串（与在 Date 对象上调用 toISOString()
+的结果完全一样）。
+
+toJSON()可以作为函数过滤器的补充，因此理解序列化的内部顺序十分重要。假设把一个对象传
+入 JSON.stringify()，序列化该对象的顺序如下。
+(1) 如果存在 toJSON()方法而且能通过它取得有效的值，则调用该方法。否则，返回对象本身。
+(2) 如果提供了第二个参数，应用这个函数过滤器。传入函数过滤器的值是第(1)步返回的值。
+(3) 对第(2)步返回的每个值进行相应的序列化。
+(4) 如果提供了第三个参数，执行相应的格式化。
+无论是考虑定义 toJSON()方法，还是考虑使用函数过滤器，亦或需要同时使用两者，理解这个顺
+序都是至关重要的。
+
 ### 解析选项
+JSON.parse()方法也可以接收另一个参数，该参数是一个函数，将在每个键值对儿上调用。为了
+区别 JSON.stringify()接收的替换（过滤）函数（replacer），这个函数被称为还原函数（reviver），
+但实际上这两个函数的签名是相同的——它们都接收两个参数，一个键和一个值，而且都需要返回一
+个值。
+如果还原函数返回 undefined，则表示要从结果中删除相应的键；如果返回其他值，则将该值插
+入到结果中。在将日期字符串转换为 Date 对象时，经常要用到还原函数。
 
 ---
 # Ajax与Comet
+Ajax 技术的核心是 XMLHttpRequest 对象（简称 XHR），这是由微软首先引入的一个特性，其他
+浏览器提供商后来都提供了相同的实现。在 XHR 出现之前， Ajax 式的通信必须借助一些 hack 手段来实
+现，大多数是使用隐藏的框架或内嵌框架。 XHR 为向服务器发送请求和解析服务器响应提供了流畅的
+接口。能够以异步方式从服务器取得更多信息，意味着用户单击后，可以不必刷新页面也能取得新数据。
+也就是说，可以使用 XHR 对象取得新数据，然后再通过 DOM 将新数据插入到页面中。另外，虽然名
+字中包含 XML 的成分，但 Ajax 通信与数据格式无关；这种技术就是无须刷新页面即可从服务器取得数
+据，但不一定是 XML 数据。
+实际上， Garrett 提到的这种技术已经存在很长时间了。在 Garrett 撰写那篇文章之前，人们通常将
+这种技术叫做远程脚本（remote scripting），而且早在 1998 年就有人采用不同的手段实现了这种浏览器
+与服务器的通信。再往前推， JavaScript 需要通过 Java applet 或 Flash 电影等中间层向服务器发送请求。
+而 XHR 则将浏览器原生的通信能力提供给了开发人员，简化了实现同样操作的任务。
+在重命名为 Ajax 之后，大约是 2005 年底 2006 年初，这种浏览器与服务器的通信技术可谓红极一
+时。人们对 JavaScript 和 Web 的全新认识，催生了很多使用原有特性的新技术和新模式。就目前来说，
+熟练使用 XHR 对象已经成为所有 Web 开发人员必须掌握的一种技能。
+
 ## XMLHttpRequest对象
+IE5 是第一款引入 XHR 对象的浏览器。在 IE5 中， XHR 对象是通过 MSXML 库中的一个 ActiveX
+对象实现的。因此，在 IE 中可能会遇到三种不同版本的 XHR 对象，即 MSXML2.XMLHttp、
+MSXML2.XMLHttp.3.0 和 MXSML2.XMLHttp.6.0。
 ### XHR的用法
+在使用 XHR 对象时，要调用的第一个方法是 open()，它接受 3 个参数：要发送的请求的类型
+（"get"、 "post"等）、请求的 URL 和表示是否异步发送请求的布尔值。
+这里的 send()方法接收一个参数，即要作为请求主体发送的数据。如果不需要通过请求主体发送
+数据，则必须传入 null，因为这个参数对有些浏览器来说是必需的。调用 send()之后，请求就会被分
+派到服务器。
+由于这次请求是同步的， JavaScript 代码会等到服务器响应之后再继续执行。在收到响应后，响应
+的数据会自动填充 XHR 对象的属性，相关的属性简介如下。
+- responseText：作为响应主体被返回的文本。
+- responseXML：如果响应的内容类型是"text/xml"或"application/xml"，这个属性中将保
+存包含着响应数据的 XML DOM 文档。
+- status：响应的 HTTP 状态。
+- statusText： HTTP 状态的说明。
+在接收到响应后，第一步是检查 status 属性，以确定响应已经成功返回。一般来说，可以将 HTTP
+状态代码为 200 作为成功的标志。此时， responseText 属性的内容已经就绪，而且在内容类型正确的
+情况下， responseXML 也应该能够访问了。此外，状态代码为 304 表示请求的资源并没有被修改，可
+以直接使用浏览器中缓存的版本；当然，也意味着响应是有效的。
+
+根据返回的状态代码，这个例子可能会显示由服务器返回的内容，也可能会显示一条错误消息。我
+们建议读者要通过检测 status 来决定下一步的操作，不要依赖 statusText，因为后者在跨浏览器使
+用时不太可靠。另外，无论内容类型是什么，响应主体的内容都会保存到 responseText 属性中；而
+对于非 XML 数据而言， responseXML 属性的值将为 null。
+
+像前面这样发送同步请求当然没有问题，但多数情况下，我们还是要发送异步请求，才能让
+JavaScript 继续执行而不必等待响应。此时，可以检测 XHR 对象的 readyState 属性，该属性表示请求
+/响应过程的当前活动阶段。这个属性可取的值如下。
+- 0：未初始化。尚未调用 open()方法。
+- 1：启动。已经调用 open()方法，但尚未调用 send()方法。
+- 2：发送。已经调用 send()方法，但尚未接收到响应。
+- 3：接收。已经接收到部分响应数据。
+- 4：完成。已经接收到全部响应数据，而且已经可以在客户端使用了。
+只要 readyState 属性的值由一个值变成另一个值，都会触发一次 readystatechange 事件。可
+以利用这个事件来检测每次状态变化后 readyState 的值。通常，我们只对 readyState 值为 4 的阶
+段感兴趣，因为这时所有数据都已经就绪。不过，必须在调用 open()之前指定 onreadystatechange
+事件处理程序才能确保跨浏览器兼容性。
+
 ### HTTP头部信息
+每个 HTTP 请求和响应都会带有相应的头部信息，其中有的对开发人员有用，有的也没有什么用。
+XHR 对象也提供了操作这两种头部（即请求头部和响应头部）信息的方法。
+默认情况下，在发送 XHR 请求的同时，还会发送下列头部信息。
+- Accept：浏览器能够处理的内容类型。
+- Accept-Charset：浏览器能够显示的字符集。
+- Accept-Encoding：浏览器能够处理的压缩编码。
+- Accept-Language：浏览器当前设置的语言。
+- Connection：浏览器与服务器之间连接的类型。
+- Cookie：当前页面设置的任何 Cookie。
+- Host：发出请求的页面所在的域 。
+- Referer：发出请求的页面的 URI。注意， HTTP 规范将这个头部字段拼写错了，而为保证与规
+范一致，也只能将错就错了。（这个英文单词的正确拼法应该是 referrer。）
+- User-Agent：浏览器的用户代理字符串。
+虽然不同浏览器实际发送的头部信息会有所不同，但以上列出的基本上是所有浏览器都会发送的。
+使用 setRequestHeader()方法可以设置自定义的请求头部信息。这个方法接受两个参数：头部字段
+的名称和头部字段的值。
+
 ### GET请求
+GET 是最常见的请求类型，最常用于向服务器查询某些信息。必要时，可以将查询字符串参数追加
+到 URL 的末尾，以便将信息发送给服务器。对 XHR 而言，位于传入 open()方法的 URL 末尾的查询字
+符串必须经过正确的编码才行。
+使用 GET 请求经常会发生的一个错误，就是查询字符串的格式有问题。查询字符串中每个参数的名
+称和值都必须使用 encodeURIComponent()进行编码，然后才能放到 URL 的末尾。
+
 ### POST请求
+使用频率仅次于 GET 的是 POST 请求，通常用于向服务器发送应该被保存的数据。 POST 请求应该
+把数据作为请求的主体提交，而 GET 请求传统上不是这样。 POST 请求的主体可以包含非常多的数据，
+而且格式不限。
+发送 POST 请求的第二步就是向 send()方法中传入某些数据。由于 XHR 最初的设计主要是为了处
+理 XML，因此可以在此传入 XML DOM 文档，传入的文档经序列化之后将作为请求主体被提交到服务
+器。当然，也可以在此传入任何想发送到服务器的字符串。
+默认情况下，服务器对 POST 请求和提交 Web 表单的请求并不会一视同仁。因此，服务器端必须有
+程序来读取发送过来的原始数据，并从中解析出有用的部分。不过，我们可以使用 XHR 来模仿表单提
+交：首先将 Content-Type 头部信息设置为 application/x-www-form-urlencoded，也就是表单
+提交时的内容类型，其次是以适当的格式创建一个字符串。第 14 章曾经讨论过， POST 数据的格式与查
+询字符串格式相同。
 
 
 ## XMLHttpRequest2级
-### FormData
-### 超时设定
-### overrideMimeType()方法
+鉴于 XHR 已经得到广泛接受，成为了事实标准， W3C 也着手制定相应的标准以规范其行为。
+XMLHttpRequest 1 级只是把已有的 XHR 对象的实现细节描述了出来。而 XMLHttpRequest 2 级则进一步
+发展了 XHR。并非所有浏览器都完整地实现了 XMLHttpRequest 2 级规范，但所有浏览器都实现了它规
+定的部分内容。
 
+### FormData
+现代 Web 应用中频繁使用的一项功能就是表单数据的序列化， XMLHttpRequest 2 级为此定义了
+FormData 类型。 FormData 为序列化表单以及创建与表单格式相同的数据（用于通过 XHR 传输）提供
+了便利。
+
+### 超时设定
+IE8 为 XHR 对象添加了一个 timeout 属性，表示请求在等待响应多少毫秒之后就终止。在给
+timeout 设置一个数值后，如果在规定的时间内浏览器还没有接收到响应，那么就会触发 timeout 事
+件，进而会调用 ontimeout 事件处理程序。这项功能后来也被收入了 XMLHttpRequest 2 级规范中。
+
+### overrideMimeType()方法
+Firefox 最早引入了 overrideMimeType()方法，用于重写 XHR 响应的 MIME 类型。这个方法后
+来也被纳入了 XMLHttpRequest 2 级规范。因为返回响应的 MIME 类型决定了 XHR 对象如何处理它，所
+以提供一种方法能够重写服务器返回的 MIME 类型是很有用的。
 
 ## 进度事件
+Progress Events 规范是 W3C 的一个工作草案，定义了与客户端服务器通信有关的事件。这些事件最
+早其实只针对 XHR 操作，但目前也被其他 API 借鉴。有以下 6 个进度事件。
+- loadstart：在接收到响应数据的第一个字节时触发。
+- progress：在接收响应期间持续不断地触发。
+- error：在请求发生错误时触发。
+- abort：在因为调用 abort()方法而终止连接时触发。
+- load：在接收到完整的响应数据时触发。
+- loadend：在通信完成或者触发 error、 abort 或 load 事件后触发。
+每个请求都从触发 loadstart 事件开始，接下来是一或多个 progress 事件，然后触发 error、
+abort 或 load 事件中的一个，最后以触发 loadend 事件结束。
+支持前 5 个事件的浏览器有 Firefox 3.5+、 Safari 4+、 Chrome、 iOS 版 Safari 和 Android 版 WebKit。
+Opera（从第 11 版开始）、 IE 8+只支持 load 事件。目前还没有浏览器支持 loadend 事件。
+这些事件大都很直观，但其中两个事件有一些细节需要注意。
+
 ### load事件
+Firefox 在实现 XHR 对象的某个版本时，曾致力于简化异步交互模型。最终， Firefox 实现中引入了
+load 事件，用以替代 readystatechange 事件。响应接收完毕后将触发 load 事件，因此也就没有必
+要去检查 readyState 属性了。而 onload 事件处理程序会接收到一个 event 对象，其 target 属性
+就指向 XHR 对象实例，因而可以访问到 XHR 对象的所有方法和属性。然而，并非所有浏览器都为这个
+事件实现了适当的事件对象。结果，开发人员还是要像下面这样被迫使用 XHR 对象变量。
 ### progress事件
+Mozilla 对 XHR 的另一个革新是添加了 progress 事件，这个事件会在浏览器接收新数据期间周期
+性地触发。而 onprogress 事件处理程序会接收到一个 event 对象，其 target 属性是 XHR 对象，但
+包含着三个额外的属性： lengthComputable、 position 和 totalSize。其中， lengthComputable
+是一个表示进度信息是否可用的布尔值， position 表示已经接收的字节数， totalSize 表示根据
+Content-Length 响应头部确定的预期字节数。有了这些信息，我们就可以为用户创建一个进度指示器
+了。
 
 ## 跨源资源共享
-### IE对CORS的实现
-### 其他浏览器对CORS的实现
-### Prefighted Requests
-### 带凭据的请求
-### 跨浏览器的CORS
+通过 XHR 实现 Ajax 通信的一个主要限制，来源于跨域安全策略。默认情况下， XHR 对象只能访
+问与包含它的页面位于同一个域中的资源。这种安全策略可以预防某些恶意行为。但是，实现合理的跨
+域请求对开发某些浏览器应用程序也是至关重要的。
+CORS（Cross-Origin Resource Sharing，跨源资源共享）是 W3C 的一个工作草案，定义了在必须访
+问跨源资源时，浏览器与服务器应该如何沟通。 CORS 背后的基本思想，就是使用自定义的 HTTP 头部
+让浏览器与服务器进行沟通，从而决定请求或响应是应该成功，还是应该失败。
+比如一个简单的使用 GET 或 POST 发送的请求，它没有自定义的头部，而主体内容是 text/plain。在
+发送该请求时，需要给它附加一个额外的 Origin 头部，其中包含请求页面的源信息（协议、域名和端
+口），以便服务器根据这个头部信息来决定是否给予响应。
 
+### IE对CORS的实现
+微软在 IE8 中引入了 XDR（XDomainRequest）类型。这个对象与 XHR 类似，但能实现安全可靠
+的跨域通信。 XDR 对象的安全机制部分实现了 W3C 的 CORS 规范。以下是 XDR 与 XHR 的一些不同之
+处。
+- cookie 不会随请求发送，也不会随响应返回。
+- 只能设置请求头部信息中的 Content-Type 字段。
+- 不能访问响应头部信息。
+- 只支持 GET 和 POST 请求。
+这些变化使 CSRF（Cross-Site Request Forgery，跨站点请求伪造）和 XSS（Cross-Site Scripting，跨
+站点脚本）的问题得到了缓解。被请求的资源可以根据它认为合适的任意数据（用户代理、来源页面等）
+来决定是否设置 Access-Control- Allow-Origin 头部。作为请求的一部分， Origin 头部的值表示
+请求的来源域，以便远程资源明确地识别 XDR 请求。
+XDR 对象的使用方法与 XHR 对象非常相似。也是创建一个 XDomainRequest 的实例，调用 open()
+方法，再调用 send()方法。但与 XHR 对象的 open()方法不同， XDR 对象的 open()方法只接收两个
+参数：请求的类型和 URL。
+
+### 其他浏览器对CORS的实现
+Firefox 3.5+、 Safari 4+、 Chrome、 iOS 版 Safari 和 Android 平台中的 WebKit 都通过 XMLHttpRequest
+对象实现了对 CORS 的原生支持。在尝试打开不同来源的资源时，无需额外编写代码就可以触发这个行
+为。 要请求位于另一个域中的资源，使用标准的 XHR 对象并在 open()方法中传入绝对 URL 即可
+
+与 IE 中的 XDR 对象不同，通过跨域 XHR 对象可以访问 status 和 statusText 属性，而且还支
+持同步请求。跨域 XHR 对象也有一些限制，但为了安全这些限制是必需的。以下就是这些限制。
+- 不能使用 setRequestHeader()设置自定义头部。
+- 不能发送和接收 cookie。
+- 调用 getAllResponseHeaders()方法总会返回空字符串。
+由于无论同源请求还是跨源请求都使用相同的接口，因此对于本地资源，最好使用相对 URL，在访
+问远程资源时再使用绝对 URL。这样做能消除歧义，避免出现限制访问头部或本地 cookie 信息等问题。
+
+### Prefighted Requests
+CORS 通过一种叫做 Preflighted Requests 的透明服务器验证机制支持开发人员使用自定义的头部、
+GET 或 POST 之外的方法，以及不同类型的主体内容。在使用下列高级选项来发送请求时，就会向服务
+器发送一个 Preflight 请求。这种请求使用 OPTIONS 方法，发送下列头部。
+- Origin：与简单的请求相同。
+- Access-Control-Request-Method：请求自身使用的方法。
+- Access-Control-Request-Headers：（可选）自定义的头部信息，多个头部以逗号分隔。
+### 带凭据的请求
+默 认 情 况 下， 跨 源 请 求不 提 供 凭 据（cookie 、 HTTP 认 证 及 客户 端 SSL 证明 等 ）。 通 过 将
+withCredentials 属性设置为 true，可以指定某个请求应该发送凭据。如果服务器接受带凭据的请
+求，会用下面的 HTTP 头部来响应。
+`Access-Control-Allow-Credentials: true`
+如果发送的是带凭据的请求，但服务器的响应中没有包含这个头部，那么浏览器就不会把响应交给
+JavaScript（于是， responseText 中将是空字符串， status 的值为 0，而且会调用 onerror()事件处
+理程序）。另外，服务器还可以在 Preflight 响应中发送这个 HTTP 头部，表示允许源发送带凭据的请求。
+支持 withCredentials 属性的浏览器有 Firefox 3.5+、 Safari 4+和 Chrome。 IE 10 及更早版本都不
+支持。
+
+### 跨浏览器的CORS
+即使浏览器对 CORS 的支持程度并不都一样，但所有浏览器都支持简单的（非 Preflight 和不带凭据
+的）请求，因此有必要实现一个跨浏览器的方案。检测 XHR 是否支持 CORS 的最简单方式，就是检查
+是否存在 withCredentials 属性。再结合检测 XDomainRequest 对象是否存在，就可以兼顾所有浏
+览器了。
+
+Firefox、 Safari 和 Chrome 中的 XMLHttpRequest 对象与 IE 中的 XDomainRequest 对象类似，都
+提供了够用的接口，因此以上模式还是相当有用的。这两个对象共同的属性/方法如下。
+- abort()：用于停止正在进行的请求。
+- onerror：用于替代 onreadystatechange 检测错误。
+- onload：用于替代 onreadystatechange 检测成功。
+- responseText：用于取得响应内容。
+- send()：用于发送请求。
+以上成员都包含在 createCORSRequest()函数返回的对象中，在所有浏览器中都能正常使用。
 
 ## 其他跨域技术
-### 图像Ping
-### JSONP
-### Comet
-### 服务器发送事件
-### Web Sockets
-### SSE与Web Sockets
+在 CORS 出现以前，要实现跨域 Ajax 通信颇费一些周折。开发人员想出了一些办法，利用 DOM 中
+能够执行跨域请求的功能，在不依赖 XHR 对象的情况下也能发送某种请求。虽然 CORS 技术已经无处
+不在，但开发人员自己发明的这些技术仍然被广泛使用，毕竟这样不需要修改服务器端代码。
 
+### 图像Ping
+上述第一种跨域请求技术是使用<img>标签。我们知道，一个网页可以从任何网页中加载图像，不
+用担心跨域不跨域。这也是在线广告跟踪浏览量的主要方式。正如第 13 章讨论过的，也可以动态地创
+建图像，使用它们的 onload 和 onerror 事件处理程序来确定是否接收到了响应。
+动态创建图像经常用于图像 Ping。图像 Ping 是与服务器进行简单、单向的跨域通信的一种方式。
+请求的数据是通过查询字符串形式发送的，而响应可以是任意内容，但通常是像素图或 204 响应。通过
+图像 Ping，浏览器得不到任何具体的数据，但通过侦听 load 和 error 事件，它能知道响应是什么时
+候接收到的。
+```javascript
+var img = new Image();
+img.onload = img.onerror = function(){
+alert("Done!");
+};
+img.src = "http://www.example.com/test?name=Nicholas";
+```
+图像 Ping 最常用于跟踪用户点击页面或动态广告曝光次数。图像 Ping 有两个主要的缺点，一是只
+能发送 GET 请求，二是无法访问服务器的响应文本。因此，图像 Ping 只能用于浏览器与服务器间的单
+向通信。
+
+### JSONP
+JSONP 是 JSON with padding（填充式 JSON 或参数式 JSON）的简写，是应用 JSON 的一种新方法，
+在后来的 Web 服务中非常流行。 JSONP 看起来与 JSON 差不多，只不过是被包含在函数调用中的 JSON。
+
+JSONP 由两部分组成：回调函数和数据。回调函数是当响应到来时应该在页面中调用的函数。回调
+函数的名字一般是在请求中指定的。而数据就是传入回调函数中的 JSON 数据。
+
+### Comet
+Comet 是 Alex Russell发明的一个词儿，指的是一种更高级的 Ajax 技术（经常也有人称为“服务器
+推送”）。 Ajax 是一种从页面向服务器请求数据的技术，而 Comet 则是一种服务器向页面推送数据的技
+术。 Comet 能够让信息近乎实时地被推送到页面上，非常适合处理体育比赛的分数和股票报价。
+有两种实现 Comet 的方式： 长轮询和流。长轮询是传统轮询（也称为短轮询）的一个翻版，即浏览
+器定时向服务器发送请求，看有没有更新的数据。
+长轮询把短轮询颠倒了一下。页面发起一个到服务器的请求，然后服务器一直保持连接打开，直到
+有数据可发送。发送完数据之后，浏览器关闭连接，随即又发起一个到服务器的新请求。
+无论是短轮询还是长轮询，浏览器都要在接收数据之前，先发起对服务器的连接。两者最大的区别
+在于服务器如何发送数据。短轮询是服务器立即发送响应，无论数据是否有效，而长轮询是等待发送响
+应。轮询的优势是所有浏览器都支持，因为使用 XHR 对象和 setTimeout()就能实现。而你要做的就
+是决定什么时候发送请求。
+
+第二种流行的 Comet 实现是 HTTP 流。流不同于上述两种轮询，因为它在页面的整个生命周期内只
+使用一个 HTTP 连接。具体来说，就是浏览器向服务器发送一个请求，而服务器保持连接打开，然后周
+期性地向浏览器发送数据。
+
+在 Firefox、 Safari、 Opera 和 Chrome 中，通过侦听 readystatechange 事件及检测 readyState
+的值是否为 3，就可以利用 XHR 对象实现 HTTP 流。在上述这些浏览器中，随着不断从服务器接收数
+据， readyState 的值会周期性地变为 3。当 readyState 值变为 3 时， responseText 属性中就会保
+存接收到的所有数据。此时，就需要比较此前接收到的数据，决定从什么位置开始取得最新的数据。
+
+这个 createStreamingClient()函数接收三个参数：要连接的 URL、在接收到数据时调用的函
+数以及关闭连接时调用的函数。有时候，当连接关闭时，很可能还需要重新建立，所以关注连接什么时
+候关闭还是有必要的。
+只要 readystatechange 事件发生，而且 readyState 值为 3，就对 responseText 进行分割以
+取得最新数据。这里的 received 变量用于记录已经处理了多少个字符，每次 readyState 值为 3 时都
+递增。然后，通过 progress 回调函数来处理传入的新数据。而当 readyState 值为 4 时，则执行
+finished 回调函数，传入响应返回的全部内容。
+虽然这个例子比较简单，而且也能在大多数浏览器中正常运行（IE 除外），但管理 Comet 的连接是
+很容易出错的，需要时间不断改进才能达到完美。浏览器社区认为 Comet 是未来 Web 的一个重要组成
+部分，为了简化这一技术，又为 Comet 创建了两个新的接口。
+
+### 服务器发送事件
+SSE（Server-Sent Events，服务器发送事件）是围绕只读 Comet 交互推出的 API 或者模式。 SSE API
+用于创建到服务器的单向连接，服务器通过这个连接可以发送任意数量的数据。服务器响应的 MIME
+类型必须是 text/event-stream，而且是浏览器中的 JavaScript API 能解析格式输出。 SSE 支持短轮
+询、长轮询和 HTTP 流，而且能在断开连接时自动确定何时重新连接。有了这么简单实用的 API，再实
+现 Comet 就容易多了。
+支持 SSE 的浏览器有 Firefox 6+、 Safari 5+、 Opera 11+、 Chrome 和 iOS 4+版 Safari。
+
+1. SSE API
+SSE 的 JavaScript API 与其他传递消息的 JavaScript API 很相似。要预订新的事件流，首先要创建一
+个新的 EventSource 对象，并传进一个入口点：
+```javascript
+var source = new EventSource("myevents.php");
+```
+注意，传入的 URL 必须与创建对象的页面同源（相同的 URL 模式、域及端口）。 EventSource 的
+实例有一个 readyState 属性，值为 0 表示正连接到服务器，值为 1 表示打开了连接，值为 2 表示关闭
+了连接。
+另外，还有以下三个事件。
+- open：在建立连接时触发。
+- message：在从服务器接收到新事件时触发。
+- error：在无法建立连接时触发。
+就一般的用法而言， onmessage 事件处理程序也没有什么特别的。
+
+2. 事件流
+所谓的服务器事件会通过一个持久的 HTTP 响应发送，这个响应的 MIME 类型为 text/event-stream。
+响应的格式是纯文本，最简单的情况是每个数据项都带有前缀 data:。
+
+### Web Sockets
+要说最令人津津乐道的新浏览器 API，就得数 Web Sockets 了。 Web Sockets 的目标是在一个单独的
+持久连接上提供全双工、双向通信。在 JavaScript 中创建了 Web Socket 之后，会有一个 HTTP 请求发送
+到浏览器以发起连接。在取得服务器响应后，建立的连接会使用 HTTP 升级从 HTTP 协议交换为 Web
+Socket 协议。也就是说，使用标准的 HTTP 服务器无法实现 Web Sockets，只有支持这种协议的专门服
+务器才能正常工作。
+由于 Web Sockets 使用了自定义的协议，所以 URL 模式也略有不同。未加密的连接不再是 http://，
+而是 ws://；加密的连接也不是 https://，而是 wss://。在使用 Web Socket URL 时，必须带着这个
+模式，因为将来还有可能支持其他模式。
+使用自定义协议而非 HTTP 协议的好处是，能够在客户端和服务器之间发送非常少量的数据，而不
+必担心 HTTP 那样字节级的开销。由于传递的数据包很小，因此 Web Sockets 非常适合移动应用。毕竟
+对移动应用而言，带宽和网络延迟都是关键问题。使用自定义协议的缺点在于，制定协议的时间比制定
+JavaScript API 的时间还要长。 Web Sockets 曾几度搁浅，就因为不断有人发现这个新协议存在一致性和
+安全性的问题。 Firefox 4 和 Opera 11 都曾默认启用 Web Sockets，但在发布前夕又禁用了，因为又发现
+了安全隐患。目前支持 Web Sockets 的浏览器有 Firefox 6+、 Safari 5+、 Chrome 和 iOS 4+版 Safari。
+
+1. Web Sockets API
+
+注意，必须给 WebSocket 构造函数传入绝对 URL。同源策略对 Web Sockets 不适用，因此可以通
+过它打开到任何站点的连接。至于是否会与某个域中的页面通信，则完全取决于服务器。（通过握手信
+息就可以知道请求来自何方。）
+实例化了 WebSocket 对象后，浏览器就会马上尝试创建连接。与 XHR 类似， WebSocket 也有一
+个表示当前状态的 readyState 属性。不过，这个属性的值与 XHR 并不相同，而是如下所示。
+- WebSocket.OPENING (0)：正在建立连接。
+- WebSocket.OPEN (1)：已经建立连接。
+- WebSocket.CLOSING (2)：正在关闭连接。
+- WebSocket.CLOSE (3)：已经关闭连接。
+WebSocket 没有 readystatechange 事件；不过，它有其他事件，对应着不同的状态。readyState
+的值永远从 0 开始。
+要关闭 Web Socket 连接，可以在任何时候调用 close()方法。
+
+2. 发送和接收数据
+Web Socket 打开之后，就可以通过连接发送和接收数据。要向服务器发送数据，使用 send()方法
+并传入任意字符串。
+```javascript
+var socket = new WebSocket("ws://www.example.com/server.php");
+socket.send("Hello world!");
+```
+
+3. 其他事件
+WebSocket 对象还有其他三个事件，在连接生命周期的不同阶段触发。
+- open：在成功建立连接时触发。
+- error：在发生错误时触发，连接不能持续。
+- close：在连接关闭时触发。
+WebSocket 对象不支持 DOM 2 级事件侦听器，因此必须使用 DOM 0 级语法分别定义每个事件处理程序。
+
+### SSE与Web Sockets
+面对某个具体的用例，在考虑是使用 SSE 还是使用 Web Sockets 时，可以考虑如下几个因素。首先，
+你是否有自由度建立和维护 Web Sockets 服务器？因为 Web Socket 协议不同于 HTTP，所以现有服务器
+不能用于 Web Socket 通信。 SSE 倒是通过常规 HTTP 通信，因此现有服务器就可以满足需求。
+第二个要考虑的问题是到底需不需要双向通信。如果用例只需读取服务器数据（如比赛成绩），那
+么 SSE 比较容易实现。如果用例必须双向通信（如聊天室），那么 Web Sockets 显然更好。别忘了，在
+不能选择 Web Sockets 的情况下，组合 XHR 和 SSE 也是能实现双向通信的。
 
 ## 安全
 
@@ -6138,48 +6772,457 @@ console.innerHTML += "<p>" + message + "</p>";
 # 高级技巧
 ## 高级函数
 ### 安全的类型检测
+JavaScript 内置的类型检测机制并非完全可靠。事实上，发生错误否定及错误肯定的情况也不在少
+数。比如说 typeof 操作符吧，由于它有一些无法预知的行为，经常会导致检测数据类型时得到不靠谱
+的结果。 Safari（直至第 4 版）在对正则表达式应用 typeof 操作符时会返回"function"，因此很难确
+定某个值到底是不是函数。
+
+在检测某个对象到底是原生对象还是开发人员自定义的对象的时候，也会有问题。出现这个问题的
+原因是浏览器开始原生支持 JSON 对象了。因为很多人一直在使用 Douglas Crockford 的 JSON 库，而该
+库定义了一个全局 JSON 对象。于是开发人员很难确定页面中的 JSON 对象到底是不是原生的。
+
 ### 作用域安全的构造函数
+这个问题是由 this 对象的晚绑定造成的，在这里 this 被解析成了 window
+对象。由于 window 的 name 属性是用于识别链接目标和 frame 的，所以这里对该属性的偶然覆盖可能
+会导致该页面上出现其他错误。这个问题的解决方法就是创建一个作用域安全的构造函数。
+
 ### 惰性载入函数
+因为浏览器之间行为的差异，多数 JavaScript 代码包含了大量的 if 语句，将执行引导到正确的代
+码中。
+
+每次调用 createXHR()的时候，它都要对浏览器所支持的能力仔细检查。首先检查内置的 XHR，
+然后测试有没有基于 ActiveX 的 XHR，最后如果都没有发现的话就抛出一个错误。每次调用该函数都是
+这样，即使每次调用时分支的结果都不变：如果浏览器支持内置 XHR，那么它就一直支持了，那么这
+种测试就变得没必要了。即使只有一个 if 语句的代码，也肯定要比没有 if 语句的慢，所以如果 if 语
+句不必每次执行，那么代码可以运行地更快一些。解决方案就是称之为惰性载入的技巧。
+惰性载入表示函数执行的分支仅会发生一次。有两种实现惰性载入的方式，第一种就是在函数被调
+用时再处理函数。在第一次调用的过程中，该函数会被覆盖为另外一个按合适方式执行的函数，这样任
+何对 原 函数 的调 用 都不 用再 经 过执 行的 分 支了 。
 ### 函数绑定
+另一个日益流行的高级技巧叫做函数绑定。函数绑定要创建一个函数，可以在特定的 this 环境中
+以指定参数调用另一个函数。该技巧常常和回调函数与事件处理程序一起使用，以便在将函数作为变量
+传递的同时保留代码执行环境。
 ### 函数柯里化
+与函数绑定紧密相关的主题是函数柯里化（function currying），它用于创建已经设置好了一个或多
+个参数的函数。函数柯里化的基本方法和函数绑定是一样的：使用一个闭包返回一个函数。两者的区别
+在于，当函数被调用时，返回的函数还需要设置一些传入的参数。
 
 
 ## 防篡改对象
+JavaScript 共享的本质一直是开发人员心头的痛。因为任何对象都可以被在同一环境中运行的代码
+修改。开发人员很可能会意外地修改别人的代码，甚至更糟糕地，用不兼容的功能重写原生对象。
+ECMAScript 5 致力于解决这个问题，可以让开发人员定义防篡改对象（tamper-proof object）。
+第6章讨论了对象属性的问题，也讨论了如何手工设置每个属性的[[Configurable]]、
+[[Writable]]、 [[Enumerable]]、 [[Value]]、 [[Get]]以及[[Set]]特性，以改变属性的行为。
+类似地， ECMAScript 5也增加了几个方法，通过它们可以指定对象的行为。
+不过请注意：一旦把对象定义为防篡改，就无法撤销了。
 ### 不可扩展对象
+默认情况下，所有对象都是可以扩展的。也就是说，任何时候都可以向对象中添加属性和方法。
+在调用了 Object.preventExtensions()方法后，就不能给 person 对象添加新属性和方法了。
+在非严格模式下，给对象添加新成员会导致静默失败，因此 person.age 将是 undefined。而在严格
+模式下，尝试给不可扩展的对象添加新成员会导致抛出错误。
 ### 密封的对象
-### 冻结的对象
+ECMAScript 5 为对象定义的第二个保护级别是密封对象（sealed object）。密封对象不可扩展，而
+且已有成员的[[Configurable]]特性将被设置为 false。这就意味着不能删除属性和方法，因为不能
+使用 Object.defineProperty()把数据属性修改为访问器属性，或者相反。属性值是可以修改的。
 
+### 冻结的对象
+最严格的防篡改级别是冻结对象（frozen object）。冻结的对象既不可扩展，又是密封的，而且对象
+数据属性的[[Writable]]特性会被设置为 false。如果定义[[Set]]函数，访问器属性仍然是可写的。
+ECMAScript 5 定义的 Object.freeze()方法可以用来冻结对象。
 
 ## 高级定时器
+使用 setTimeout()和 setInterval()创建的定时器可以用于实现有趣且有用的功能。虽然人们
+对 JavaScript 的定时器存在普遍的误解，认为它们是线程，其实 JavaScript 是运行于单线程的环境中的，
+而定时器仅仅只是计划代码在未来的某个时间执行。执行时机是不能保证的，因为在页面的生命周期中，
+不同时间可能有其他代码在控制 JavaScript 进程。在页面下载完后的代码运行、事件处理程序、 Ajax 回
+调函数都必须使用同样的线程来执行。实际上，浏览器负责进行排序，指派某段代码在某个时间点运行
+的优先级。
+可以把 JavaScript 想象成在时间线上运行的。当页面载入时，首先执行是任何包含在<script>元素
+中的代码，通常是页面生命周期后面要用到的一些简单的函数和变量的声明，不过有时候也包含一些初
+始数据的处理。在这之后， JavaScript 进程将等待更多代码执行。当进程空闲的时候，下一个代码会被
+触发并立刻执行。
 ### 重复的定时器
-### Yielding Processes
-### 函数节流
+使用 setInterval()创建的定时器确保了定时器代码规则地插入队列中。这个方式的问题在于，
+定时器代码可能在代码再次被添加到队列之前还没有完成执行，结果导致定时器代码连续运行好几次，
+而之间没有任何停顿。幸好， JavaScript 引擎够聪明，能避免这个问题。当使用 setInterval()时，仅
+当没有该定时器的任何其他代码实例时，才将定时器代码添加到队列中。这确保了定时器代码加入到队
+列中的最小时间间隔为指定间隔。
+这种重复定时器的规则有两个问题： (1) 某些间隔会被跳过； (2) 多个定时器的代码执行之间的间隔
+可能会比预期的小。假设，某个 onclick 事件处理程序使用 setInterval()设置了一个 200ms 间隔
+的重复定时器。如果事件处理程序花了 300ms 多一点的时间完成，同时定时器代码也花了差不多的时间，
+就会同时出现跳过间隔且连续运行定时器代码的情况。
 
+### Yielding Processes
+运行在浏览器中的 JavaScript 都被分配了一个确定数量的资源。不同于桌面应用往往能够随意控制
+他们要的内存大小和处理器时间， JavaScript 被严格限制了，以防止恶意的 Web 程序员把用户的计算机
+搞挂了。其中一个限制是长时间运行脚本的制约，如果代码运行超过特定的时间或者特定语句数量就不
+让它继续执行。如果代码达到了这个限制，会弹出一个浏览器错误的对话框，告诉用户某个脚本会用过
+长的时间执行，询问是允许其继续执行还是停止它。所有 JavaScript 开发人员的目标就是，确保用户永
+远不会在浏览器中看到这个令人费解的对话框。定时器是绕开此限制的方法之一。
+
+### 函数节流
+浏览器中某些计算和处理要比其他的昂贵很多。例如， DOM 操作比起非 DOM 交互需要更多的内
+存和 CPU 时间。连续尝试进行过多的 DOM 相关操作可能会导致浏览器挂起，有时候甚至会崩溃。尤其
+在 IE 中使用 onresize 事件处理程序的时候容易发生，当调整浏览器大小的时候，该事件会连续触发。
+在 onresize 事件处理程序内部如果尝试进行 DOM 操作，其高频率的更改可能会让浏览器崩溃。为了
+绕开这个问题，你可以使用定时器对该函数进行节流。
+函数节流背后的基本思想是指，某些代码不可以在没有间断的情况连续重复执行。第一次调用函数，
+创建一个定时器，在指定的时间间隔之后运行代码。当第二次调用该函数时，它会清除前一次的定时器
+并设置另一个。如果前一个定时器已经执行过了，这个操作就没有任何意义。然而，如果前一个定时器
+尚未执行，其实就是将其替换为一个新的定时器。目的是只有在执行函数的请求停止了一段时间之后才
+执行。
 
 ## 自定义事件
+在本书前面，你已经学到事件是 JavaScript 与浏览器交互的主要途径。事件是一种叫做观察者的设
+计模式，这是一种创建松散耦合代码的技术。对象可以发布事件，用来表示在该对象生命周期中某个有
+趣的时刻到了。然后其他对象可以观察该对象，等待这些有趣的时刻到来并通过运行代码来响应。
+观察者模式由两类对象组成： 主体和观察者。主体负责发布事件，同时观察者通过订阅这些事件来
+观察该主体。该模式的一个关键概念是主体并不知道观察者的任何事情，也就是说它可以独自存在并正
+常运作即使观察者不存在。从另一方面来说，观察者知道主体并能注册事件的回调函数（事件处理程序）。
+涉及 DOM 上时， DOM 元素便是主体，你的事件处理代码便是观察者。
+事件是与 DOM 交互的最常见的方式，但它们也可以用于非 DOM 代码中——通过实现自定义事件。
+自定义事件背后的概念是创建一个管理事件的对象，让其他对象监听那些事件。
 
-
+EventTarget 类型有一个单独的属性 handlers，用于储存事件处理程序。还有三个方法：
+addHandler() ， 用 于 注 册 给 定 类 型 事 件 的 事 件 处 理 程 序 ； fire() ， 用 于 触 发 一 个 事 件 ；
+removeHandler()，用于注销某个事件类型的事件处理程序。
+addHandler()方法接受两个参数：事件类型和用于处理该事件的函数。当调用该方法时，会进行
+一次检查，看看 handlers 属性中是否已经存在一个针对该事件类型的数组；如果没有，则创建一个新
+的。然后使用 push()将该处理程序添加到数组的末尾。
+如果要触发一个事件，要调用 fire()函数。该方法接受一个单独的参数，是一个至少包含 type
+属性的对象。 fire()方法先给 event 对象设置一个 target 属性，如果它尚未被指定的话。然后它就
+查找对应该事件类型的一组处理程序，调用各个函数，并给出 event 对象。因为这些都是自定义事件，
+所以 event 对象上还需要的额外信息由你自己决定。
 
 ## 拖放
+拖放是一种非常流行的用户界面模式。它的概念很简单：点击某个对象，并按住鼠标按钮不放，将
+鼠标移动到另一个区域，然后释放鼠标按钮将对象“放”在这里。拖放功能也流行到了 Web 上，成为
+了一些更传统的配置界面的一种候选方案。
+拖放的基本概念很简单：创建一个绝对定位的元素，使其可以用鼠标移动。这个技术源自一种叫做
+“鼠标拖尾”的经典网页技巧。鼠标拖尾是一个或者多个图片在页面上跟着鼠标指针移动。 
+```javascript
+EventUtil.addHandler(document, "mousemove", function(event){
+var myDiv = document.getElementById("myDiv");
+myDiv.style.left = event.clientX + "px";
+myDiv.style.top = event.clientY + "px";
+});
+```
 ### 修缮拖动功能
-### 添加自定义事件
+当你试了上面的例子之后，你会发现元素的左上角总是和指针在一起。这个结果对用户来说有一点
+不爽，因为当鼠标开始移动的时候，元素好像是突然跳了一下。理想情况是，这个动作应该看上去好像
+这个元素是被指针“拾起”的，也就是说当在拖动元素的时候，用户点击的那一点就是指针应该保持的
+位置。
 
+### 添加自定义事件
+拖放功能还不能真正应用起来，除非能知道什么时候拖动开始了。从这点上看，前面的代码没有提
+供任何方法表示拖动开始、正在拖动或者已经结束。这时，可以使用自定义事件来指示这几个事件的发
+生，让应用的其他部分与拖动功能进行交互。
+由于 DragDrop 对象是一个使用了模块模式的单例，所以需要进行一些更改来使用 EventTarget
+类型。首先，创建一个新的 EventTarget 对象，然后添加 enable()和 disable()方法，最后返回这
+个对象。
+
+这段代码定义了三个事件：dragstart、drag 和 dragend。它们都将被拖动的元素设置为了 target，
+并给出了 x 和 y 属性来表示当前的位置。它们触发于 dragdrop 对象上，之后在返回对象前给对象增
+加 enable()和 disable()方法。
 ---
 # 离线应用于客户端存储
+开发离线 Web 应用需要几个步骤。首先是确保应用知道设备是否能上网，以便下一步执行正确的
+操作。然后，应用还必须能访问一定的资源（图像、 JavaScript、 CSS 等），只有这样才能正常工作。最
+后，必须有一块本地空间用于保存数据，无论能否上网都不妨碍读写。 HTML5 及其相关的 API 让开发
+离线应用成为现实。
+
 ## 离线检测
-
-
+开发离线应用的第一步是要知道设备是在线还是离线，HTML5为此定义了一个navigator.onLine
+属性，这个属性值为 true 表示设备能上网，值为 false 表示设备离线。这个属性的关键是浏览器必须
+知道设备能否访问网络，从而返回正确的值。实际应用中， navigator.onLine 在不同浏览器间还有
+些小的差异。
+- IE6+和 Safari 5+能够正确检测到网络已断开，并将 navigator.onLine 的值转换为 false。
+- Firefox 3+和 Opera 10.6+支持 navigator.onLine 属性，但你必须手工选中菜单项“文件 → Web
+开发人员（设置）→ 脱机工作”才能让浏览器正常工作。
+- Chrome 11 及之前版本始终将 navigator.onLine 属性设置为 true。这是一个有待修复的
+bug。
+由于存在上述兼容性问题，单独使用 navigator.onLine 属性不能确定网络是否连通。即便如此，
+在请求发生错误的情况下，检测这个属性仍然是管用的。
 
 ## 应用缓存
+HTML5 的应用缓存（application cache），或者简称为 appcache，是专门为开发离线 Web 应用而设计
+的。 Appcache 就是从浏览器的缓存中分出来的一块缓存区。要想在这个缓存中保存数据，可以使用一个
+描述文件（manifest file），列出要下载和缓存的资源。
 
-
+虽然应用缓存的意图是确保离线时资源可用，但也有相应的 JavaScript API 让你知道它都在做什么。
+这个 API 的核心是 applicationCache 对象，这个对象有一个 status 属性，属性的值是常量，表示
+应用缓存的如下当前状态。
+- 0：无缓存，即没有与页面相关的应用缓存。
+- 1：闲置，即应用缓存未得到更新。
+- 2：检查中，即正在下载描述文件并检查更新。
+- 3：下载中，即应用缓存正在下载描述文件中指定的资源。
+- 4：更新完成，即应用缓存已经更新了资源，而且所有资源都已下载完毕，可以通过 swapCache()
+来使用了。
+- 5：废弃，即应用缓存的描述文件已经不存在了，因此页面无法再访问应用缓存。
+应用缓存还有很多相关的事件，表示其状态的改变。以下是这些事件。
+- checking：在浏览器为应用缓存查找更新时触发。
+- error：在检查更新或下载资源期间发生错误时触发。
+- noupdate：在检查描述文件发现文件无变化时触发。
+- downloading：在开始下载应用缓存资源时触发。
+- progress：在文件下载应用缓存的过程中持续不断地触发。
+- updateready：在页面新的应用缓存下载完毕且可以通过 swapCache()使用时触发。
+- cached：在应用缓存完整可用时触发。
+一般来讲，这些事件会随着页面加载按上述顺序依次触发。不过，通过调用 update()方法也可以
+手工干预，让应用缓存为检查更新而触发上述事件。
 
 ## 数据存储
-### Cookie
-### IE用户数据
-### Web存储机制
-### IndexedDB
+随着 Web 应用程序的出现，也产生了对于能够直接在客户端上存储用户信息能力的要求。想法很
+合乎逻辑，属于某个特定用户的信息应该存在该用户的机器上。无论是登录信息、偏好设定或其他数据，
+Web 应用提供者发现他们在找各种方式将数据存在客户端上。这个问题的第一个方案是以 cookie 的形式
+出现的， cookie 是原来的网景公司创造的。一份题为“Persistent Client State: HTTP Cookes”（持久客户
+端状态： HTTP Cookies）的标准中对 cookie 机制进行了阐述（该标准还可以在这里看到：
+http://curl.haxx.se/rfc/cookie_spec.html）。
 
+### Cookie
+HTTP Cookie，通常直接叫做 cookie，最初是在客户端用于存储会话信息的。该标准要求服务器对
+任意 HTTP 请求发送 Set-Cookie HTTP 头作为响应的一部分，其中包含会话信息。
+
+1. 限制
+cookie 在性质上是绑定在特定的域名下的。当设定了一个 cookie 后，再给创建它的域名发送请求时，
+都会包含这个 cookie。这个限制确保了储存在 cookie 中的信息只能让批准的接受者访问，而无法被其他
+域访问。
+由于 cookie 是存在客户端计算机上的，还加入了一些限制确保 cookie 不会被恶意使用，同时不会占
+据太多磁盘空间。每个域的 cookie 总数是有限的，不过浏览器之间各有不同。如下所示。
+- IE6 以及更低版本限制每个域名最多 20 个 cookie。
+- IE7 和之后版本每个域名最多 50 个。 IE7 最初是支持每个域名最大 20 个 cookie，之后被微软的
+一个补丁所更新。
+- Firefox 限制每个域最多 50 个 cookie。
+- Opera 限制每个域最多 30 个 cookie。
+- Safari 和 Chrome 对于每个域的 cookie 数量限制没有硬性规定。
+当超过单个域名限制之后还要再设置 cookie，浏览器就会清除以前设置的 cookie。 IE 和 Opera 会删
+除最近最少使用过的（LRU， Least Recently Used） cookie，腾出空间给新设置的 cookie。 Firefox 看上去
+好像是随机决定要清除哪个 cookie，所以考虑 cookie 限制非常重要，以免出现不可预期的后果。
+浏览器中对于 cookie 的尺寸也有限制。大多数浏览器都有大约 4096B（加减 1）的长度限制。为了
+最佳的浏览器兼容性，最好将整个 cookie 长度限制在 4095B（含 4095）以内。尺寸限制影响到一个域
+下所有的 cookie，而并非每个 cookie 单独限制。
+如果你尝试创建超过最大尺寸限制的 cookie，那么该 cookie 会被悄无声息地丢掉。注意，虽然一个
+字符通常占用一字节，但是多字节情况则有不同。
+
+2. cookie的构成
+cookie 由浏览器保存的以下几块信息构成。
+- 名称：一个唯一确定 cookie 的名称。cookie 名称是不区分大小写的，所以 myCookie 和 MyCookie
+被认为是同一个 cookie。然而，实践中最好将 cookie 名称看作是区分大小写的，因为某些服务
+器会这样处理 cookie。 cookie 的名称必须是经过 URL 编码的。
+- 值：储存在 cookie 中的字符串值。值必须被 URL 编码。
+- 域： cookie 对于哪个域是有效的。所有向该域发送的请求中都会包含这个 cookie 信息。这个值
+可以包含子域（subdomain，如 www.wrox.com），也可以不包含它（如.wrox.com，则对于 wrox.com
+的所有子域都有效）。如果没有明确设定，那么这个域会被认作来自设置 cookie 的那个域。
+- 路径：对于指定域中的那个路径，应该向服务器发送 cookie。例如，你可以指定 cookie 只有从
+http://www.wrox.com/books/ 中才能访问，那么 http://www.wrox.com 的页面就不会发
+送 cookie 信息，即使请求都是来自同一个域的。
+- 失效时间：表示 cookie 何时应该被删除的时间戳（也就是，何时应该停止向服务器发送这个
+cookie）。默认情况下，浏览器会话结束时即将所有 cookie 删除；不过也可以自己设置删除时间。
+这个值是个 GMT 格式的日期（Wdy, DD-Mon-YYYY HH:MM:SS GMT），用于指定应该删除
+cookie 的准确时间。因此， cookie 可在浏览器关闭后依然保存在用户的机器上。如果你设置的失
+效日期是个以前的时间，则 cookie 会被立刻删除。
+- 安全标志：指定后， cookie 只有在使用 SSL 连接的时候才发送到服务器。例如， cookie 信息只
+能发送给 https://www.wrox.com，而 http://www.wrox.com 的请求则不能发送 cookie。
+
+3. JavaScript中的cookie
+在 JavaScript中处理 cookie有些复杂，因为其众所周知的蹩脚的接口，即 BOM的document. cookie
+属性。这个属性的独特之处在于它会因为使用它的方式不同而表现出不同的行为。当用来获取属性值时，
+document.cookie 返回当前页面可用的（根据 cookie 的域、路径、失效时间和安全设置）所有 cookie
+的字符串，一系列由分号隔开的名值对儿。
+
+所有名字和值都是经过 URL 编码的，所以必须使用 decodeURIComponent()来解码。
+当用于设置值的时候， document.cookie 属性可以设置为一个新的 cookie 字符串。这个 cookie 字
+符串会被解释并添加到现有的 cookie 集合中。设置 document.cookie 并不会覆盖 cookie，除非设置的
+cookie 的名称已经存在。设置 cookie 的格式如下，和 Set-Cookie 头中使用的格式一样。
+
+4. 子cookie
+为了绕开浏览器的单域名下的 cookie 数限制，一些开发人员使用了一种称为子 cookie（subcookie）
+的概念。子 cookie 是存放在单个 cookie 中的更小段的数据。也就是使用 cookie 值来存储多个名称值对
+儿。
+
+获取子 cookie 的方法有两个： get()和 getAll()。其中 get()获取单个子 cookie 的值， getAll()
+获取所有子 cookie 并将它们放入一个对象中返回，对象的属性为子 cookie 的名称，对应值为子 cookie
+对应的值。 get()方法接收两个参数： cookie 的名字和子 cookie 的名字。它其实就是调用 getAll()获
+取所有的子 cookie，然后只返回所需的那一个（如果 cookie 不存在则返回 null）。
+SubCookieUtil.getAll()方法和 CookieUtil.get()在解析 cookie 值的方式上非常相似。区别
+在于 cookie 的值并非立即解码，而是先根据&字符将子 cookie 分割出来放在一个数组中，每一个子 cookie
+再根据等于号分割，这样在 parts 数组中的前一部分便是子 cookie 名，后一部分则是子 cookie 的值。
+这两个项目都要使用 decodeURIComponent()来解码，然后放入 result 对象中，最后作为方法的返
+回值。如果 cookie 不存在，则返回 null。
+
+这里的 set()方法接收 7 个参数： cookie 名称、子 cookie 名称、子 cookie 值、可选的 cookie 失效
+日期或时间的 Date 对象、可选的 cookie 路径、可选的 cookie 域和可选的布尔 secure 标志。所有的可
+选参数都是作用于 cookie本身而非子 cookie。为了在同一个 cookie中存储多个子 cookie，路径、域和 secure
+标志必须一致；针对整个 cookie 的失效日期则可以在任何一个单独的子 cookie 写入的时候同时设置。
+
+而 setAll()方法接收 6 个参数： cookie 名称、包含所有子 cookie 的对象以及和 set()中一样的 4
+个可选参数。这个方法使用 for-in 循环遍历第二个参数中的属性。为了确保确实是要保存的数据，使
+用了 hasOwnProperty()方法，来确保只有实例属性被序列化到子 cookie 中。由于可能会存在属性名
+为空字符串的情况，所以在把属性名加入结果对象之前还要检查一下属性名的长度。将每个子 cookie
+的名值对儿都存入 subcookieParts 数组中，以便稍后可以使用 join()方法以&号组合起来。
+
+5. 关于cookie的思考
+还有一类 cookie 被称为“HTTP 专有 cookie”。 HTTP 专有 cookie 可以从浏览器或者服务器设置，但
+是只能从服务器端读取，因为 JavaScript 无法获取 HTTP 专有 cookie 的值。
+由于所有的 cookie 都会由浏览器作为请求头发送，所以在 cookie 中存储大量信息会影响到特定域的
+请求性能。 cookie 信息越大，完成对服务器请求的时间也就越长。尽管浏览器对 cookie 进行了大小限制，
+不过最好还是尽可能在 cookie 中少存储信息，以避免影响性能。
+cookie 的性质和它的局限使得其并不能作为存储大量信息的理想手段，所以又出现了其他方法。
+
+### IE用户数据
+在 IE5.0 中，微软通过一个自定义行为引入了持久化用户数据的概念。用户数据允许每个文档最多
+128KB 数据，每个域名最多 1MB 数据。要使用持久化用户数据，首先必须如下所示，使用 CSS 在某个
+元素上指定 userData 行为：
+```html
+<div style="behavior:url(#default#userData)" id="dataStore"></div>
+```
+### Web存储机制
+Web Storage 最早是在 Web 超文本应用技术工作组（WHAT-WG）的 Web 应用 1.0 规范中描述的。
+这个规范的最初的工作最终成为了 HTML5 的一部分。Web Storage 的目的是克服由 cookie 带来的一些限
+制，当数据需要被严格控制在客户端上时，无须持续地将数据发回服务器。 Web Storage 的两个主要目
+标是：
+- 提供一种在 cookie 之外存储会话数据的途径；
+- 提供一种存储大量可以跨会话存在的数据的机制。
+最初的 Web Storage 规范包含了两种对象的定义： sessionStorage 和 globalStorage。这两个
+对象在支持的浏览器中都是以 windows 对象属性的形式存在的，支持这两个属性的浏览器包括 IE8+、
+Firefox 3.5+、 Chrome 4+和 Opera 10.5+。
+
+1. Storage类型
+Storage 类型提供最大的存储空间（因浏览器而异）来存储名值对儿。 Storage 的实例与其他对
+象类似，有如下方法。
+- clear()： 删除所有值； Firefox 中没有实现 。
+- getItem(name)：根据指定的名字 name 获取对应的值。
+- key(index)：获得 index 位置处的值的名字。
+- removeItem(name)：删除由 name 指定的名值对儿。
+- setItem(name, value)：为指定的 name 设置一个对应的值。
+其中， getItem()、 removeItem()和 setItem()方法可以直接调用，也可通过 Storage 对象间
+接调用。因为每个项目都是作为属性存储在该对象上的，所以可以通过点语法或者方括号语法访问属性
+来读取值，设置也一样，或者通过 delete 操作符进行删除。不过，我们还建议读者使用方法而不是属
+性来访问数据，以免某个键会意外重写该对象上已经存在的成员。
+还可以使用 length 属性来判断有多少名值对儿存放在 Storage 对象中。但无法判断对象中所有
+数据的大小，不过 IE8 提供了一个 remainingSpace 属性，用于获取还可以使用的存储空间的字节数。
+
+2. sessionStorage对象
+sessionStorage 对象存储特定于某个会话的数据，也就是该数据只保持到浏览器关闭。这个对象
+就像会话 cookie，也会在浏览器关闭后消失。存储在 sessionStorage 中的数据可以跨越页面刷新而
+存在，同时如果浏览器支持，浏览器崩溃并重启之后依然可用（Firefox 和 WebKit 都支持， IE 则不行）。
+因为 seesionStorage 对象绑定于某个服务器会话，所以当文件在本地运行的时候是不可用的。存
+储在 sessionStorage 中的数据只能由最初给对象存储数据的页面访问到，所以对多页面应用有限制。
+由于 sessionStorage 对象其实是 Storage 的一个实例，所以可以使用 setItem()或者直接设
+置新的属性来存储数据。
+
+3. globalStorage对象
+Firefox 2 中实现了 globalStorage 对象。作为最初的 Web Storage 规范的一部分，这个对象的目
+的是跨越会话存储数据，但有特定的访问限制。要使用 globalStorage，首先要指定哪些域可以访问
+该数据。可以通过方括号标记使用属性来实现。
+
+4. localStorage对象
+localStorage 对象在修订过的 HTML 5 规范中作为持久保存客户端数据的方案取代了
+globalStorage。与 globalStorage 不同，不能给 localStorage 指定任何访问规则；规则事先就
+设定好了。要访问同一个 localStorage 对象，页面必须来自同一个域名（子域名无效），使用同一种
+协议，在同一个端口上。这相当于 globalStorage[location.host]。
+
+5. storage事件
+对 Storage 对象进行任何修改，都会在文档上触发 storage 事件。当通过属性或 setItem()方
+法保存数据，使用 delete 操作符或 removeItem()删除数据，或者调用 clear()方法时，都会发生该
+事件。这个事件的 event 对象有以下属性。
+- domain：发生变化的存储空间的域名。
+- key：设置或者删除的键名。
+- newValue：如果是设置值，则是新值；如果是删除键，则是 null。
+- oldValue：键被更改之前的值。
+在这四个属性中， IE8 和 Firefox 只实现了 domain 属性。
+
+6. 限制
+与其他客户端数据存储方案类似， Web Storage 同样也有限制。这些限制因浏览器而异。一般来说，
+对存储空间大小的限制都是以每个来源（协议、域和端口）为单位的。换句话说，每个来源都有固定大
+小的空间用于保存自己的数据。考虑到这个限制，就要注意分析和控制每个来源中有多少页面需要保存
+数据。
+
+### IndexedDB
+Indexed Database API，或者简称为 IndexedDB，是在浏览器中保存结构化数据的一种数据库。
+IndexedDB 是为了替代目前已被废弃的 Web SQL Database API（因为已废弃，所以本书未介绍）而出现
+的。 IndexedDB 的思想是创建一套 API，方便保存和读取 JavaScript 对象，同时还支持查询及搜索。
+IndexedDB 设计的操作完全是异步进行的。因此，大多数操作会以请求方式进行，但这些操作会在
+后期执行，然后如果成功则返回结果，如果失败则返回错误。差不多每一次 IndexedDB 操作，都需要你
+注册 onerror 或 onsuccess 事件处理程序，以确保适当地处理结果。
+在得到完整支持的情况下， IndexedDB 将是一个作为 API 宿主的全局对象。由于 API 仍然可能有
+变化，浏览器也都使用提供商前缀，因此这个对象在 IE10 中叫 msIndexedDB，在 Firefox 4 中叫
+mozIndexedDB，在 Chrome 中叫 webkitIndexedDB。
+
+1. 数据库
+IndexedDB 就是一个数据库，与 MySQL 或 Web SQL Database 等这些你以前可能用过的数据库类似。
+IndexedDB 最大的特色是使用对象保存数据，而不是使用表来保存数据。一个 IndexedDB 数据库，就是
+一组位于相同命名空间下的对象的集合。
+使用 IndexedDB 的第一步是打开它，即把要打开的数据库名传给 indexDB.open()。如果传入的
+数据库已经存在，就会发送一个打开它的请求；如果传入的数据库还不存在，就会发送一个创建并打开
+它的请求。总之，调用 indexDB.open()会返回一个 IDBRequest 对象，在这个对象上可以添加 onerror
+和 onsuccess 事件处理程序。
+
+以下就是可能的错误码（这个错误码适合所有操作）。
+- IDBDatabaseException.UNKNOWN_ERR(1)：意外错误，无法归类。
+- IDBDatabaseException.NON_TRANSIENT_ERR(2)：操作不合法。
+- IDBDatabaseException.NOT_FOUND_ERR(3)：未发现要操作的数据库。
+- IDBDatabaseException.CONSTRAINT_ERR(4)：违反了数据库约束。
+- IDBDatabaseException.DATA_ERR(5)：提供给事务的数据不能满足要求。
+- IDBDatabaseException.NOT_ALLOWED_ERR(6)：操作不合法。
+- IDBDatabaseException.TRANSACTION_INACTIVE_ERR(7)：试图重用已完成的事务。
+- IDBDatabaseException.ABORT_ERR(8)：请求中断，未成功。
+- IDBDatabaseException.READ_ONLY_ERR(9)：试图在只读模式下写入或修改数据。
+- IDBDatabaseException.TIMEOUT_ERR(10)：在有效时间内未完成操作。
+- IDBDatabaseException.QUOTA_ERR(11)：磁盘空间不足。
+
+2. 对象存储空间
+在建立了与数据库的连接之后，下一步就是使用对象存储空间①。如果数据库的版本与你传入的版
+本不匹配，那可能就需要创建一个新的对象存储空间。在创建对象存储空间之前，必须要想清楚你想要
+保存什么数据类型。
+
+3. 事务
+跨过创建对象存储空间这一步之后，接下来的所有操作都是通过事务来完成的。在数据库对象上调
+用 transaction()方法可以创建事务。任何时候，只要想读取或修改数据，都要通过事务来组织所有
+操作。在最简单的情况下，可以像下面这样创建事务。
+```javascript
+var transaction = db.transaction();
+```
+
+4.使用游标查询
+使用事务可以直接通过已知的键检索单个对象。而在需要检索多个对象的情况下，则需要在事务内
+部创建游标。游标就是一指向结果集的指针。与传统数据库查询不同，游标并不提前收集结果。游标指
+针会先指向结果中的第一项，在接到查找下一项的指令时，才会指向下一项。
+在对象存储空间上调用 openCursor()方法可以创建游标。与 IndexedDB 中的其他操作一样，
+openCursor()方法返回的是一个请求对象，因此必须为该对象指定 onsuccess 和 onerror 事件处理
+程序。
+
+5. 键范围
+使用游标总让人觉得不那么理想，因为通过游标查找数据的方式太有限了。键范围（key range）为
+使用游标增添了一些灵活性。键范围由 IDBKeyRange 的实例表示。支持标准 IDBKeyRange 类型的浏
+览器有 IE10+和 Firefox 4+， Chrome 中的名字叫 webkitIDBKeyRange。与使用 IndexedDB 中的其他类
+型一样，你最好先声明一个本地的类型，同时要考虑到不同浏览器中的差异。
+
+6. 设定游标方向
+实际上， openCursor()可以接收两个参数。第一个参数就是刚刚看到的 IDBKeyRange 的实例，
+第二个是表示方向的数值常量。作为第二个参数的常量是前面讲查询时介绍的 IDBCursor 中的常量。
+
+7. 索引
+对于某些数据，可能需要为一个对象存储空间指定多个键。
+
+8. 并发问题
+虽然网页中的 IndexedDB 提供的是异步 API，但仍然存在并发操作的问题。如果浏览器的两个不同
+的标签页打开了同一个页面，那么一个页面试图更新另一个页面尚未准备就绪的数据库的问题就有可能
+发生。把数据库设置为新版本有可能导致这个问题。因此，只有当浏览器中仅有一个标签页使用数据库
+的情况下，调用 setVersion()才能完成操作。
+刚打开数据库时，要记着指定 onversionchange 事件处理程序。当同一个来源的另一个标签页调
+用 setVersion()时，就会执行这个回调函数。处理这个事件的最佳方式是立即关闭数据库，从而保证
+版本更新顺利完成。
+
+9. 限制
+对 IndexedDB 的限制很多都与对 Web Storage 的类似。首先， IndexedDB 数据库只能由同源（相同
+协议、域名和端口）页面操作，因此不能跨域共享信息。换句话说， www.wrox.com 与 p2p.wrox.com
+的数据库是完全独立的。
+其次，每个来源的数据库占用的磁盘空间也有限制。 Firefox 4+目前的上限是每个源 50MB，而
+Chrome 的限制是 5MB。移动设备上的 Firefox 最多允许保存 5MB，如果超过了这个配额，将会请求
+用户的许可。
+Firefox 还有另外一个限制，即不允许本地文件访问 IndexedDB。 Chrome 没有这个限制。如果你在
+本地运行本书的示例，请使用 Chrome。
 
 ---
 # 最佳实践
