@@ -5103,7 +5103,7 @@ strokeRect()和 clearRect()。这三个方法都能接收 4 个参数：矩形�
 宽度和矩形高度。这些参数的单位都是像素。
 首先， fillRect()方法在画布上绘制的矩形会填充指定的颜色。填充的颜色通过 fillStyle 属
 性指定。
-```
+```javascript
 var drawing = document.getElementById("drawing");
 //确定浏览器支持<canvas>元素
 if (drawing.getContext){
@@ -5120,7 +5120,25 @@ context.fillStyle = "rgba(0,0,255,0.5)";
 context.fillRect(30, 30, 50, 50);
 }
 ```
-
+strokeRect()方法在画布上绘制的矩形会使用指定的颜色描边。描边颜色通
+过 strokeStyle 属性指定。
+```javascript
+var drawing = document.getElementById("drawing");
+//确定浏览器支持<canvas>元素
+if (drawing.getContext){
+var context = drawing.getContext("2d");
+/*
+* 根据 Mozilla 的文档
+* http://developer.mozilla.org/en/docs/Canvas_tutorial:Basic_usage
+*/
+//绘制红色描边矩形
+context.strokeStyle = "#ff0000";
+context.strokeRect(10, 10, 50, 50);
+//绘制半透明的蓝色描边矩形
+context.strokeStyle = "rgba(0,0,255,0.5)";
+context.strokeRect(30, 30, 50, 50);
+}
+```
 ### 绘制路径
 2D 绘制上下文支持很多在画布上绘制路径的方法。通过路径可以创造出复
 杂的形状和线条。要绘制路径，首先必须调用 beginPath()方法，表示要开始
@@ -5142,8 +5160,29 @@ height 指定。这个方法绘制的是矩形路径，而不是 strokeRect()和
 立的形状。
 创建了路径后，接下来有几种可能的选择。如果想绘制一条连接到路径起点的线条，可以调用
 closePath()。如果路径已经完成，你想用 fillStyle 填充它，可以调用 fill()方法。另外，还可
-以调用 stroke()方法对路径描边，描边使用的是 strokeStyle。最后还可以调用 clip()，这个方法
-可以在路径上创建一个剪切区域。
+以调用 stroke()方法对路径描边，描边使用的是 strokeStyle。
+```javascript
+var drawing = document.getElementById("drawing");
+//确定浏览器支持<canvas>元素
+if (drawing.getContext){
+var context = drawing.getContext("2d");
+//开始路径
+context.beginPath();
+//绘制外圆
+context.arc(100, 100, 99, 0, 2 * Math.PI, false);
+//绘制内圆
+context.moveTo(194, 100);
+context.arc(100, 100, 94, 0, 2 * Math.PI, false);
+//绘制分针
+context.moveTo(100, 100);
+context.lineTo(100, 15);
+//绘制时针
+context.moveTo(100, 100);
+context.lineTo(35, 100);
+//描边路径
+context.stroke();
+}
+```
 
 ### 绘制文本
 文本与图形总是如影随形。为此， 2D 绘图上下文也提供了绘制文本的方法。绘制文本主要有两个
@@ -5158,6 +5197,35 @@ closePath()。如果路径已经完成，你想用 fillStyle 填充它，可以�
 这几个属性都有默认值，因此没有必要每次使用它们都重新设置一遍值。 fillText()方法使用
 fillStyle 属性绘制文本，而 strokeText()方法使用 strokeStyle 属性为文本描边。相对来说，还
 是使用 fillText()的时候更多，因为该方法模仿了在网页中正常显示文本。
+
+因为这里把 textAlign 设置为"center"，把 textBaseline 设置为"middle"，所以坐标(100,20)
+表示的是文本水平和垂直中点的坐标。如果将 textAlign 设置为"start"，则 x 坐标表示的是文本左
+端的位置（从左到右阅读的语言）；设置为"end"，则 x 坐标表示的是文本右端的位置（从左到右阅读的
+语言）。
+```javascript
+//正常
+context.font = "bold 14px Arial";
+context.textAlign = "center";
+context.textBaseline = "middle";
+context.fillText("12", 100, 20);
+//起点对齐
+context.textAlign = "start";
+context.fillText("12", 100, 40);
+//终点对齐
+context.textAlign = "end";
+context.fillText("12", 100, 60);
+```
+
+表盘中的分针恰好位于正中间，因此文本的水平对齐方式如何变化也能够一目了然。类似地，修改
+textBaseline 属性的值可以调整文本的垂直对齐方式：值为"top"， y 坐标表示文本顶端；值为
+"bottom"， y 坐标表示文本底端；值为"hanging"、 "alphabetic"和"ideographic"，则 y 坐标分
+别指向字体的特定基线坐标。
+由于绘制文本比较复杂，特别是需要把文本控制在某一区域中的时候， 2D 上下文提供了辅助确定
+文本大小的方法 measureText()。这个方法接收一个参数，即要绘制的文本；返回一个 TextMetrics
+对象。返回的对象目前只有一个 width 属性，但将来还会增加更多度量属性。
+measureText()方法利用 font、 textAlign 和 textBaseline 的当前值计算指定文本的大小。
+比如，假设你想在一个 140 像素宽的矩形区域中绘制文本 Hello world!，下面的代码从 100 像素的字体
+大小开始递减，最终会找到合适的字体大小。
 
 ### 变换
 通过上下文的变换，可以把处理后的图像绘制到画布上。 2D 绘制上下文支持各种基本的绘制变换。
