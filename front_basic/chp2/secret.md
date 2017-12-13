@@ -65,10 +65,37 @@ background-color: rebeccapurple;
 Stylus（http://stylus-lang.com/）、 Sass（http://sasslang.com/） 或 LESS（http://lesscss.org/） 这样的 CSS 预处理器。
 如果使用得当，它们在大型项目中可以让代码更加灵活。
 - CSS的文件体积和复杂度可能会失控
+- 调试难度会增加
+- 预处理器在开发过程中引入了一定程度的延时
+- 每次抽象都必然带来更高的学习成本
+- 抽象泄漏法则：所有重大的抽象机制在某种程度上都存在泄漏的情况
+
+很多预处理器的特性都以各种方式融入到原生的CSS中
+- CSS自定义属性暨层叠式变量（http://w3.org/TR/css-variables-1）
+- CSS值与单位中的calc()函数，不仅在处理运算时非常强大，而且已经得到了广泛的支持。
+- CSS颜色(http://dev.w3.org/csswg/css-color)引入的color()函数会提供颜色运算方法。
+
 # 背景和边框
+## 半透明边框
+背景会默认占据边框的范围。
+background-clip初始值为border-box，意味着背景会被元素的border box裁切掉。如果不希望背景侵入边框所在的范围，我们要做的就是把它的值设为padding-box
+
+## 多重边框
+box-shadow支持逗号分隔语法，可以创建任意数量的投影。
+
 # 形状
+
+
 # 视觉效果
+
+
 # 字体排版
+
+
 # 用户体验
+
+
 # 结构与布局
+
+
 # 过渡与动画
