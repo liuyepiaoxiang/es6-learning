@@ -74,8 +74,68 @@ console.log( obj1.getName.call( obj2 ) );  // 输出：anne
 ```
 
 #### call和apply
-Function.prototype.call或Function.prototype.apply都是非常常用的方法。
+Function.prototype.call或Function.prototype.apply都是非常常用的方法。它们的作用一模一样，区别在于传入参数形式的不同。
 
+apply接受两个参数，第一个参数指定了函数体内this对象的指向，第二个参数与为一个袋下标的集合，这个集合可以为数组，也可以为类数组。
+
+call传入的参数数量不固定，跟apply相同的是，第一个参数也是代表函数体内的this的指向，从第二个参数开始往后，每个参数依次传入函数。
+
+call是包装在apply上面的一颗语法糖。
+
+当使用call或者apply的时候，如果我们传入的第一个参数为null，函数体内的this会指向默认的宿主对象，在浏览器中则是window。
+但如果是在严格模式下，函数体内的this还是为null。
+```javascript
+var func = function(a,b,c) {
+  alert( this === window); // 输出true
+};
+func.apply(null, [1,2,3]);
+```
+
+##### 用途
+1. 改变this指向
+```javascript
+var obj1 = {
+  name: 'sven'
+};
+var obj2 = {
+  name: 'luna'
+};
+ window.name = 'window';
+ 
+var getName = function() {
+  alert(this.name);
+};
+ getName();
+ getName.call(obj1);
+ getName.call(obj2);
+```
+
+2. Function.prototype.bind
+大部分高级浏览器都实现了内置的Function.prototype.bind，用来指定函数内部的this指向，即使没有原生的Function.prototype.bind实现，我们来模拟一个：
+```javascript
+Function.prototype.bind = function(context) {
+  var self = this;  // 保存原函数
+  return function() {  // 返回一个新的函数
+    return self.apply(context, arguments); // 执行新的函数的时候，会把之前传入的context当做新函数体内的this
+  }
+}
+```
+复杂版：
+```javascript
+Function.prototype.bind = function() {
+  var self = this,  // 保存原函数
+      context = [].shift.call(arguments), // 需要绑定的this上下文
+      args = [].slice.call(arguments);  //  剩余参数转成数组
+  return function() {  // 返回一个新的函数
+    return self.apply(context, [].concat.call(args, [].slice.call( arguments)));
+    // 执行新的函数的时候，会把之前传入的context当做新函数体内的this并且组合两次分别传入的参数，作为新函数的参数
+  }
+}
+```
+
+3. 借用其他对象的方法
+- “借用构造函数”
+- 
 
 #### 闭包
 
