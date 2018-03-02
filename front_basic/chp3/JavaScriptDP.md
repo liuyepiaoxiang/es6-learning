@@ -135,15 +135,199 @@ Function.prototype.bind = function() {
 
 3. 借用其他对象的方法
 - “借用构造函数”
-- 
+- 函数参数列表arguments的数组化
 
 #### 闭包
+##### 变量的作用域
+##### 变量的生存周期
+闭包
+```javascript
+var func = function() {
+  var a = 1;
+  return function() {
+    a++;
+    alert(a);
+  }
+}
+
+var f = func();
+f(); // 输出:2
+f(); // 输出:3
+f(); // 输出:4
+f(); // 输出:5
+```
+
+##### 闭包的作用
+1.封装变量
+
+2.延续局部变量的寿命
+
+##### 闭包和面向对象设计
 
 #### 高阶函数
+高阶函数的指至少满足下列条件之一的函数。
+- 函数可以作为参数被传递；
+- 函数可以作为返回值输出。
+
+##### 函数作为参数传递
+1. 回调函数
+2. Array.prototype.sort
+
+##### 函数作为返回值输出
+1. 判断数据的类型
+```javascript
+var Type = {};
+
+for (var i = 0, type; type = ['String', 'Array', 'Number'][i++];) {
+  (function(type) {
+    Type['is' + type ] = function(obj) {
+      return Object.prototype.toString.call(obj) === '[Object ' + type + ']';
+    }
+  })(type)
+};
+Type.isArray([]); // 输出：true
+```
+
+2. getSingle
+单例模式
+```javascript
+var getSingle = function(fn) {
+  var ret;
+  return function() {
+    return ret || (ret = fn.apply(this, arguments));
+  };
+};
+```
+##### 高阶函数实现AOP
+AOP（面向切面编程）的主要作用是把一些跟核心业务逻辑模块无关的功能抽离出来，这些跟业务逻辑无关功能通畅包括日志统计、安全控制、异常处理等。
+```javascript
+Function.prototype.before = function(beforeFn) {
+  var _self = this;
+  return function() {
+    beforeFn.apply(this,  arguments);
+    return _self.apply(this,  arguments);
+  }
+};
+
+Function.prototype.after = function(afterFn) {
+  var _self = this;
+  return function() {
+    var ret = _self.apply(this,  arguments);
+    afterFn.apply(this,  arguments);
+    return ret;
+  }
+};
+
+var func = function() {
+  console.log(2);
+};
+
+func = func.before(function() {
+  console.log(1);
+}).after(function() {
+  console.log(3);
+});
+
+func();
+```
+
+##### 高阶函数的其他应用
+1. currying
+函数柯里化，部分求值
+
+2. uncurrying
+```javascript
+Function.prototype.uncurring = function() {
+  var self = this;
+  return function() {
+    var obj = Array.prototype.shift.call(arguments);
+    return self.apply(obj, arguments);
+  };
+};
+```
+3. 函数节流
+
+4. 分时函数
+
+5. 惰性加载函数
+
 
 ## 设计模式
 
 ### 单例模式
+单例模式的定义是：保证一个类仅有一个实例，并提供一个访问它的全局访问点。
+
+#### 实现单例模式
+```javascript
+var Singleton = function(name) {
+  this.name = name;
+  this.instance = null; 
+};
+
+Singleton.prototype.getName = function() {
+  alert(this.name);
+};
+
+Singleton.getInstance = function(name) {
+  if (!this.instance) {
+    this.instance = new Singleton(name);
+  }
+  return this.instance;
+} 
+```
+#### 透明的单例模式
+```javascript
+var CreateDiv = (function() {
+  var instance;
+  
+  var CreateDiv = function(html) {
+    if (instance) {
+      return instance;
+    }
+    this.html = html;
+    this.init();
+    return instance = this;
+  };
+  
+  CreateDiv.prototype.init = function() {
+    var div = document.createElement('div');
+    div.innerHTML = this.html;
+    document.body.appendChild(div);
+  };
+  
+  return CreateDiv;
+})();
+```
+#### 用代理实现单例模式
+```javascript
+var CreateDiv = function(html) {
+  this.html = html;
+  this.init();
+};
+
+CreateDiv.prototype.init = function() {
+  var div = document.createElement('div');
+      div.innerHTML = this.html;
+      document.body.appendChild(div);
+};
+
+var ProxySingletonCreateDiv = (function() {
+  var instance;
+  return function(html) {
+    if (!instance) {
+      instance = new CreateDiv(html);
+    }
+    return instance;
+  }
+})();
+```
+
+#### JavaScript中的单例模式
+1. 使用命名空间
+
+2. 使用闭包封装私有变量
+
+#### 惰性单例
 
 ### 策略模式
 ### 代理模式
