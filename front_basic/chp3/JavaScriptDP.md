@@ -3,6 +3,26 @@
 # JavaScript设计模式与开发实践
 
 ## 基础知识
+
+### 数据类型
+#### 基本数据类型
+- Number
+
+- String
+- Boolean
+
+#### 复合类型
+- Array
+- Function
+
+#### 特殊值
+- null
+- undefined
+
+#### 内置特殊对象
+- Date对象
+- Error对象
+- ReExp对象
 ### 面向对象
 #### 动态类型语言和鸭子类型
 
