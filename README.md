@@ -9,7 +9,7 @@ This may be not contain just about ECMAScript 2016 learning，it may contaion ab
 包括JS测试、JSDoc、自动化等相关主题
 
 
-# [FRONT_BASIC](front_basic/README.md)
+# [FRONT_BASIC](front/README.md)
 包括HTML、CSS、JS基础，以及jQuery及其插件相关
 
 # [TypeScript](typescript/README.md)
