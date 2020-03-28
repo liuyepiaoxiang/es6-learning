@@ -2,7 +2,9 @@
 # [第一章：学习的方法](chp1/READMD.md)
 # [第二章：思考的方法](chp2/READMD.md)
 # [第三章：基本的原则](chp3/READMD.md)
-# [第四章：目标管理](chp4/READMD.md)
-# [第五章：成功的方法](chp5/READMD.md)
-# [第六章：最基本的思考](chp5/READMD.md)
+# [第四章：管理](chp4/READMD.md)
+# [第五章：方法论](chp5/READMD.md)
+# [第六章：最基本的思考](chp6/READMD.md)
+# [第七章：通用能力](chp7/READMD.md)
+# [第八章：基本问题](chp8/READMD.md)
 
