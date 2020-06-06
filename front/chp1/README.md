@@ -449,4 +449,8 @@ getContext() 方法可返回一个对象，该对象提供了用于在画布上�
 2 | restore() | 返回之前保存过的路径状态和属性 | [内链](event/onwaiting.md),[外链](http://www.w3school.com.cn/tags/html_ref_colornames.asp)
 3 | createEvent() |  | [内链](event/onwaiting.md),[外链](http://www.w3school.com.cn/tags/html_ref_colornames.asp)	 
 4 | getContext() |  | [内链](event/onwaiting.md),[外链](http://www.w3school.com.cn/tags/html_ref_colornames.asp)	 
-5 | toDataURL() |  | [内链](event/onwaiting.md),[外链](http://www.w3school.com.cn/tags/html_ref_colornames.asp) 
+5 | toDataURL() |  | [内链](event/onwaiting.md),[外链](http://www.w3school.com.cn/tags/html_ref_colornames.asp)
+
+# 参考文献
+1. [MDN](https://developer.mozilla.org/zh-CN/docs/Web/HTML)
+2. [MDN WEB Docs](developer.mozilla.org/zh-CN/docs/Learn/Getting_started_with_the_web/HTML_basics)
